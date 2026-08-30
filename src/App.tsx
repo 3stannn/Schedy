@@ -21,7 +21,8 @@ import {
   updateEvent, 
   deleteEvent, 
   bulkSaveEvents,
-  expandRecurringEvents 
+  expandRecurringEvents,
+  subscribeToRealtimeUserSchedules
 } from './services/scheduleService';
 import { 
   fetchAllAnnouncements, 
@@ -33,7 +34,7 @@ import {
   subscribeToRealtimeAnnouncements
 } from './services/announcementService';
 
-import { isSupabaseConfigured, testSupabaseConnection } from './services/supabaseClient';
+import { isUserSupabaseConfigured, testUserSupabaseConnection } from './services/supabaseClient';
 import { Calendar, List, Megaphone, BarChart3 } from 'lucide-react';
 import { startOfMonth, endOfMonth, addMonths, subMonths } from 'date-fns';
 
@@ -122,8 +123,8 @@ export function App() {
       setEvents(fetchedEvents);
       setAnnouncements(fetchedAnnos);
 
-      if (isSupabaseConfigured()) {
-        const check = await testSupabaseConnection();
+      if (isUserSupabaseConfigured()) {
+        const check = await testUserSupabaseConnection();
         setIsCloudConnected(check.success);
       } else {
         setIsCloudConnected(false);
@@ -140,12 +141,10 @@ export function App() {
     loadData();
   }, [loadData]);
 
-  // Realtime Subscriptions for Universal Announcements
+  // Realtime Subscriptions for Universal Announcements (App Owner Broadcasts)
   useEffect(() => {
-    if (!isCloudConnected) return;
-
     const unsubAnno = subscribeToRealtimeAnnouncements((payload) => {
-      loadData();
+      fetchAllAnnouncements().then(setAnnouncements);
       if (payload.eventType === 'INSERT') {
         const newRecord = payload.new;
         addToast(
@@ -159,7 +158,20 @@ export function App() {
     return () => {
       unsubAnno();
     };
-  }, [isCloudConnected, loadData, addToast]);
+  }, [addToast]);
+
+  // Realtime Subscriptions for User Team Calendar Database (if connected by user)
+  useEffect(() => {
+    if (!isCloudConnected) return;
+
+    const unsubSched = subscribeToRealtimeUserSchedules(() => {
+      fetchAllEvents().then(setEvents);
+    });
+
+    return () => {
+      unsubSched();
+    };
+  }, [isCloudConnected]);
 
   // Event Handlers
   const handleSaveEvent = async (eventData: any) => {

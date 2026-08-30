@@ -1,10 +1,71 @@
-import type { ScheduleEvent } from '../types/schedule';
+import type { ScheduleEvent, RecurrenceRule } from '../types/schedule';
+import { getUserSupabaseClient, isUserSupabaseConfigured } from './supabaseClient';
 import { loadLocalEvents, saveLocalEvents } from './storageService';
+import type { DatabaseScheduleRow } from '../types/database';
 import { format, parseISO, addDays, addWeeks, addMonths, addYears, isBefore, isAfter } from 'date-fns';
 
+const isUUID = (str?: string): boolean =>
+  typeof str === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
 
+function mapRowToEvent(row: DatabaseScheduleRow): ScheduleEvent {
+  return {
+    id: row.id,
+    title: row.title,
+    description: row.description || '',
+    startTime: row.start_time,
+    endTime: row.end_time,
+    isAllDay: row.is_all_day,
+    category: (row.category || 'general') as any,
+    priority: (row.priority || 'medium') as any,
+    status: (row.status || 'pending') as any,
+    location: row.location || '',
+    meetingUrl: row.meeting_url || '',
+    recurrenceRule: (row.recurrence_rule || 'none') as RecurrenceRule,
+    createdBy: row.created_by,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+function mapEventToRow(event: ScheduleEvent): Partial<DatabaseScheduleRow> {
+  return {
+    id: event.id,
+    title: event.title,
+    description: event.description,
+    start_time: event.startTime,
+    end_time: event.endTime,
+    is_all_day: event.isAllDay,
+    category: event.category,
+    priority: event.priority,
+    status: event.status,
+    location: event.location,
+    meeting_url: event.meetingUrl,
+    recurrence_rule: event.recurrenceRule,
+    created_by: event.createdBy || 'User',
+    updated_at: new Date().toISOString(),
+  };
+}
 
 export async function fetchAllEvents(): Promise<ScheduleEvent[]> {
+  const supabase = getUserSupabaseClient();
+  if (supabase && isUserSupabaseConfigured()) {
+    try {
+      const { data, error } = await supabase
+        .from('schedules')
+        .select('*')
+        .order('start_time', { ascending: true });
+
+      if (!error && data) {
+        const events = data.map(mapRowToEvent);
+        saveLocalEvents(events);
+        return events;
+      }
+      console.warn('User Supabase fetch failed, falling back to local:', error?.message);
+    } catch (err) {
+      console.warn('User Supabase error:', err);
+    }
+  }
+
   return loadLocalEvents();
 }
 
@@ -24,6 +85,27 @@ export async function bulkSaveEvents(
   }
 
   saveLocalEvents(finalEvents);
+
+  const supabase = getUserSupabaseClient();
+  if (supabase && isUserSupabaseConfigured()) {
+    try {
+      const targetEvents = mode === 'replace' ? finalEvents : eventsList;
+      const rows = targetEvents.map(evt => {
+        const row = mapEventToRow(evt);
+        if (!isUUID(evt.id)) {
+          delete row.id;
+        }
+        return row;
+      });
+
+      if (rows.length > 0) {
+        await supabase.from('schedules').upsert(rows);
+      }
+    } catch (err) {
+      console.warn('User Supabase bulk save error:', err);
+    }
+  }
+
   return finalEvents;
 }
 
@@ -34,6 +116,43 @@ export async function createEvent(eventData: Omit<ScheduleEvent, 'id' | 'created
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
+
+  const supabase = getUserSupabaseClient();
+  if (supabase && isUserSupabaseConfigured()) {
+    try {
+      const row = mapEventToRow(newEvent);
+      const { data, error } = await supabase
+        .from('schedules')
+        .insert([
+          {
+            title: row.title,
+            description: row.description,
+            start_time: row.start_time,
+            end_time: row.end_time,
+            is_all_day: row.is_all_day,
+            category: row.category,
+            priority: row.priority,
+            status: row.status,
+            location: row.location,
+            meeting_url: row.meeting_url,
+            recurrence_rule: row.recurrence_rule,
+            created_by: row.created_by,
+          }
+        ])
+        .select()
+        .single();
+
+      if (!error && data) {
+        const created = mapRowToEvent(data);
+        const local = loadLocalEvents();
+        saveLocalEvents([created, ...local]);
+        return created;
+      }
+      console.warn('User Supabase insert failed, saving locally:', error?.message);
+    } catch (err) {
+      console.warn('User Supabase insert error:', err);
+    }
+  }
 
   const local = loadLocalEvents();
   const updated = [newEvent, ...local];
@@ -47,6 +166,28 @@ export async function updateEvent(event: ScheduleEvent): Promise<ScheduleEvent> 
     updatedAt: new Date().toISOString(),
   };
 
+  const supabase = getUserSupabaseClient();
+  if (supabase && isUserSupabaseConfigured() && isUUID(event.id)) {
+    try {
+      const row = mapEventToRow(updatedEvent);
+      const { data, error } = await supabase
+        .from('schedules')
+        .update(row)
+        .eq('id', event.id)
+        .select()
+        .single();
+
+      if (!error && data) {
+        const saved = mapRowToEvent(data);
+        const local = loadLocalEvents();
+        saveLocalEvents(local.map(e => (e.id === event.id ? saved : e)));
+        return saved;
+      }
+    } catch (err) {
+      console.warn('User Supabase update error:', err);
+    }
+  }
+
   const local = loadLocalEvents();
   const updatedList = local.map(e => (e.id === event.id ? updatedEvent : e));
   saveLocalEvents(updatedList);
@@ -54,10 +195,37 @@ export async function updateEvent(event: ScheduleEvent): Promise<ScheduleEvent> 
 }
 
 export async function deleteEvent(id: string): Promise<boolean> {
+  const supabase = getUserSupabaseClient();
+  if (supabase && isUserSupabaseConfigured() && isUUID(id)) {
+    try {
+      await supabase.from('schedules').delete().eq('id', id);
+    } catch (err) {
+      console.warn('User Supabase delete error:', err);
+    }
+  }
+
   const local = loadLocalEvents();
   const updatedList = local.filter(e => e.id !== id);
   saveLocalEvents(updatedList);
   return true;
+}
+
+export function subscribeToRealtimeUserSchedules(onUpdate: (payload: any) => void): () => void {
+  const supabase = getUserSupabaseClient();
+  if (!supabase || !isUserSupabaseConfigured()) {
+    return () => {};
+  }
+
+  const channel = supabase
+    .channel('public:user_schedules')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'schedules' }, payload => {
+      onUpdate(payload);
+    })
+    .subscribe();
+
+  return () => {
+    supabase.removeChannel(channel);
+  };
 }
 
 /**

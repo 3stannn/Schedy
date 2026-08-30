@@ -69,43 +69,38 @@ export const DatabaseConfigModal: React.FC<DatabaseConfigModalProps> = ({
     onConfigSaved();
   };
 
-  const sqlCode = `-- Schedy Universal Announcement Database Schema
-CREATE TABLE IF NOT EXISTS public.announcements (
+  const sqlCode = `-- Schedy Team Calendar Sync Database Schema
+-- Run this in your Supabase SQL Editor to enable shared calendar syncing
+
+CREATE TABLE IF NOT EXISTS public.schedules (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     title TEXT NOT NULL,
-    content TEXT NOT NULL,
-    priority TEXT DEFAULT 'general',
+    description TEXT DEFAULT '',
+    start_time TIMESTAMPTZ NOT NULL,
+    end_time TIMESTAMPTZ NOT NULL,
+    is_all_day BOOLEAN DEFAULT false,
     category TEXT DEFAULT 'general',
-    is_pinned BOOLEAN DEFAULT false,
-    expires_at TIMESTAMPTZ,
-    author_name TEXT DEFAULT 'Admin',
+    priority TEXT DEFAULT 'medium',
+    status TEXT DEFAULT 'pending',
+    location TEXT DEFAULT '',
+    meeting_url TEXT DEFAULT '',
+    recurrence_rule TEXT DEFAULT 'none',
+    created_by TEXT DEFAULT 'User',
     created_at TIMESTAMPTZ DEFAULT now(),
     updated_at TIMESTAMPTZ DEFAULT now()
 );
 
-CREATE TABLE IF NOT EXISTS public.announcement_reads (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    announcement_id UUID REFERENCES public.announcements(id) ON DELETE CASCADE,
-    user_id TEXT NOT NULL,
-    read_at TIMESTAMPTZ DEFAULT now(),
-    UNIQUE(announcement_id, user_id)
-);
+-- Enable Row Level Security (RLS)
+ALTER TABLE public.schedules ENABLE ROW LEVEL SECURITY;
 
-ALTER TABLE public.announcements ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.announcement_reads ENABLE ROW LEVEL SECURITY;
+-- Allow read/write access for everyone with your project's Anon API key
+CREATE POLICY "Allow public read schedules" ON public.schedules FOR SELECT USING (true);
+CREATE POLICY "Allow public insert schedules" ON public.schedules FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow public update schedules" ON public.schedules FOR UPDATE USING (true);
+CREATE POLICY "Allow public delete schedules" ON public.schedules FOR DELETE USING (true);
 
-CREATE POLICY "Allow public read announcements" ON public.announcements FOR SELECT USING (true);
-CREATE POLICY "Allow public insert announcements" ON public.announcements FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow public update announcements" ON public.announcements FOR UPDATE USING (true);
-CREATE POLICY "Allow public delete announcements" ON public.announcements FOR DELETE USING (true);
-
-CREATE POLICY "Allow public read reads" ON public.announcement_reads FOR SELECT USING (true);
-CREATE POLICY "Allow public insert reads" ON public.announcement_reads FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow public update reads" ON public.announcement_reads FOR UPDATE USING (true);
-CREATE POLICY "Allow public delete reads" ON public.announcement_reads FOR DELETE USING (true);
-
-ALTER PUBLICATION supabase_realtime ADD TABLE public.announcements;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.announcement_reads;`;
+-- Enable Realtime Live Sync for Instant Calendar Updates
+ALTER PUBLICATION supabase_realtime ADD TABLE public.schedules;`;
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(sqlCode);
@@ -123,8 +118,8 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.announcement_reads;`;
             handleDisconnect();
             setShowDisconnectConfirm(false);
           }}
-          title="Disconnect Database"
-          message="Switch back to local browser storage? Your offline data will remain on this machine."
+          title="Disconnect Calendar Database"
+          message="Switch back to local storage? Your events will remain saved locally on this browser."
           confirmText="Disconnect"
           isDanger={true}
         />
@@ -136,11 +131,11 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.announcement_reads;`;
           {/* Header */}
           <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 border-b border-neutral-100 dark:border-neutral-800/80 text-xs">
             <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+              <div className="w-7 h-7 rounded-xl bg-[#2383e2]/10 text-[#2383e2] flex items-center justify-center">
                 <Server className="w-4 h-4 shrink-0" />
               </div>
               <span className="font-bold text-sm text-[#1c1917] dark:text-white">
-                Database & Cloud Sync Setup
+                Team Calendar Database & Cloud Sync
               </span>
             </div>
             <div className="flex items-center gap-2">
@@ -198,11 +193,11 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.announcement_reads;`;
           {/* Tab 1: Config */}
           {activeTab === 'config' && (
             <div className="space-y-4">
-              <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/60 text-xs text-slate-600 dark:text-slate-300">
-                <p className="font-semibold text-slate-900 dark:text-white mb-1">
-                  Zero Hosting Costs
+              <div className="p-3.5 rounded-2xl bg-blue-50/70 dark:bg-blue-950/30 border border-blue-200/80 dark:border-blue-800/50 text-xs text-neutral-700 dark:text-neutral-300">
+                <p className="font-semibold text-neutral-900 dark:text-white mb-1">
+                  Real-time Calendar Sync with Team & Devices
                 </p>
-                Supabase offers a perpetual free tier with a complete PostgreSQL database, REST API, and WebSockets. If not configured, the app seamlessly runs in <strong>Local Storage Mode</strong>.
+                Connect your own free Supabase PostgreSQL database to sync your schedule in real-time with family, teammates, or other devices. If not configured, Schedy runs locally in <strong>Local Storage Mode</strong>.
               </div>
 
               <div>

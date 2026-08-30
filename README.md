@@ -85,59 +85,49 @@
 
 ---
 
-## ☁️ Universal Announcement Cloud Setup (Supabase)
+## ☁️ Team Calendar Cloud Sync Setup (Supabase)
 
-Schedy stores your schedules locally with share code / backup exports, and connects to a free **Supabase** database for live Universal Announcement broadcasts:
+Schedy runs standalone offline in Local Storage Mode, or you can connect a free **Supabase** PostgreSQL database to synchronize your calendar schedule in real-time across devices and with teammates:
 
 1. Create a free account at [supabase.com](https://supabase.com) and create a new project.
 2. In the Supabase dashboard, go to the **SQL Editor** and run the following schema:
 
 ```sql
--- 1. Create announcements table
-CREATE TABLE IF NOT EXISTS public.announcements (
+-- 1. Create schedules table
+CREATE TABLE IF NOT EXISTS public.schedules (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     title TEXT NOT NULL,
-    content TEXT NOT NULL,
-    priority TEXT DEFAULT 'general',
+    description TEXT DEFAULT '',
+    start_time TIMESTAMPTZ NOT NULL,
+    end_time TIMESTAMPTZ NOT NULL,
+    is_all_day BOOLEAN DEFAULT false,
     category TEXT DEFAULT 'general',
-    is_pinned BOOLEAN DEFAULT false,
-    expires_at TIMESTAMPTZ,
-    author_name TEXT DEFAULT 'Admin',
+    priority TEXT DEFAULT 'medium',
+    status TEXT DEFAULT 'pending',
+    location TEXT DEFAULT '',
+    meeting_url TEXT DEFAULT '',
+    recurrence_rule TEXT DEFAULT 'none',
+    created_by TEXT DEFAULT 'User',
     created_at TIMESTAMPTZ DEFAULT now(),
     updated_at TIMESTAMPTZ DEFAULT now()
 );
 
--- 2. Create announcement reads / acknowledgement table
-CREATE TABLE IF NOT EXISTS public.announcement_reads (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    announcement_id UUID REFERENCES public.announcements(id) ON DELETE CASCADE,
-    user_id TEXT NOT NULL,
-    read_at TIMESTAMPTZ DEFAULT now(),
-    UNIQUE(announcement_id, user_id)
-);
+-- 2. Enable Row Level Security (RLS)
+ALTER TABLE public.schedules ENABLE ROW LEVEL SECURITY;
 
--- 3. Enable Row Level Security (RLS)
-ALTER TABLE public.announcements ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.announcement_reads ENABLE ROW LEVEL SECURITY;
+-- 3. Create Public Access Policies
+CREATE POLICY "Allow public read schedules" ON public.schedules FOR SELECT USING (true);
+CREATE POLICY "Allow public insert schedules" ON public.schedules FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow public update schedules" ON public.schedules FOR UPDATE USING (true);
+CREATE POLICY "Allow public delete schedules" ON public.schedules FOR DELETE USING (true);
 
--- 4. Create Public Access Policies
-CREATE POLICY "Allow public read announcements" ON public.announcements FOR SELECT USING (true);
-CREATE POLICY "Allow public insert announcements" ON public.announcements FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow public update announcements" ON public.announcements FOR UPDATE USING (true);
-CREATE POLICY "Allow public delete announcements" ON public.announcements FOR DELETE USING (true);
-
-CREATE POLICY "Allow public read announcement_reads" ON public.announcement_reads FOR SELECT USING (true);
-CREATE POLICY "Allow public insert announcement_reads" ON public.announcement_reads FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow public update announcement_reads" ON public.announcement_reads FOR UPDATE USING (true);
-CREATE POLICY "Allow public delete announcement_reads" ON public.announcement_reads FOR DELETE USING (true);
-
--- 5. Enable Realtime Publications for Live Broadcasts
-ALTER PUBLICATION supabase_realtime ADD TABLE public.announcements;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.announcement_reads;
+-- 4. Enable Realtime Publications for Live Sync
+ALTER PUBLICATION supabase_realtime ADD TABLE public.schedules;
 ```
 
 3. Copy your **Project URL** and **Anon Public API Key** from **Project Settings $\rightarrow$ API**.
-4. Open **Schedy**, click the **Database** icon in the navbar, paste your credentials, and click **Save & Connect**.
+4. Open **Schedy**, click the **Database** icon in the navbar, paste your credentials, and click **Save & Connect**. Everyone on your team who enters the same credentials will share live calendar sync!
+
 
 ---
 

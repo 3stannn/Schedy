@@ -1,5 +1,5 @@
 import type { Announcement, AnnouncementPriority } from '../types/announcement';
-import { getSupabaseClient, isSupabaseConfigured } from './supabaseClient';
+import { getUniversalSupabaseClient, isUniversalSupabaseConfigured } from './supabaseClient';
 import { loadLocalAnnouncements, saveLocalAnnouncements, loadLocalReads, saveLocalReads, getOrCreateUserId } from './storageService';
 import type { DatabaseAnnouncementRow } from '../types/database';
 
@@ -38,9 +38,9 @@ const isUUID = (str?: string): boolean =>
 
 export async function fetchAllAnnouncements(): Promise<Announcement[]> {
   const userId = getOrCreateUserId();
-  const supabase = getSupabaseClient();
+  const supabase = getUniversalSupabaseClient();
 
-  if (supabase && isSupabaseConfigured()) {
+  if (supabase && isUniversalSupabaseConfigured()) {
     try {
       const [annosRes, readsRes] = await Promise.all([
         supabase.from('announcements').select('*').order('created_at', { ascending: false }),
@@ -48,9 +48,9 @@ export async function fetchAllAnnouncements(): Promise<Announcement[]> {
       ]);
 
       if (!annosRes.error && annosRes.data) {
-        const readSet = new Set((readsRes.data || []).map(r => r.announcement_id));
-        const fetched = annosRes.data.map(row => mapRowToAnnouncement(row, readSet.has(row.id)));
-        return fetched.sort((a, b) => {
+        const readSet = new Set((readsRes.data || []).map((r: any) => r.announcement_id));
+        const fetched = annosRes.data.map((row: any) => mapRowToAnnouncement(row as DatabaseAnnouncementRow, readSet.has(row.id)));
+        return fetched.sort((a: Announcement, b: Announcement) => {
           if (a.isPinned !== b.isPinned) return a.isPinned ? -1 : 1;
           return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
         });
@@ -93,8 +93,8 @@ export async function bulkSaveAnnouncements(
 
   saveLocalAnnouncements(finalAnnos);
 
-  const supabase = getSupabaseClient();
-  if (supabase && isSupabaseConfigured()) {
+  const supabase = getUniversalSupabaseClient();
+  if (supabase && isUniversalSupabaseConfigured()) {
     try {
       const targetAnnos = mode === 'replace' ? finalAnnos : annosList;
       const rows = targetAnnos.map(anno => {
@@ -126,8 +126,8 @@ export async function createAnnouncement(data: Omit<Announcement, 'id' | 'create
     isRead: false,
   };
 
-  const supabase = getSupabaseClient();
-  if (supabase && isSupabaseConfigured()) {
+  const supabase = getUniversalSupabaseClient();
+  if (supabase && isUniversalSupabaseConfigured()) {
     try {
       const row = mapAnnouncementToRow(newAnno);
       const { data: inserted, error } = await supabase
@@ -170,8 +170,8 @@ export async function updateAnnouncement(anno: Announcement): Promise<Announceme
     updatedAt: new Date().toISOString(),
   };
 
-  const supabase = getSupabaseClient();
-  if (supabase && isSupabaseConfigured() && isUUID(anno.id)) {
+  const supabase = getUniversalSupabaseClient();
+  if (supabase && isUniversalSupabaseConfigured() && isUUID(anno.id)) {
     try {
       const row = mapAnnouncementToRow(updatedAnno);
       const { data: updatedRow, error } = await supabase
@@ -199,8 +199,8 @@ export async function updateAnnouncement(anno: Announcement): Promise<Announceme
 }
 
 export async function deleteAnnouncement(id: string): Promise<boolean> {
-  const supabase = getSupabaseClient();
-  if (supabase && isSupabaseConfigured() && isUUID(id)) {
+  const supabase = getUniversalSupabaseClient();
+  if (supabase && isUniversalSupabaseConfigured() && isUUID(id)) {
     try {
       await supabase.from('announcements').delete().eq('id', id);
     } catch (err) {
@@ -215,9 +215,9 @@ export async function deleteAnnouncement(id: string): Promise<boolean> {
 
 export async function markAnnouncementAsRead(announcementId: string): Promise<void> {
   const userId = getOrCreateUserId();
-  const supabase = getSupabaseClient();
+  const supabase = getUniversalSupabaseClient();
 
-  if (supabase && isSupabaseConfigured() && isUUID(announcementId)) {
+  if (supabase && isUniversalSupabaseConfigured() && isUUID(announcementId)) {
     try {
       await supabase.from('announcement_reads').upsert({
         announcement_id: announcementId,
@@ -248,8 +248,8 @@ export async function markAnnouncementAsRead(announcementId: string): Promise<vo
  * Subscribe to realtime announcement updates if Supabase is connected
  */
 export function subscribeToRealtimeAnnouncements(onUpdate: (payload: any) => void): () => void {
-  const supabase = getSupabaseClient();
-  if (!supabase || !isSupabaseConfigured()) {
+  const supabase = getUniversalSupabaseClient();
+  if (!supabase || !isUniversalSupabaseConfigured()) {
     return () => {};
   }
 

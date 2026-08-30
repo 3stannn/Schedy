@@ -1,7 +1,5 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-const STORAGE_KEY = 'schedule_manager_supabase_config';
-
 export interface SupabaseConfig {
   url: string;
   anonKey: string;
@@ -10,21 +8,66 @@ export interface SupabaseConfig {
 export function normalizeSupabaseUrl(rawUrl: string): string {
   if (!rawUrl) return '';
   let url = rawUrl.trim();
-  // Strip REST endpoint path if user copied REST URL from Supabase dashboard
   url = url.replace(/\/rest\/v1\/?$/, '');
-  // Strip trailing slashes
   url = url.replace(/\/+$/, '');
   return url;
 }
 
-let supabaseInstance: SupabaseClient | null = null;
-let currentConfig: SupabaseConfig = loadConfig();
+/* =========================================================================
+   1. UNIVERSAL ANNOUNCEMENTS CLIENT (App Owner / Developer System Broadcasts)
+   Hidden & internal. Configured via environment variables (.env).
+   ========================================================================= */
 
-function loadConfig(): SupabaseConfig {
+const universalEnvUrl = normalizeSupabaseUrl((import.meta as any).env?.VITE_SUPABASE_URL || '');
+const universalEnvKey = typeof (import.meta as any).env?.VITE_SUPABASE_ANON_KEY === 'string'
+  ? (import.meta as any).env.VITE_SUPABASE_ANON_KEY.trim()
+  : '';
+
+let universalClientInstance: SupabaseClient | null = null;
+
+export function isUniversalSupabaseConfigured(): boolean {
+  return Boolean(universalEnvUrl && universalEnvKey);
+}
+
+export function getUniversalSupabaseClient(): SupabaseClient | null {
+  if (!isUniversalSupabaseConfigured()) {
+    return null;
+  }
+
+  if (!universalClientInstance) {
+    try {
+      universalClientInstance = createClient(universalEnvUrl, universalEnvKey, {
+        realtime: {
+          params: {
+            eventsPerSecond: 10,
+          },
+        },
+      });
+    } catch (err) {
+      console.error('Error creating Universal Supabase client:', err);
+      return null;
+    }
+  }
+
+  return universalClientInstance;
+}
+
+/* =========================================================================
+   2. USER CALENDAR SYNC CLIENT (User / Team Connected Database)
+   Configured in DatabaseConfigModal by users who want synced calendars with others.
+   ========================================================================= */
+
+const USER_DB_STORAGE_KEY = 'schedy_user_database_config';
+
+let userClientInstance: SupabaseClient | null = null;
+let currentUserConfig: SupabaseConfig = loadUserConfig();
+
+function loadUserConfig(): SupabaseConfig {
   try {
-    const saved = localStorage.getItem(STORAGE_KEY);
+    const saved = localStorage.getItem(USER_DB_STORAGE_KEY) || localStorage.getItem('schedule_manager_supabase_config');
     if (saved) {
       const parsed = JSON.parse(saved);
+      // Only return if user explicitly saved their own URL & key
       if (parsed.url && parsed.anonKey) {
         return {
           url: normalizeSupabaseUrl(parsed.url),
@@ -33,35 +76,28 @@ function loadConfig(): SupabaseConfig {
       }
     }
   } catch (e) {
-    console.error('Failed to parse supabase config from localStorage', e);
+    console.error('Failed to parse user supabase config from localStorage', e);
   }
 
-  // Fallback to Vite environment variables if defined
-  const envUrl = (import.meta as any).env?.VITE_SUPABASE_URL || '';
-  const envKey = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY || '';
-
-  return {
-    url: normalizeSupabaseUrl(envUrl),
-    anonKey: typeof envKey === 'string' ? envKey.trim() : '',
-  };
+  return { url: '', anonKey: '' };
 }
 
-export function getSupabaseConfig(): SupabaseConfig {
-  return currentConfig;
+export function getUserSupabaseConfig(): SupabaseConfig {
+  return currentUserConfig;
 }
 
-export function isSupabaseConfigured(): boolean {
-  return Boolean(currentConfig.url && currentConfig.anonKey);
+export function isUserSupabaseConfigured(): boolean {
+  return Boolean(currentUserConfig.url && currentUserConfig.anonKey);
 }
 
-export function getSupabaseClient(): SupabaseClient | null {
-  if (!isSupabaseConfigured()) {
+export function getUserSupabaseClient(): SupabaseClient | null {
+  if (!isUserSupabaseConfigured()) {
     return null;
   }
 
-  if (!supabaseInstance) {
+  if (!userClientInstance) {
     try {
-      supabaseInstance = createClient(currentConfig.url, currentConfig.anonKey, {
+      userClientInstance = createClient(currentUserConfig.url, currentUserConfig.anonKey, {
         realtime: {
           params: {
             eventsPerSecond: 10,
@@ -69,73 +105,62 @@ export function getSupabaseClient(): SupabaseClient | null {
         },
       });
     } catch (err) {
-      console.error('Error creating Supabase client:', err);
+      console.error('Error creating User Calendar Supabase client:', err);
       return null;
     }
   }
 
-  return supabaseInstance;
+  return userClientInstance;
 }
 
-export function saveSupabaseConfig(config: SupabaseConfig): void {
+export function saveUserSupabaseConfig(config: SupabaseConfig): void {
   const sanitized: SupabaseConfig = {
     url: normalizeSupabaseUrl(config.url),
     anonKey: config.anonKey.trim(),
   };
-  currentConfig = sanitized;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(sanitized));
-  supabaseInstance = null; // Reset instance to recreate with new credentials
+  currentUserConfig = sanitized;
+  localStorage.setItem(USER_DB_STORAGE_KEY, JSON.stringify(sanitized));
+  userClientInstance = null;
 }
 
-export function clearSupabaseConfig(): void {
-  currentConfig = { url: '', anonKey: '' };
-  localStorage.removeItem(STORAGE_KEY);
-  supabaseInstance = null;
+export function clearUserSupabaseConfig(): void {
+  currentUserConfig = { url: '', anonKey: '' };
+  localStorage.removeItem(USER_DB_STORAGE_KEY);
+  localStorage.removeItem('schedule_manager_supabase_config');
+  userClientInstance = null;
 }
 
-export async function testSupabaseConnection(config?: SupabaseConfig): Promise<{ success: boolean; message: string; tablesFound?: string[] }> {
+export async function testUserSupabaseConnection(config?: SupabaseConfig): Promise<{ success: boolean; message: string; tablesFound?: string[] }> {
   const testCfg = config 
     ? { url: normalizeSupabaseUrl(config.url), anonKey: config.anonKey.trim() }
-    : currentConfig;
+    : currentUserConfig;
+
   if (!testCfg.url || !testCfg.anonKey) {
-    return { success: false, message: 'Please provide both Supabase Project URL and Anon Public Key.' };
+    return { success: false, message: 'Please provide both your Supabase Project URL and Anon Public Key.' };
   }
 
   try {
     const client = createClient(testCfg.url, testCfg.anonKey);
-    // Test querying announcements table
-    const { error: announcementError } = await client
-      .from('announcements')
+    // Test querying schedules table
+    const { error: scheduleError } = await client
+      .from('schedules')
       .select('id')
       .limit(1);
 
-    if (announcementError) {
-      if (announcementError.code === 'PGRST116' || announcementError.message.includes('relation "public.announcements" does not exist')) {
+    if (scheduleError) {
+      if (scheduleError.code === 'PGRST116' || scheduleError.message.includes('relation "public.schedules" does not exist')) {
         return {
           success: false,
-          message: 'Connected to Supabase project, but "announcements" table was not found! Please run the SQL schema script in Supabase SQL Editor.',
+          message: 'Connected to Supabase project, but "schedules" table was not found! Please run the SQL schema script in Supabase SQL Editor.',
         };
       }
-      return { success: false, message: `Database error: ${announcementError.message}` };
-    }
-
-    // Test querying announcement_reads table
-    const { error: readsError } = await client
-      .from('announcement_reads')
-      .select('announcement_id')
-      .limit(1);
-
-    if (readsError) {
-      return {
-        success: false,
-        message: 'Connected to announcements, but "announcement_reads" table was not found. Please run the full SQL schema script.',
-      };
+      return { success: false, message: `Database error: ${scheduleError.message}` };
     }
 
     return {
       success: true,
-      message: 'Successfully connected to Universal Announcements database with Realtime enabled!',
-      tablesFound: ['announcements', 'announcement_reads'],
+      message: 'Successfully connected to your Team Calendar database with Realtime Sync enabled!',
+      tablesFound: ['schedules'],
     };
   } catch (err: any) {
     return {
@@ -144,3 +169,12 @@ export async function testSupabaseConnection(config?: SupabaseConfig): Promise<{
     };
   }
 }
+
+// Backward compatibility aliases
+export const getSupabaseConfig = getUserSupabaseConfig;
+export const isSupabaseConfigured = isUserSupabaseConfigured;
+export const getSupabaseClient = getUserSupabaseClient;
+export const saveSupabaseConfig = saveUserSupabaseConfig;
+export const clearSupabaseConfig = clearUserSupabaseConfig;
+export const testSupabaseConnection = testUserSupabaseConnection;
+
