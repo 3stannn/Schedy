@@ -1,4 +1,4 @@
-﻿-- =========================================================
+-- =========================================================
 -- SCHEDULE & ANNOUNCEMENT MANAGER - SUPABASE DATABASE SCHEMA
 -- 100% Free PostgreSQL Database Schema with Realtime Support
 -- =========================================================
@@ -70,13 +70,3 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.schedules;
 ALTER PUBLICATION supabase_realtime ADD TABLE public.announcements;
 ALTER PUBLICATION supabase_realtime ADD TABLE public.announcement_reads;
 
--- 7. Insert Initial Sample Data (Optional Seed)
-INSERT INTO public.announcements (title, content, priority, category, is_pinned, author_name)
-VALUES 
-('System Maintenance & Schedule Update', 'Welcome to the Schedule Manager! Real-time synchronization is now active.', 'important', 'system', true, 'System Admin'),
-('Urgent: Project Milestone Review', 'Please ensure all your weekly tasks and milestones are logged before Friday 5:00 PM.', 'urgent', 'operations', true, 'Management');
-
-INSERT INTO public.schedules (title, description, start_time, end_time, is_all_day, category, priority, status, location)
-VALUES 
-('Weekly Team Sync & Sprint Planning', 'Review backlog, assign weekly deliverables, and address blockers.', now() + interval '1 day', now() + interval '1 day 1 hour', false, 'work', 'high', 'pending', 'Conference Room A / Google Meet'),
-('Monthly Department Overview', 'Monthly all-hands briefing and performance report.', now() + interval '3 days', now() + interval '3 days 2 hours', false, 'general', 'medium', 'pending', 'Main Hall');
