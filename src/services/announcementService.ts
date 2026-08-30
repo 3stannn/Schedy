@@ -33,11 +33,13 @@ function mapAnnouncementToRow(anno: Announcement): Partial<DatabaseAnnouncementR
   };
 }
 
-const DEFAULT_DEV_PASS = 's8JUzc5rMsmPp3ombM21RQ@Dev2026!';
-
 export function verifyDevPassword(input: string): boolean {
   if (!input) return false;
-  const configuredPass = (import.meta as any).env?.VITE_DEV_PASSWORD || DEFAULT_DEV_PASS;
+  const configuredPass = (import.meta as any).env?.VITE_DEV_PASSWORD;
+  if (!configuredPass) {
+    console.warn('VITE_DEV_PASSWORD is not configured in .env');
+    return false;
+  }
   return input.trim() === configuredPass.trim();
 }
 
