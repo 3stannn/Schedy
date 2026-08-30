@@ -487,8 +487,18 @@ export function App() {
       {/* Minimal Footer */}
       <footer className="mt-auto border-t border-[#e9e9e7] dark:border-[#2e2e2e] bg-white dark:bg-[#191919] py-3 text-xs text-neutral-400">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <p>
-            Schedy • Simple Schedule & Announcements
+          <p className="flex items-center gap-1.5 flex-wrap">
+            <span>Schedy • Simple Schedule & Announcements</span>
+            <span>•</span>
+            <span>Developer:</span>
+            <a
+              href="https://github.com/3stannn"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[#2383e2] hover:underline font-medium"
+            >
+              3stannn
+            </a>
           </p>
           <div className="flex items-center gap-3">
             <button
