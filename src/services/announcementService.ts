@@ -33,12 +33,21 @@ function mapAnnouncementToRow(anno: Announcement): Partial<DatabaseAnnouncementR
   };
 }
 
+const DEFAULT_DEV_PASS = 's8JUzc5rMsmPp3ombM21RQ@Dev2026!';
+
+export function verifyDevPassword(input: string): boolean {
+  if (!input) return false;
+  const configuredPass = (import.meta as any).env?.VITE_DEV_PASSWORD || DEFAULT_DEV_PASS;
+  return input.trim() === configuredPass.trim();
+}
+
 const isUUID = (str?: string): boolean =>
   typeof str === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
 
 export async function fetchAllAnnouncements(): Promise<Announcement[]> {
   const userId = getOrCreateUserId();
   const supabase = getUniversalSupabaseClient();
+  let universalAnnos: Announcement[] = [];
 
   if (supabase && isUniversalSupabaseConfigured()) {
     try {
@@ -49,29 +58,49 @@ export async function fetchAllAnnouncements(): Promise<Announcement[]> {
 
       if (!annosRes.error && annosRes.data) {
         const readSet = new Set((readsRes.data || []).map((r: any) => r.announcement_id));
-        const fetched = annosRes.data.map((row: any) => mapRowToAnnouncement(row as DatabaseAnnouncementRow, readSet.has(row.id)));
-        return fetched.sort((a: Announcement, b: Announcement) => {
-          if (a.isPinned !== b.isPinned) return a.isPinned ? -1 : 1;
-          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-        });
+        universalAnnos = annosRes.data.map((row: any) => mapRowToAnnouncement(row as DatabaseAnnouncementRow, readSet.has(row.id)));
+      } else if (annosRes.error) {
+        console.warn('Universal announcements fetch failed:', annosRes.error.message);
       }
-      console.warn('Supabase announcement fetch failed, falling back:', annosRes.error?.message);
     } catch (err) {
-      console.warn('Supabase error:', err);
+      console.warn('Universal announcements fetch error:', err);
     }
   }
 
-  // Local fallback
+  // Load local announcements
   const local = loadLocalAnnouncements();
   const reads = loadLocalReads();
   const readSet = new Set(reads.filter(r => r.userId === userId).map(r => r.announcementId));
-
-  return local.map(a => ({
+  const localWithReads = local.map(a => ({
     ...a,
     isRead: readSet.has(a.id),
-  })).sort((a, b) => {
-    // Pinned first, then urgent, then newest
+  }));
+
+  // Merge universal and local announcements by ID
+  const map = new Map<string, Announcement>();
+  for (const a of universalAnnos) {
+    map.set(a.id, a);
+  }
+  for (const a of localWithReads) {
+    if (!map.has(a.id)) {
+      map.set(a.id, a);
+    }
+  }
+
+  const all = Array.from(map.values());
+
+  return all.sort((a, b) => {
+    // 1. Pinned first
     if (a.isPinned !== b.isPinned) return a.isPinned ? -1 : 1;
+    // 2. Dev announcements next
+    const isADev = a.priority === 'dev';
+    const isBDev = b.priority === 'dev';
+    if (isADev !== isBDev) return isADev ? -1 : 1;
+    // 3. Urgent announcements next
+    const isAUrgent = a.priority === 'urgent';
+    const isBUrgent = b.priority === 'urgent';
+    if (isAUrgent !== isBUrgent) return isAUrgent ? -1 : 1;
+    // 4. Newest created at
     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
   });
 }
@@ -97,7 +126,9 @@ export async function bulkSaveAnnouncements(
   if (supabase && isUniversalSupabaseConfigured()) {
     try {
       const targetAnnos = mode === 'replace' ? finalAnnos : annosList;
-      const rows = targetAnnos.map(anno => {
+      // Only upsert dev priority announcements to Universal database
+      const devAnnos = targetAnnos.filter(a => a.priority === 'dev');
+      const rows = devAnnos.map(anno => {
         const row = mapAnnouncementToRow(anno);
         if (!isUUID(anno.id)) {
           delete row.id;
@@ -109,13 +140,12 @@ export async function bulkSaveAnnouncements(
         await supabase.from('announcements').upsert(rows);
       }
     } catch (err) {
-      console.warn('Supabase bulk save announcements error:', err);
+      console.warn('Universal announcements bulk save error:', err);
     }
   }
 
   return finalAnnos;
 }
-
 
 export async function createAnnouncement(data: Omit<Announcement, 'id' | 'createdAt' | 'updatedAt' | 'isRead'>): Promise<Announcement> {
   const newAnno: Announcement = {
@@ -127,7 +157,8 @@ export async function createAnnouncement(data: Omit<Announcement, 'id' | 'create
   };
 
   const supabase = getUniversalSupabaseClient();
-  if (supabase && isUniversalSupabaseConfigured()) {
+  // ONLY broadcast to universal Supabase database if priority is 'dev'
+  if (data.priority === 'dev' && supabase && isUniversalSupabaseConfigured()) {
     try {
       const row = mapAnnouncementToRow(newAnno);
       const { data: inserted, error } = await supabase
@@ -152,9 +183,9 @@ export async function createAnnouncement(data: Omit<Announcement, 'id' | 'create
         saveLocalAnnouncements([created, ...local]);
         return created;
       }
-      console.warn('Supabase announcement insert failed, using local:', error?.message);
+      console.warn('Universal announcement broadcast insert failed, saving locally:', error?.message);
     } catch (err) {
-      console.warn('Supabase error:', err);
+      console.warn('Universal announcement broadcast error:', err);
     }
   }
 
@@ -171,24 +202,62 @@ export async function updateAnnouncement(anno: Announcement): Promise<Announceme
   };
 
   const supabase = getUniversalSupabaseClient();
-  if (supabase && isUniversalSupabaseConfigured() && isUUID(anno.id)) {
+  
+  // If converted to or staying as 'dev' priority
+  if (anno.priority === 'dev' && supabase && isUniversalSupabaseConfigured()) {
     try {
-      const row = mapAnnouncementToRow(updatedAnno);
-      const { data: updatedRow, error } = await supabase
-        .from('announcements')
-        .update(row)
-        .eq('id', anno.id)
-        .select()
-        .single();
+      if (isUUID(anno.id)) {
+        // Already on Supabase, update row
+        const row = mapAnnouncementToRow(updatedAnno);
+        const { data: updatedRow, error } = await supabase
+          .from('announcements')
+          .update(row)
+          .eq('id', anno.id)
+          .select()
+          .single();
 
-      if (!error && updatedRow) {
-        const saved = mapRowToAnnouncement(updatedRow, anno.isRead);
-        const local = loadLocalAnnouncements();
-        saveLocalAnnouncements(local.map(a => (a.id === anno.id ? saved : a)));
-        return saved;
+        if (!error && updatedRow) {
+          const saved = mapRowToAnnouncement(updatedRow, anno.isRead);
+          const local = loadLocalAnnouncements();
+          saveLocalAnnouncements(local.map(a => (a.id === anno.id ? saved : a)));
+          return saved;
+        }
+      } else {
+        // Promoted from local to Supabase Dev broadcast
+        const row = mapAnnouncementToRow(updatedAnno);
+        const { data: inserted, error } = await supabase
+          .from('announcements')
+          .insert([
+            {
+              title: row.title,
+              content: row.content,
+              priority: row.priority,
+              category: row.category,
+              is_pinned: row.is_pinned,
+              expires_at: row.expires_at,
+              author_name: row.author_name,
+            }
+          ])
+          .select()
+          .single();
+
+        if (!error && inserted) {
+          const created = mapRowToAnnouncement(inserted, anno.isRead);
+          // Remove old local announcement with non-UUID id
+          const local = loadLocalAnnouncements();
+          saveLocalAnnouncements([created, ...local.filter(a => a.id !== anno.id)]);
+          return created;
+        }
       }
     } catch (err) {
-      console.warn('Supabase announcement update error:', err);
+      console.warn('Universal announcement update error:', err);
+    }
+  } else if (anno.priority !== 'dev' && supabase && isUniversalSupabaseConfigured() && isUUID(anno.id)) {
+    // Demoted from Universal Supabase broadcast to local announcement
+    try {
+      await supabase.from('announcements').delete().eq('id', anno.id);
+    } catch (err) {
+      console.warn('Supabase delete on demote error:', err);
     }
   }
 

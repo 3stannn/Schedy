@@ -1,4 +1,4 @@
-﻿export type AnnouncementPriority = 'urgent' | 'important' | 'notice' | 'general';
+export type AnnouncementPriority = 'dev' | 'urgent' | 'important' | 'notice' | 'general';
 
 export interface Announcement {
   id: string;

@@ -13,10 +13,12 @@ import {
   Plus,
   AlertTriangle,
   Bell,
-  Info
+  Info,
+  Sparkles
 } from 'lucide-react';
 import { parseISO, formatDistanceToNow } from 'date-fns';
 import { ConfirmModal } from '../common/ConfirmModal';
+import { DevPasswordModal } from './DevPasswordModal';
 
 interface AnnouncementFeedProps {
   announcements: Announcement[];
@@ -28,6 +30,11 @@ interface AnnouncementFeedProps {
 }
 
 const priorityStyles: Record<AnnouncementPriority, { bg: string; border: string; tag: string }> = {
+  dev: {
+    bg: 'bg-[#f6f2ff] dark:bg-[#1f1633]',
+    border: 'border-[#ded2f9] dark:border-[#4d2d84]',
+    tag: 'bg-[#ede5ff] text-[#7335e6] dark:bg-[#381f66] dark:text-[#c8aeff]',
+  },
   urgent: {
     bg: 'bg-[#fdebec] dark:bg-[#2e1c1c]',
     border: 'border-[#f5c2c5] dark:border-[#4d2828]',
@@ -52,6 +59,7 @@ const priorityStyles: Record<AnnouncementPriority, { bg: string; border: string;
 
 const getPriorityIcon = (priority?: AnnouncementPriority) => {
   switch (priority) {
+    case 'dev': return <Sparkles className="w-4 h-4 text-purple-600 dark:text-purple-400" />;
     case 'urgent': return <AlertTriangle className="w-4 h-4 text-rose-600 dark:text-rose-400" />;
     case 'important': return <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400" />;
     case 'notice': return <Bell className="w-4 h-4 text-blue-600 dark:text-blue-400" />;
@@ -79,8 +87,10 @@ export const AnnouncementFeed: React.FC<AnnouncementFeedProps> = ({
   onAddNew,
 }) => {
   const [search, setSearch] = useState('');
-  const [filter, setFilter] = useState<'all' | 'unread' | 'pinned' | 'urgent'>('all');
+  const [filter, setFilter] = useState<'all' | 'dev' | 'unread' | 'pinned' | 'urgent'>('all');
   const [annoToDelete, setAnnoToDelete] = useState<Announcement | null>(null);
+  const [isDevPasswordModalOpen, setIsDevPasswordModalOpen] = useState(false);
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
   const safeList = Array.isArray(announcements) ? announcements : [];
 
@@ -100,13 +110,15 @@ export const AnnouncementFeed: React.FC<AnnouncementFeedProps> = ({
         category.includes(q);
 
       let matchFilter = true;
-      if (filter === 'unread') matchFilter = !a.isRead;
+      if (filter === 'dev') matchFilter = a.priority === 'dev';
+      else if (filter === 'unread') matchFilter = !a.isRead;
       else if (filter === 'pinned') matchFilter = !!a.isPinned;
       else if (filter === 'urgent') matchFilter = a.priority === 'urgent';
 
       return matchSearch && matchFilter;
     }).sort((a, b) => {
       if (!!a.isPinned !== !!b.isPinned) return a.isPinned ? -1 : 1;
+      if ((a.priority === 'dev') !== (b.priority === 'dev')) return a.priority === 'dev' ? -1 : 1;
       const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
       const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
       return timeB - timeA;
@@ -114,9 +126,38 @@ export const AnnouncementFeed: React.FC<AnnouncementFeedProps> = ({
   }, [safeList, search, filter]);
 
   const unreadCount = safeList.filter(a => a && !a.isRead).length;
+  const devCount = safeList.filter(a => a && a.priority === 'dev').length;
+
+  const handleDeleteRequest = (anno: Announcement) => {
+    if (anno.priority === 'dev') {
+      setPendingDeleteId(anno.id);
+      setIsDevPasswordModalOpen(true);
+    } else {
+      setAnnoToDelete(anno);
+    }
+  };
+
+  const handleDevDeleteSuccess = () => {
+    if (pendingDeleteId) {
+      onDelete(pendingDeleteId);
+      setPendingDeleteId(null);
+    }
+    setIsDevPasswordModalOpen(false);
+  };
 
   return (
     <>
+      <DevPasswordModal
+        isOpen={isDevPasswordModalOpen}
+        onClose={() => {
+          setIsDevPasswordModalOpen(false);
+          setPendingDeleteId(null);
+        }}
+        onSuccess={handleDevDeleteSuccess}
+        actionTitle="Authorize Dev Deletion"
+        actionDescription="Enter Developer Password to remove this Dev Announcement from the Universal Supabase database."
+      />
+
       {annoToDelete && (
         <ConfirmModal
           isOpen={!!annoToDelete}
@@ -160,6 +201,20 @@ export const AnnouncementFeed: React.FC<AnnouncementFeedProps> = ({
               >
                 All ({safeList.length})
               </button>
+
+              {devCount > 0 && (
+                <button
+                  onClick={() => setFilter('dev')}
+                  className={`flex items-center gap-1 px-3 py-1 font-semibold rounded-lg transition-all whitespace-nowrap ${
+                    filter === 'dev'
+                      ? 'bg-purple-600 text-white shadow-xs'
+                      : 'text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-200'
+                  }`}
+                >
+                  <Sparkles className="w-3 h-3" />
+                  <span>Dev ({devCount})</span>
+                </button>
+              )}
 
               <button
                 onClick={() => setFilter('unread')}
@@ -243,7 +298,7 @@ export const AnnouncementFeed: React.FC<AnnouncementFeedProps> = ({
                       <div className="flex items-center justify-between gap-2 mb-1 flex-wrap">
                         <div className="flex items-center gap-1.5 flex-wrap">
                           <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-md capitalize tracking-tight ${style.tag}`}>
-                            {anno.priority || 'General'}
+                            {anno.priority === 'dev' ? 'Dev Broadcast' : (anno.priority || 'General')}
                           </span>
 
                           {anno.isPinned && (
@@ -280,7 +335,7 @@ export const AnnouncementFeed: React.FC<AnnouncementFeedProps> = ({
                                 <Edit3 className="w-3.5 h-3.5" />
                               </button>
                               <button
-                                onClick={() => setAnnoToDelete(anno)}
+                                onClick={() => handleDeleteRequest(anno)}
                                 className="p-1 rounded-lg text-neutral-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40"
                                 title="Delete"
                               >

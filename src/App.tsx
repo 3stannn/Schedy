@@ -308,7 +308,7 @@ export function App() {
 
 
   const unreadCount = announcements.filter(a => !a.isRead).length;
-  const urgentAnnouncements = announcements.filter(a => a.priority === 'urgent');
+  const urgentAnnouncements = announcements.filter(a => a.priority === 'dev' || a.priority === 'urgent');
 
   // Expanded recurring events for calendar display
   const viewRangeStart = subMonths(startOfMonth(new Date()), 1);
