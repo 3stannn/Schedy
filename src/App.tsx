@@ -158,7 +158,7 @@ export function App() {
     return () => {
       unsubAnno();
     };
-  }, [addToast]);
+  }, [isCloudConnected, addToast]);
 
   // Realtime Subscriptions for User Team Calendar Database (if connected by user)
   useEffect(() => {
