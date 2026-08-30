@@ -148,8 +148,7 @@ export async function bulkSaveAnnouncements(
   const clients = getActiveAnnouncementClients();
   if (clients.length > 0) {
     const targetAnnos = mode === 'replace' ? finalAnnos : annosList;
-    const devAnnos = targetAnnos.filter(a => a.priority === 'dev');
-    const rows = devAnnos.map(anno => {
+    const rows = targetAnnos.map(anno => {
       const row = mapAnnouncementToRow(anno);
       if (!isUUID(anno.id)) {
         delete row.id;
@@ -182,8 +181,8 @@ export async function createAnnouncement(data: Omit<Announcement, 'id' | 'create
 
   const clients = getActiveAnnouncementClients();
 
-  // If priority is 'dev' and any Supabase client is available (Universal or User Cloud Sync)
-  if (data.priority === 'dev' && clients.length > 0) {
+  // If any Supabase client is connected (User Cloud Sync DB and/or Universal DB for Dev broadcast)
+  if (clients.length > 0) {
     let savedRow: DatabaseAnnouncementRow | null = null;
 
     for (const client of clients) {
@@ -235,7 +234,7 @@ export async function updateAnnouncement(anno: Announcement): Promise<Announceme
 
   const clients = getActiveAnnouncementClients();
   
-  if (anno.priority === 'dev' && clients.length > 0) {
+  if (clients.length > 0) {
     let savedRow: DatabaseAnnouncementRow | null = null;
 
     for (const client of clients) {
@@ -275,7 +274,7 @@ export async function updateAnnouncement(anno: Announcement): Promise<Announceme
           }
         }
       } catch (err) {
-        console.warn('Universal announcement update error:', err);
+        console.warn('Announcement update error:', err);
       }
     }
 
@@ -284,14 +283,6 @@ export async function updateAnnouncement(anno: Announcement): Promise<Announceme
       const local = loadLocalAnnouncements();
       saveLocalAnnouncements([saved, ...local.filter(a => a.id !== anno.id && a.id !== saved.id)]);
       return saved;
-    }
-  } else if (anno.priority !== 'dev' && clients.length > 0 && isUUID(anno.id)) {
-    for (const client of clients) {
-      try {
-        await client.from('announcements').delete().eq('id', anno.id);
-      } catch (err) {
-        console.warn('Supabase delete on demote error:', err);
-      }
     }
   }
 

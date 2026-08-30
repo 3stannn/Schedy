@@ -69,9 +69,10 @@ export const DatabaseConfigModal: React.FC<DatabaseConfigModalProps> = ({
     onConfigSaved();
   };
 
-  const sqlCode = `-- Schedy Team Calendar Sync Database Schema
--- Run this in your Supabase SQL Editor to enable shared calendar syncing
+  const sqlCode = `-- Schedy Team Cloud Database Schema (Schedules & Announcements)
+-- Run this in your Supabase SQL Editor to enable shared live syncing
 
+-- 1. Schedules Table
 CREATE TABLE IF NOT EXISTS public.schedules (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     title TEXT NOT NULL,
@@ -90,17 +91,54 @@ CREATE TABLE IF NOT EXISTS public.schedules (
     updated_at TIMESTAMPTZ DEFAULT now()
 );
 
--- Enable Row Level Security (RLS)
-ALTER TABLE public.schedules ENABLE ROW LEVEL SECURITY;
+-- 2. Announcements Table
+CREATE TABLE IF NOT EXISTS public.announcements (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    title TEXT NOT NULL,
+    content TEXT NOT NULL,
+    priority TEXT DEFAULT 'general',
+    category TEXT DEFAULT 'general',
+    is_pinned BOOLEAN DEFAULT false,
+    expires_at TIMESTAMPTZ,
+    author_name TEXT DEFAULT 'Admin',
+    created_at TIMESTAMPTZ DEFAULT now(),
+    updated_at TIMESTAMPTZ DEFAULT now()
+);
 
--- Allow read/write access for everyone with your project's Anon API key
+-- 3. Announcement Reads Table
+CREATE TABLE IF NOT EXISTS public.announcement_reads (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    announcement_id UUID REFERENCES public.announcements(id) ON DELETE CASCADE,
+    user_id TEXT NOT NULL,
+    read_at TIMESTAMPTZ DEFAULT now(),
+    UNIQUE(announcement_id, user_id)
+);
+
+-- 4. Enable Row Level Security (RLS)
+ALTER TABLE public.schedules ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.announcements ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.announcement_reads ENABLE ROW LEVEL SECURITY;
+
+-- 5. Public Access Policies
 CREATE POLICY "Allow public read schedules" ON public.schedules FOR SELECT USING (true);
 CREATE POLICY "Allow public insert schedules" ON public.schedules FOR INSERT WITH CHECK (true);
 CREATE POLICY "Allow public update schedules" ON public.schedules FOR UPDATE USING (true);
 CREATE POLICY "Allow public delete schedules" ON public.schedules FOR DELETE USING (true);
 
--- Enable Realtime Live Sync for Instant Calendar Updates
-ALTER PUBLICATION supabase_realtime ADD TABLE public.schedules;`;
+CREATE POLICY "Allow public read announcements" ON public.announcements FOR SELECT USING (true);
+CREATE POLICY "Allow public insert announcements" ON public.announcements FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow public update announcements" ON public.announcements FOR UPDATE USING (true);
+CREATE POLICY "Allow public delete announcements" ON public.announcements FOR DELETE USING (true);
+
+CREATE POLICY "Allow public read reads" ON public.announcement_reads FOR SELECT USING (true);
+CREATE POLICY "Allow public insert reads" ON public.announcement_reads FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow public update reads" ON public.announcement_reads FOR UPDATE USING (true);
+CREATE POLICY "Allow public delete reads" ON public.announcement_reads FOR DELETE USING (true);
+
+-- 6. Enable Realtime Live Sync
+ALTER PUBLICATION supabase_realtime ADD TABLE public.schedules;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.announcements;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.announcement_reads;`;
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(sqlCode);
