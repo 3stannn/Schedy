@@ -1,0 +1,166 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
+  letter-spacing: -0.011em;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background-color: #fafafa;
+  background-image: radial-gradient(rgba(0, 0, 0, 0.04) 1px, transparent 1px);
+  background-size: 24px 24px;
+  color: #1c1917;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html.dark body,
+body.dark {
+  background-color: #0d0d0f;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+  background-size: 24px 24px;
+  color: #f4f4f5;
+}
+
+html.dark {
+  color-scheme: dark;
+}
+
+html.light {
+  color-scheme: light;
+}
+
+html.pink {
+  color-scheme: light;
+}
+
+html.pink body,
+body.pink {
+  background-color: #ffffff;
+  background-image: radial-gradient(rgba(255, 141, 161, 0.08) 1px, transparent 1px);
+  background-size: 24px 24px;
+  color: #1a1a1a;
+}
+
+/* Pink Theme (#FF8DA1 touch with white background & black text) */
+html.pink .text-\[\#2383e2\] {
+  color: #FF8DA1 !important;
+}
+
+html.pink .bg-\[\#2383e2\] {
+  background-color: #FF8DA1 !important;
+}
+
+html.pink .hover\:bg-\[\#1a73e8\]:hover {
+  background-color: #f0748b !important;
+}
+
+html.pink .hover\:bg-blue-50:hover {
+  background-color: #fff0f3 !important;
+}
+
+html.pink .hover\:text-\[\#2383e2\]:hover {
+  color: #FF8DA1 !important;
+}
+
+html.pink .border-\[\#2383e2\] {
+  border-color: #FF8DA1 !important;
+}
+
+html.pink .text-blue-600 {
+  color: #e56c82 !important;
+}
+
+html.pink .bg-blue-50 {
+  background-color: #fff0f3 !important;
+}
+
+html.pink .dark\:hover\:bg-blue-950\/30:hover {
+  background-color: #fff0f3 !important;
+}
+
+html.pink .dark\:text-blue-400 {
+  color: #e56c82 !important;
+}
+
+html.pink .dark\:bg-neutral-800 {
+  background-color: #f8f8f8;
+  color: #1a1a1a;
+}
+
+html.pink .dark\:border-\[\#2e2e2e\] {
+  border-color: #f3e2e5;
+}
+
+html.pink .dark\:bg-\[\#191919\] {
+  background-color: #ffffff;
+  color: #1a1a1a;
+}
+
+html.pink .dark\:bg-\[\#202020\] {
+  background-color: #ffffff;
+  color: #1a1a1a;
+}
+
+html.pink .dark\:text-\[\#e6e6e6\] {
+  color: #1a1a1a;
+}
+
+html.pink .dark\:text-white {
+  color: #1a1a1a;
+}
+
+html.pink .focus\:ring-\[\#2383e2\]:focus {
+  --tw-ring-color: #FF8DA1 !important;
+}
+
+html.pink .toast-item {
+  background-color: rgba(255, 255, 255, 0.98) !important;
+  border-color: #fcd5dc !important;
+  color: #1a1a1a !important;
+  box-shadow: 0 10px 25px -5px rgba(255, 141, 161, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.05) !important;
+}
+
+html.pink .toast-item .toast-accent-icon {
+  color: #FF8DA1 !important;
+}
+
+html.pink .toast-item .toast-progress-bar {
+  background-color: #FF8DA1 !important;
+}
+
+/* Custom Minimal Notion Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #d3d1cb;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #b4b2aa;
+}
+
+html.dark ::-webkit-scrollbar-thumb {
+  background: #3f3f3f;
+}
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background: #555555;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(2px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.12s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
