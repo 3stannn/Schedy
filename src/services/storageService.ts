@@ -20,7 +20,20 @@ export function getInitialEvents(): ScheduleEvent[] {
 }
 
 export function getInitialAnnouncements(): Announcement[] {
-  return [];
+  const now = new Date().toISOString();
+  return [
+    {
+      id: 'anno-welcome',
+      title: 'Welcome to Schedy',
+      content: 'Welcome to Schedy! Use this dashboard to plan your schedule, track events, and stay updated with announcements.',
+      priority: 'general',
+      category: 'general',
+      isPinned: true,
+      authorName: 'Developer: Kodekz',
+      createdAt: now,
+      updatedAt: now,
+    }
+  ];
 }
 
 export function loadLocalEvents(): ScheduleEvent[] {
@@ -61,16 +74,36 @@ export function loadLocalAnnouncements(): Announcement[] {
       return initial;
     }
     const parsed: Announcement[] = JSON.parse(raw);
-    // Remove all old demo & welcome notices, keep only user-created custom announcements
-    const filtered = parsed.filter(
-      a =>
-        a.id !== 'anno-demo-1' &&
-        a.id !== 'anno-demo-2' &&
-        a.id !== 'anno-demo-3' &&
-        a.id !== 'anno-welcome'
-    );
+    // Filter out old demo notices and ensure general pinned welcome announcement exists
+    let hasChanges = false;
+    let welcomeFound = false;
+    const filtered = parsed
+      .filter(a => a.id !== 'anno-demo-1' && a.id !== 'anno-demo-2' && a.id !== 'anno-demo-3')
+      .map(a => {
+        if (a.id === 'anno-welcome') {
+          welcomeFound = true;
+          const [initialWelcome] = getInitialAnnouncements();
+          if (a.priority !== 'general' || !a.isPinned || a.authorName !== initialWelcome.authorName) {
+            hasChanges = true;
+            return {
+              ...a,
+              authorName: initialWelcome.authorName,
+              priority: 'general' as const,
+              isPinned: true,
+            };
+          }
+        }
+        return a;
+      });
 
-    if (filtered.length !== parsed.length) {
+
+    if (!welcomeFound) {
+      const [welcome] = getInitialAnnouncements();
+      filtered.unshift(welcome);
+      hasChanges = true;
+    }
+
+    if (hasChanges || filtered.length !== parsed.length) {
       saveLocalAnnouncements(filtered);
     }
     return filtered;
@@ -79,6 +112,7 @@ export function loadLocalAnnouncements(): Announcement[] {
     return getInitialAnnouncements();
   }
 }
+
 
 export function saveLocalAnnouncements(announcements: Announcement[]): void {
   try {
