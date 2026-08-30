@@ -85,34 +85,15 @@
 
 ---
 
-## ☁️ Free Cloud Database Setup (Supabase)
+## ☁️ Universal Announcement Cloud Setup (Supabase)
 
-Schedy can run standalone offline or connect to a free **Supabase** PostgreSQL database:
+Schedy stores your schedules locally with share code / backup exports, and connects to a free **Supabase** database for live Universal Announcement broadcasts:
 
 1. Create a free account at [supabase.com](https://supabase.com) and create a new project.
 2. In the Supabase dashboard, go to the **SQL Editor** and run the following schema:
 
 ```sql
--- 1. Create schedules table
-CREATE TABLE IF NOT EXISTS public.schedules (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    title TEXT NOT NULL,
-    description TEXT DEFAULT '',
-    start_time TIMESTAMPTZ NOT NULL,
-    end_time TIMESTAMPTZ NOT NULL,
-    is_all_day BOOLEAN DEFAULT false,
-    category TEXT DEFAULT 'general',
-    priority TEXT DEFAULT 'medium',
-    status TEXT DEFAULT 'pending',
-    location TEXT DEFAULT '',
-    meeting_url TEXT DEFAULT '',
-    recurrence_rule TEXT DEFAULT 'none',
-    created_by TEXT DEFAULT 'Admin',
-    created_at TIMESTAMPTZ DEFAULT now(),
-    updated_at TIMESTAMPTZ DEFAULT now()
-);
-
--- 2. Create announcements table
+-- 1. Create announcements table
 CREATE TABLE IF NOT EXISTS public.announcements (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     title TEXT NOT NULL,
@@ -126,7 +107,7 @@ CREATE TABLE IF NOT EXISTS public.announcements (
     updated_at TIMESTAMPTZ DEFAULT now()
 );
 
--- 3. Create announcement reads / acknowledgement table
+-- 2. Create announcement reads / acknowledgement table
 CREATE TABLE IF NOT EXISTS public.announcement_reads (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     announcement_id UUID REFERENCES public.announcements(id) ON DELETE CASCADE,
@@ -135,17 +116,11 @@ CREATE TABLE IF NOT EXISTS public.announcement_reads (
     UNIQUE(announcement_id, user_id)
 );
 
--- 4. Enable Row Level Security (RLS)
-ALTER TABLE public.schedules ENABLE ROW LEVEL SECURITY;
+-- 3. Enable Row Level Security (RLS)
 ALTER TABLE public.announcements ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.announcement_reads ENABLE ROW LEVEL SECURITY;
 
--- 5. Create Public Access Policies
-CREATE POLICY "Allow public read schedules" ON public.schedules FOR SELECT USING (true);
-CREATE POLICY "Allow public insert schedules" ON public.schedules FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow public update schedules" ON public.schedules FOR UPDATE USING (true);
-CREATE POLICY "Allow public delete schedules" ON public.schedules FOR DELETE USING (true);
-
+-- 4. Create Public Access Policies
 CREATE POLICY "Allow public read announcements" ON public.announcements FOR SELECT USING (true);
 CREATE POLICY "Allow public insert announcements" ON public.announcements FOR INSERT WITH CHECK (true);
 CREATE POLICY "Allow public update announcements" ON public.announcements FOR UPDATE USING (true);
@@ -156,8 +131,7 @@ CREATE POLICY "Allow public insert announcement_reads" ON public.announcement_re
 CREATE POLICY "Allow public update announcement_reads" ON public.announcement_reads FOR UPDATE USING (true);
 CREATE POLICY "Allow public delete announcement_reads" ON public.announcement_reads FOR DELETE USING (true);
 
--- 6. Enable Realtime Publications
-ALTER PUBLICATION supabase_realtime ADD TABLE public.schedules;
+-- 5. Enable Realtime Publications for Live Broadcasts
 ALTER PUBLICATION supabase_realtime ADD TABLE public.announcements;
 ALTER PUBLICATION supabase_realtime ADD TABLE public.announcement_reads;
 ```

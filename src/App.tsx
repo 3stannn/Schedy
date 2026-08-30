@@ -30,8 +30,7 @@ import {
   deleteAnnouncement, 
   bulkSaveAnnouncements,
   markAnnouncementAsRead,
-  subscribeToRealtimeAnnouncements,
-  subscribeToRealtimeSchedules
+  subscribeToRealtimeAnnouncements
 } from './services/announcementService';
 
 import { isSupabaseConfigured, testSupabaseConnection } from './services/supabaseClient';
@@ -141,7 +140,7 @@ export function App() {
     loadData();
   }, [loadData]);
 
-  // Realtime Subscriptions
+  // Realtime Subscriptions for Universal Announcements
   useEffect(() => {
     if (!isCloudConnected) return;
 
@@ -157,13 +156,8 @@ export function App() {
       }
     });
 
-    const unsubSched = subscribeToRealtimeSchedules(() => {
-      loadData();
-    });
-
     return () => {
       unsubAnno();
-      unsubSched();
     };
   }, [isCloudConnected, loadData, addToast]);
 

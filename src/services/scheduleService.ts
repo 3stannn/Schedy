@@ -1,66 +1,10 @@
-import type { ScheduleEvent, RecurrenceRule } from '../types/schedule';
-import { getSupabaseClient, isSupabaseConfigured } from './supabaseClient';
+import type { ScheduleEvent } from '../types/schedule';
 import { loadLocalEvents, saveLocalEvents } from './storageService';
-import type { DatabaseScheduleRow } from '../types/database';
 import { format, parseISO, addDays, addWeeks, addMonths, addYears, isBefore, isAfter } from 'date-fns';
 
-function mapRowToEvent(row: DatabaseScheduleRow): ScheduleEvent {
-  return {
-    id: row.id,
-    title: row.title,
-    description: row.description || '',
-    startTime: row.start_time,
-    endTime: row.end_time,
-    isAllDay: row.is_all_day,
-    category: (row.category || 'general') as any,
-    priority: (row.priority || 'medium') as any,
-    status: (row.status || 'pending') as any,
-    location: row.location || '',
-    meetingUrl: row.meeting_url || '',
-    recurrenceRule: (row.recurrence_rule || 'none') as RecurrenceRule,
-    createdBy: row.created_by,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
-  };
-}
 
-function mapEventToRow(event: ScheduleEvent): Partial<DatabaseScheduleRow> {
-  return {
-    id: event.id,
-    title: event.title,
-    description: event.description,
-    start_time: event.startTime,
-    end_time: event.endTime,
-    is_all_day: event.isAllDay,
-    category: event.category,
-    priority: event.priority,
-    status: event.status,
-    location: event.location,
-    meeting_url: event.meetingUrl,
-    recurrence_rule: event.recurrenceRule,
-    created_by: event.createdBy || 'User',
-    updated_at: new Date().toISOString(),
-  };
-}
 
 export async function fetchAllEvents(): Promise<ScheduleEvent[]> {
-  const supabase = getSupabaseClient();
-  if (supabase && isSupabaseConfigured()) {
-    try {
-      const { data, error } = await supabase
-        .from('schedules')
-        .select('*')
-        .order('start_time', { ascending: true });
-
-      if (!error && data) {
-        return data.map(mapRowToEvent);
-      }
-      console.warn('Supabase fetch failed, falling back to local:', error?.message);
-    } catch (err) {
-      console.warn('Supabase error:', err);
-    }
-  }
-
   return loadLocalEvents();
 }
 
@@ -80,33 +24,8 @@ export async function bulkSaveEvents(
   }
 
   saveLocalEvents(finalEvents);
-
-  const supabase = getSupabaseClient();
-  if (supabase && isSupabaseConfigured()) {
-    try {
-      const isUUID = (str: string) =>
-        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
-
-      const targetEvents = mode === 'replace' ? finalEvents : eventsList;
-      const rows = targetEvents.map(evt => {
-        const row = mapEventToRow(evt);
-        if (!isUUID(evt.id)) {
-          delete row.id;
-        }
-        return row;
-      });
-
-      if (rows.length > 0) {
-        await supabase.from('schedules').upsert(rows);
-      }
-    } catch (err) {
-      console.warn('Supabase bulk save error:', err);
-    }
-  }
-
   return finalEvents;
 }
-
 
 export async function createEvent(eventData: Omit<ScheduleEvent, 'id' | 'createdAt' | 'updatedAt'>): Promise<ScheduleEvent> {
   const newEvent: ScheduleEvent = {
@@ -116,42 +35,6 @@ export async function createEvent(eventData: Omit<ScheduleEvent, 'id' | 'created
     updatedAt: new Date().toISOString(),
   };
 
-  const supabase = getSupabaseClient();
-  if (supabase && isSupabaseConfigured()) {
-    try {
-      const row = mapEventToRow(newEvent);
-      // Let Supabase handle ID generation if UUID format is used or pass generated
-      const { data, error } = await supabase
-        .from('schedules')
-        .insert([
-          {
-            title: row.title,
-            description: row.description,
-            start_time: row.start_time,
-            end_time: row.end_time,
-            is_all_day: row.is_all_day,
-            category: row.category,
-            priority: row.priority,
-            status: row.status,
-            location: row.location,
-            meeting_url: row.meeting_url,
-            recurrence_rule: row.recurrence_rule,
-            created_by: row.created_by,
-          }
-        ])
-        .select()
-        .single();
-
-      if (!error && data) {
-        return mapRowToEvent(data);
-      }
-      console.warn('Failed to insert in Supabase, saving locally:', error?.message);
-    } catch (err) {
-      console.warn('Supabase insert error:', err);
-    }
-  }
-
-  // Local fallback
   const local = loadLocalEvents();
   const updated = [newEvent, ...local];
   saveLocalEvents(updated);
@@ -164,27 +47,6 @@ export async function updateEvent(event: ScheduleEvent): Promise<ScheduleEvent> 
     updatedAt: new Date().toISOString(),
   };
 
-  const supabase = getSupabaseClient();
-  if (supabase && isSupabaseConfigured()) {
-    try {
-      const row = mapEventToRow(updatedEvent);
-      const { data, error } = await supabase
-        .from('schedules')
-        .update(row)
-        .eq('id', event.id)
-        .select()
-        .single();
-
-      if (!error && data) {
-        return mapRowToEvent(data);
-      }
-      console.warn('Failed to update in Supabase, updating locally:', error?.message);
-    } catch (err) {
-      console.warn('Supabase update error:', err);
-    }
-  }
-
-  // Local fallback
   const local = loadLocalEvents();
   const updatedList = local.map(e => (e.id === event.id ? updatedEvent : e));
   saveLocalEvents(updatedList);
@@ -192,22 +54,6 @@ export async function updateEvent(event: ScheduleEvent): Promise<ScheduleEvent> 
 }
 
 export async function deleteEvent(id: string): Promise<boolean> {
-  const supabase = getSupabaseClient();
-  if (supabase && isSupabaseConfigured()) {
-    try {
-      const { error } = await supabase
-        .from('schedules')
-        .delete()
-        .eq('id', id);
-
-      if (error) {
-        console.warn('Failed to delete in Supabase, deleting locally:', error.message);
-      }
-    } catch (err) {
-      console.warn('Supabase delete error:', err);
-    }
-  }
-
   const local = loadLocalEvents();
   const updatedList = local.filter(e => e.id !== id);
   saveLocalEvents(updatedList);

@@ -265,20 +265,3 @@ export function subscribeToRealtimeAnnouncements(onUpdate: (payload: any) => voi
   };
 }
 
-export function subscribeToRealtimeSchedules(onUpdate: (payload: any) => void): () => void {
-  const supabase = getSupabaseClient();
-  if (!supabase || !isSupabaseConfigured()) {
-    return () => {};
-  }
-
-  const channel = supabase
-    .channel('public:schedules')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'schedules' }, payload => {
-      onUpdate(payload);
-    })
-    .subscribe();
-
-  return () => {
-    supabase.removeChannel(channel);
-  };
-}

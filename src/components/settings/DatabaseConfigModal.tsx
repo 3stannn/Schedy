@@ -69,25 +69,7 @@ export const DatabaseConfigModal: React.FC<DatabaseConfigModalProps> = ({
     onConfigSaved();
   };
 
-  const sqlCode = `-- Supabase Free PostgreSQL Schema
-CREATE TABLE IF NOT EXISTS public.schedules (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    title TEXT NOT NULL,
-    description TEXT DEFAULT '',
-    start_time TIMESTAMPTZ NOT NULL,
-    end_time TIMESTAMPTZ NOT NULL,
-    is_all_day BOOLEAN DEFAULT false,
-    category TEXT DEFAULT 'general',
-    priority TEXT DEFAULT 'medium',
-    status TEXT DEFAULT 'pending',
-    location TEXT DEFAULT '',
-    meeting_url TEXT DEFAULT '',
-    recurrence_rule TEXT DEFAULT 'none',
-    created_by TEXT DEFAULT 'Admin',
-    created_at TIMESTAMPTZ DEFAULT now(),
-    updated_at TIMESTAMPTZ DEFAULT now()
-);
-
+  const sqlCode = `-- Schedy Universal Announcement Database Schema
 CREATE TABLE IF NOT EXISTS public.announcements (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     title TEXT NOT NULL,
@@ -109,14 +91,8 @@ CREATE TABLE IF NOT EXISTS public.announcement_reads (
     UNIQUE(announcement_id, user_id)
 );
 
-ALTER TABLE public.schedules ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.announcements ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.announcement_reads ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Allow public read schedules" ON public.schedules FOR SELECT USING (true);
-CREATE POLICY "Allow public insert schedules" ON public.schedules FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow public update schedules" ON public.schedules FOR UPDATE USING (true);
-CREATE POLICY "Allow public delete schedules" ON public.schedules FOR DELETE USING (true);
 
 CREATE POLICY "Allow public read announcements" ON public.announcements FOR SELECT USING (true);
 CREATE POLICY "Allow public insert announcements" ON public.announcements FOR INSERT WITH CHECK (true);
@@ -128,7 +104,6 @@ CREATE POLICY "Allow public insert reads" ON public.announcement_reads FOR INSER
 CREATE POLICY "Allow public update reads" ON public.announcement_reads FOR UPDATE USING (true);
 CREATE POLICY "Allow public delete reads" ON public.announcement_reads FOR DELETE USING (true);
 
-ALTER PUBLICATION supabase_realtime ADD TABLE public.schedules;
 ALTER PUBLICATION supabase_realtime ADD TABLE public.announcements;
 ALTER PUBLICATION supabase_realtime ADD TABLE public.announcement_reads;`;
 

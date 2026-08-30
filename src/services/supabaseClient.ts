@@ -103,22 +103,6 @@ export async function testSupabaseConnection(config?: SupabaseConfig): Promise<{
 
   try {
     const client = createClient(testCfg.url, testCfg.anonKey);
-    // Test querying schedules table
-    const { error: scheduleError } = await client
-      .from('schedules')
-      .select('id')
-      .limit(1);
-
-    if (scheduleError) {
-      if (scheduleError.code === 'PGRST116' || scheduleError.message.includes('relation "public.schedules" does not exist')) {
-        return {
-          success: false,
-          message: 'Connected to Supabase project, but "schedules" table was not found! Please run the SQL schema script in Supabase SQL Editor.',
-        };
-      }
-      return { success: false, message: `Database error: ${scheduleError.message}` };
-    }
-
     // Test querying announcements table
     const { error: announcementError } = await client
       .from('announcements')
@@ -126,16 +110,32 @@ export async function testSupabaseConnection(config?: SupabaseConfig): Promise<{
       .limit(1);
 
     if (announcementError) {
+      if (announcementError.code === 'PGRST116' || announcementError.message.includes('relation "public.announcements" does not exist')) {
+        return {
+          success: false,
+          message: 'Connected to Supabase project, but "announcements" table was not found! Please run the SQL schema script in Supabase SQL Editor.',
+        };
+      }
+      return { success: false, message: `Database error: ${announcementError.message}` };
+    }
+
+    // Test querying announcement_reads table
+    const { error: readsError } = await client
+      .from('announcement_reads')
+      .select('announcement_id')
+      .limit(1);
+
+    if (readsError) {
       return {
         success: false,
-        message: 'Connected to schedules, but "announcements" table was not found. Please run the full SQL schema script.',
+        message: 'Connected to announcements, but "announcement_reads" table was not found. Please run the full SQL schema script.',
       };
     }
 
     return {
       success: true,
-      message: 'Successfully connected to Supabase database with Realtime enabled!',
-      tablesFound: ['schedules', 'announcements', 'announcement_reads'],
+      message: 'Successfully connected to Universal Announcements database with Realtime enabled!',
+      tablesFound: ['announcements', 'announcement_reads'],
     };
   } catch (err: any) {
     return {
