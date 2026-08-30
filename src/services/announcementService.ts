@@ -33,6 +33,9 @@ function mapAnnouncementToRow(anno: Announcement): Partial<DatabaseAnnouncementR
   };
 }
 
+const isUUID = (str?: string): boolean =>
+  typeof str === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+
 export async function fetchAllAnnouncements(): Promise<Announcement[]> {
   const userId = getOrCreateUserId();
   const supabase = getSupabaseClient();
@@ -46,7 +49,11 @@ export async function fetchAllAnnouncements(): Promise<Announcement[]> {
 
       if (!annosRes.error && annosRes.data) {
         const readSet = new Set((readsRes.data || []).map(r => r.announcement_id));
-        return annosRes.data.map(row => mapRowToAnnouncement(row, readSet.has(row.id)));
+        const fetched = annosRes.data.map(row => mapRowToAnnouncement(row, readSet.has(row.id)));
+        return fetched.sort((a, b) => {
+          if (a.isPinned !== b.isPinned) return a.isPinned ? -1 : 1;
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        });
       }
       console.warn('Supabase announcement fetch failed, falling back:', annosRes.error?.message);
     } catch (err) {
@@ -89,9 +96,6 @@ export async function bulkSaveAnnouncements(
   const supabase = getSupabaseClient();
   if (supabase && isSupabaseConfigured()) {
     try {
-      const isUUID = (str: string) =>
-        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
-
       const targetAnnos = mode === 'replace' ? finalAnnos : annosList;
       const rows = targetAnnos.map(anno => {
         const row = mapAnnouncementToRow(anno);
@@ -143,7 +147,10 @@ export async function createAnnouncement(data: Omit<Announcement, 'id' | 'create
         .single();
 
       if (!error && inserted) {
-        return mapRowToAnnouncement(inserted, false);
+        const created = mapRowToAnnouncement(inserted, false);
+        const local = loadLocalAnnouncements();
+        saveLocalAnnouncements([created, ...local]);
+        return created;
       }
       console.warn('Supabase announcement insert failed, using local:', error?.message);
     } catch (err) {
@@ -164,7 +171,7 @@ export async function updateAnnouncement(anno: Announcement): Promise<Announceme
   };
 
   const supabase = getSupabaseClient();
-  if (supabase && isSupabaseConfigured()) {
+  if (supabase && isSupabaseConfigured() && isUUID(anno.id)) {
     try {
       const row = mapAnnouncementToRow(updatedAnno);
       const { data: updatedRow, error } = await supabase
@@ -175,7 +182,10 @@ export async function updateAnnouncement(anno: Announcement): Promise<Announceme
         .single();
 
       if (!error && updatedRow) {
-        return mapRowToAnnouncement(updatedRow, anno.isRead);
+        const saved = mapRowToAnnouncement(updatedRow, anno.isRead);
+        const local = loadLocalAnnouncements();
+        saveLocalAnnouncements(local.map(a => (a.id === anno.id ? saved : a)));
+        return saved;
       }
     } catch (err) {
       console.warn('Supabase announcement update error:', err);
@@ -190,7 +200,7 @@ export async function updateAnnouncement(anno: Announcement): Promise<Announceme
 
 export async function deleteAnnouncement(id: string): Promise<boolean> {
   const supabase = getSupabaseClient();
-  if (supabase && isSupabaseConfigured()) {
+  if (supabase && isSupabaseConfigured() && isUUID(id)) {
     try {
       await supabase.from('announcements').delete().eq('id', id);
     } catch (err) {
@@ -207,7 +217,7 @@ export async function markAnnouncementAsRead(announcementId: string): Promise<vo
   const userId = getOrCreateUserId();
   const supabase = getSupabaseClient();
 
-  if (supabase && isSupabaseConfigured()) {
+  if (supabase && isSupabaseConfigured() && isUUID(announcementId)) {
     try {
       await supabase.from('announcement_reads').upsert({
         announcement_id: announcementId,

@@ -51,19 +51,21 @@ ALTER TABLE public.announcements ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.announcement_reads ENABLE ROW LEVEL SECURITY;
 
 -- 5. Create Public Access Policies (Allows reads and writes for authorized anon keys)
-CREATE POLICY Allow public read schedules ON public.schedules FOR SELECT USING (true);
-CREATE POLICY Allow public insert schedules ON public.schedules FOR INSERT WITH CHECK (true);
-CREATE POLICY Allow public update schedules ON public.schedules FOR UPDATE USING (true);
-CREATE POLICY Allow public delete schedules ON public.schedules FOR DELETE USING (true);
+CREATE POLICY "Allow public read schedules" ON public.schedules FOR SELECT USING (true);
+CREATE POLICY "Allow public insert schedules" ON public.schedules FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow public update schedules" ON public.schedules FOR UPDATE USING (true);
+CREATE POLICY "Allow public delete schedules" ON public.schedules FOR DELETE USING (true);
 
-CREATE POLICY Allow public read announcements ON public.announcements FOR SELECT USING (true);
-CREATE POLICY Allow public insert announcements ON public.announcements FOR INSERT WITH CHECK (true);
-CREATE POLICY Allow public update announcements ON public.announcements FOR UPDATE USING (true);
-CREATE POLICY Allow public delete announcements ON public.announcements FOR DELETE USING (true);
+CREATE POLICY "Allow public read announcements" ON public.announcements FOR SELECT USING (true);
+CREATE POLICY "Allow public insert announcements" ON public.announcements FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow public update announcements" ON public.announcements FOR UPDATE USING (true);
+CREATE POLICY "Allow public delete announcements" ON public.announcements FOR DELETE USING (true);
 
-CREATE POLICY Allow public read announcement_reads ON public.announcement_reads FOR SELECT USING (true);
-CREATE POLICY Allow public insert announcement_reads ON public.announcement_reads FOR INSERT WITH CHECK (true);
-CREATE POLICY Allow public delete announcement_reads ON public.announcement_reads FOR DELETE USING (true);
+CREATE POLICY "Allow public read announcement_reads" ON public.announcement_reads FOR SELECT USING (true);
+CREATE POLICY "Allow public insert announcement_reads" ON public.announcement_reads FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow public update announcement_reads" ON public.announcement_reads FOR UPDATE USING (true);
+CREATE POLICY "Allow public delete announcement_reads" ON public.announcement_reads FOR DELETE USING (true);
+
 
 -- 6. Enable Realtime Publications for Live Sync
 ALTER PUBLICATION supabase_realtime ADD TABLE public.schedules;

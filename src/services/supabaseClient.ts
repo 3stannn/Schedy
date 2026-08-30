@@ -7,6 +7,16 @@ export interface SupabaseConfig {
   anonKey: string;
 }
 
+export function normalizeSupabaseUrl(rawUrl: string): string {
+  if (!rawUrl) return '';
+  let url = rawUrl.trim();
+  // Strip REST endpoint path if user copied REST URL from Supabase dashboard
+  url = url.replace(/\/rest\/v1\/?$/, '');
+  // Strip trailing slashes
+  url = url.replace(/\/+$/, '');
+  return url;
+}
+
 let supabaseInstance: SupabaseClient | null = null;
 let currentConfig: SupabaseConfig = loadConfig();
 
@@ -16,7 +26,10 @@ function loadConfig(): SupabaseConfig {
     if (saved) {
       const parsed = JSON.parse(saved);
       if (parsed.url && parsed.anonKey) {
-        return parsed;
+        return {
+          url: normalizeSupabaseUrl(parsed.url),
+          anonKey: parsed.anonKey.trim(),
+        };
       }
     }
   } catch (e) {
@@ -28,8 +41,8 @@ function loadConfig(): SupabaseConfig {
   const envKey = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY || '';
 
   return {
-    url: envUrl,
-    anonKey: envKey,
+    url: normalizeSupabaseUrl(envUrl),
+    anonKey: typeof envKey === 'string' ? envKey.trim() : '',
   };
 }
 
@@ -65,8 +78,12 @@ export function getSupabaseClient(): SupabaseClient | null {
 }
 
 export function saveSupabaseConfig(config: SupabaseConfig): void {
-  currentConfig = config;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
+  const sanitized: SupabaseConfig = {
+    url: normalizeSupabaseUrl(config.url),
+    anonKey: config.anonKey.trim(),
+  };
+  currentConfig = sanitized;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(sanitized));
   supabaseInstance = null; // Reset instance to recreate with new credentials
 }
 
@@ -77,7 +94,9 @@ export function clearSupabaseConfig(): void {
 }
 
 export async function testSupabaseConnection(config?: SupabaseConfig): Promise<{ success: boolean; message: string; tablesFound?: string[] }> {
-  const testCfg = config || currentConfig;
+  const testCfg = config 
+    ? { url: normalizeSupabaseUrl(config.url), anonKey: config.anonKey.trim() }
+    : currentConfig;
   if (!testCfg.url || !testCfg.anonKey) {
     return { success: false, message: 'Please provide both Supabase Project URL and Anon Public Key.' };
   }

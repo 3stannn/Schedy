@@ -125,6 +125,7 @@ CREATE POLICY "Allow public delete announcements" ON public.announcements FOR DE
 
 CREATE POLICY "Allow public read reads" ON public.announcement_reads FOR SELECT USING (true);
 CREATE POLICY "Allow public insert reads" ON public.announcement_reads FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow public update reads" ON public.announcement_reads FOR UPDATE USING (true);
 CREATE POLICY "Allow public delete reads" ON public.announcement_reads FOR DELETE USING (true);
 
 ALTER PUBLICATION supabase_realtime ADD TABLE public.schedules;

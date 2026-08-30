@@ -93,46 +93,73 @@ Schedy can run standalone offline or connect to a free **Supabase** PostgreSQL d
 2. In the Supabase dashboard, go to the **SQL Editor** and run the following schema:
 
 ```sql
--- 1. Create schedule_events table
-create table public.schedule_events (
-  id text primary key,
-  title text not null,
-  description text default '',
-  start_time timestamptz not null,
-  end_time timestamptz not null,
-  is_all_day boolean default false,
-  category text default 'general',
-  priority text default 'normal',
-  status text default 'pending',
-  location text default '',
-  meeting_url text default '',
-  recurrence_rule text default 'none',
-  created_at timestamptz default timezone('utc'::text, now()) not null,
-  updated_at timestamptz default timezone('utc'::text, now()) not null
+-- 1. Create schedules table
+CREATE TABLE IF NOT EXISTS public.schedules (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    title TEXT NOT NULL,
+    description TEXT DEFAULT '',
+    start_time TIMESTAMPTZ NOT NULL,
+    end_time TIMESTAMPTZ NOT NULL,
+    is_all_day BOOLEAN DEFAULT false,
+    category TEXT DEFAULT 'general',
+    priority TEXT DEFAULT 'medium',
+    status TEXT DEFAULT 'pending',
+    location TEXT DEFAULT '',
+    meeting_url TEXT DEFAULT '',
+    recurrence_rule TEXT DEFAULT 'none',
+    created_by TEXT DEFAULT 'Admin',
+    created_at TIMESTAMPTZ DEFAULT now(),
+    updated_at TIMESTAMPTZ DEFAULT now()
 );
 
 -- 2. Create announcements table
-create table public.announcements (
-  id text primary key,
-  title text not null,
-  content text not null,
-  author_name text default 'Admin',
-  priority text default 'general',
-  category text default 'general',
-  is_pinned boolean default false,
-  created_at timestamptz default timezone('utc'::text, now()) not null,
-  updated_at timestamptz default timezone('utc'::text, now()) not null
+CREATE TABLE IF NOT EXISTS public.announcements (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    title TEXT NOT NULL,
+    content TEXT NOT NULL,
+    priority TEXT DEFAULT 'general',
+    category TEXT DEFAULT 'general',
+    is_pinned BOOLEAN DEFAULT false,
+    expires_at TIMESTAMPTZ,
+    author_name TEXT DEFAULT 'Admin',
+    created_at TIMESTAMPTZ DEFAULT now(),
+    updated_at TIMESTAMPTZ DEFAULT now()
 );
 
--- 3. Enable public access for demo / team sharing
-alter table public.schedule_events enable row level security;
-alter table public.announcements enable row level security;
+-- 3. Create announcement reads / acknowledgement table
+CREATE TABLE IF NOT EXISTS public.announcement_reads (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    announcement_id UUID REFERENCES public.announcements(id) ON DELETE CASCADE,
+    user_id TEXT NOT NULL,
+    read_at TIMESTAMPTZ DEFAULT now(),
+    UNIQUE(announcement_id, user_id)
+);
 
-create policy "Public Schedule Events Access" 
-  on public.schedule_events for all using (true) with check (true);
+-- 4. Enable Row Level Security (RLS)
+ALTER TABLE public.schedules ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.announcements ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.announcement_reads ENABLE ROW LEVEL SECURITY;
 
-create policy "Public Announcements Access" 
-  on public.announcements for all using (true) with check (true);
+-- 5. Create Public Access Policies
+CREATE POLICY "Allow public read schedules" ON public.schedules FOR SELECT USING (true);
+CREATE POLICY "Allow public insert schedules" ON public.schedules FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow public update schedules" ON public.schedules FOR UPDATE USING (true);
+CREATE POLICY "Allow public delete schedules" ON public.schedules FOR DELETE USING (true);
+
+CREATE POLICY "Allow public read announcements" ON public.announcements FOR SELECT USING (true);
+CREATE POLICY "Allow public insert announcements" ON public.announcements FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow public update announcements" ON public.announcements FOR UPDATE USING (true);
+CREATE POLICY "Allow public delete announcements" ON public.announcements FOR DELETE USING (true);
+
+CREATE POLICY "Allow public read announcement_reads" ON public.announcement_reads FOR SELECT USING (true);
+CREATE POLICY "Allow public insert announcement_reads" ON public.announcement_reads FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow public update announcement_reads" ON public.announcement_reads FOR UPDATE USING (true);
+CREATE POLICY "Allow public delete announcement_reads" ON public.announcement_reads FOR DELETE USING (true);
+
+-- 6. Enable Realtime Publications
+ALTER PUBLICATION supabase_realtime ADD TABLE public.schedules;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.announcements;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.announcement_reads;
 ```
 
 3. Copy your **Project URL** and **Anon Public API Key** from **Project Settings $\rightarrow$ API**.
