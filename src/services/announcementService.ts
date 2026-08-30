@@ -69,6 +69,50 @@ export async function fetchAllAnnouncements(): Promise<Announcement[]> {
   });
 }
 
+export async function bulkSaveAnnouncements(
+  annosList: Announcement[],
+  mode: 'replace' | 'merge'
+): Promise<Announcement[]> {
+  const current = loadLocalAnnouncements();
+  let finalAnnos: Announcement[];
+
+  if (mode === 'replace') {
+    finalAnnos = annosList;
+  } else {
+    const existingIds = new Set(current.map(a => a.id));
+    const newAnnos = annosList.filter(a => !existingIds.has(a.id));
+    finalAnnos = [...current, ...newAnnos];
+  }
+
+  saveLocalAnnouncements(finalAnnos);
+
+  const supabase = getSupabaseClient();
+  if (supabase && isSupabaseConfigured()) {
+    try {
+      const isUUID = (str: string) =>
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+
+      const targetAnnos = mode === 'replace' ? finalAnnos : annosList;
+      const rows = targetAnnos.map(anno => {
+        const row = mapAnnouncementToRow(anno);
+        if (!isUUID(anno.id)) {
+          delete row.id;
+        }
+        return row;
+      });
+
+      if (rows.length > 0) {
+        await supabase.from('announcements').upsert(rows);
+      }
+    } catch (err) {
+      console.warn('Supabase bulk save announcements error:', err);
+    }
+  }
+
+  return finalAnnos;
+}
+
+
 export async function createAnnouncement(data: Omit<Announcement, 'id' | 'createdAt' | 'updatedAt' | 'isRead'>): Promise<Announcement> {
   const newAnno: Announcement = {
     ...data,

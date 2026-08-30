@@ -64,6 +64,50 @@ export async function fetchAllEvents(): Promise<ScheduleEvent[]> {
   return loadLocalEvents();
 }
 
+export async function bulkSaveEvents(
+  eventsList: ScheduleEvent[],
+  mode: 'replace' | 'merge'
+): Promise<ScheduleEvent[]> {
+  const current = loadLocalEvents();
+  let finalEvents: ScheduleEvent[];
+
+  if (mode === 'replace') {
+    finalEvents = eventsList;
+  } else {
+    const existingIds = new Set(current.map(e => e.id));
+    const newEvents = eventsList.filter(e => !existingIds.has(e.id));
+    finalEvents = [...current, ...newEvents];
+  }
+
+  saveLocalEvents(finalEvents);
+
+  const supabase = getSupabaseClient();
+  if (supabase && isSupabaseConfigured()) {
+    try {
+      const isUUID = (str: string) =>
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+
+      const targetEvents = mode === 'replace' ? finalEvents : eventsList;
+      const rows = targetEvents.map(evt => {
+        const row = mapEventToRow(evt);
+        if (!isUUID(evt.id)) {
+          delete row.id;
+        }
+        return row;
+      });
+
+      if (rows.length > 0) {
+        await supabase.from('schedules').upsert(rows);
+      }
+    } catch (err) {
+      console.warn('Supabase bulk save error:', err);
+    }
+  }
+
+  return finalEvents;
+}
+
+
 export async function createEvent(eventData: Omit<ScheduleEvent, 'id' | 'createdAt' | 'updatedAt'>): Promise<ScheduleEvent> {
   const newEvent: ScheduleEvent = {
     ...eventData,

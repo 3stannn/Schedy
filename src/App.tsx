@@ -20,6 +20,7 @@ import {
   createEvent, 
   updateEvent, 
   deleteEvent, 
+  bulkSaveEvents,
   expandRecurringEvents 
 } from './services/scheduleService';
 import { 
@@ -27,10 +28,12 @@ import {
   createAnnouncement, 
   updateAnnouncement, 
   deleteAnnouncement, 
+  bulkSaveAnnouncements,
   markAnnouncementAsRead,
   subscribeToRealtimeAnnouncements,
   subscribeToRealtimeSchedules
 } from './services/announcementService';
+
 import { isSupabaseConfigured, testSupabaseConnection } from './services/supabaseClient';
 import { Calendar, List, Megaphone, BarChart3 } from 'lucide-react';
 import { startOfMonth, endOfMonth, addMonths, subMonths } from 'date-fns';
@@ -242,41 +245,61 @@ export function App() {
     }
   };
 
-  const handleImportSuccess = (newEvents: ScheduleEvent[], newAnnos?: Announcement[]) => {
-    setEvents(newEvents);
-    if (newAnnos) setAnnouncements(newAnnos);
-    addToast('success', 'Import Complete', 'Your schedule backup was restored.');
-    setIsExportModalOpen(false);
+  const handleImportSuccess = async (newEvents: ScheduleEvent[], newAnnos?: Announcement[]) => {
+    try {
+      const finalEvents = await bulkSaveEvents(newEvents, 'replace');
+      setEvents(finalEvents);
+      if (newAnnos && newAnnos.length > 0) {
+        const finalAnnos = await bulkSaveAnnouncements(newAnnos, 'replace');
+        setAnnouncements(finalAnnos);
+      }
+      addToast('success', 'Import Complete', 'Your schedule backup was restored.');
+      setIsExportModalOpen(false);
+    } catch (err: any) {
+      console.error('Import error:', err);
+      addToast('error', 'Import Failed', err.message || 'Could not save imported data.');
+    }
   };
 
-  const handleApplySyncCode = (
+  const handleApplySyncCode = async (
     importedEvents: ScheduleEvent[],
     importedAnnos: Announcement[],
     mode: 'replace' | 'merge'
   ) => {
-    if (mode === 'replace') {
-      setEvents(importedEvents);
-      if (importedAnnos.length > 0) {
-        setAnnouncements(importedAnnos);
+    try {
+      const finalEvents = await bulkSaveEvents(importedEvents, mode);
+      setEvents(finalEvents);
+
+      if (importedAnnos.length > 0 || mode === 'replace') {
+        const finalAnnos = await bulkSaveAnnouncements(importedAnnos, mode);
+        setAnnouncements(finalAnnos);
       }
-      addToast('success', 'Calendar Synchronized', `Exact copy of ${importedEvents.length} events loaded.`);
-    } else {
-      // Merge mode
-      setEvents(prev => {
-        const existingIds = new Set(prev.map(e => e.id));
-        const newEvents = importedEvents.filter(e => !existingIds.has(e.id));
-        return [...prev, ...newEvents];
-      });
-      if (importedAnnos.length > 0) {
-        setAnnouncements(prev => {
-          const existingIds = new Set(prev.map(a => a.id));
-          const newAnnos = importedAnnos.filter(a => !existingIds.has(a.id));
-          return [...prev, ...newAnnos];
-        });
+
+      // Clean up ?sync= parameter from URL if present so refreshing doesn't re-trigger share modal
+      if (window.location.search.includes('sync=')) {
+        try {
+          const url = new URL(window.location.href);
+          url.searchParams.delete('sync');
+          const cleanUrl = url.pathname + (url.search ? url.search : '') + url.hash;
+          window.history.replaceState({}, document.title, cleanUrl);
+        } catch (e) {
+          console.error('Failed to clean sync param from URL:', e);
+        }
       }
-      addToast('success', 'Calendar Merged', `Synchronized ${importedEvents.length} events into your schedule.`);
+
+      addToast(
+        'success',
+        mode === 'replace' ? 'Calendar Synchronized' : 'Calendar Merged',
+        mode === 'replace'
+          ? `Exact copy of ${importedEvents.length} events loaded and saved.`
+          : `Synchronized ${importedEvents.length} events into your schedule.`
+      );
+    } catch (err: any) {
+      console.error('Sync code error:', err);
+      addToast('error', 'Sync Failed', err.message || 'Could not save synchronized events.');
     }
   };
+
 
   const unreadCount = announcements.filter(a => !a.isRead).length;
   const urgentAnnouncements = announcements.filter(a => a.priority === 'urgent');
