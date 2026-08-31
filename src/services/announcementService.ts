@@ -75,7 +75,7 @@ export async function fetchAllAnnouncements(): Promise<Announcement[]> {
 
   // 2. Fetch User Connected Database Announcements (if team Cloud Sync is connected)
   const userClient = getUserSupabaseClient();
-  if (userClient && isUserSupabaseConfigured() && userClient !== universalClient) {
+  if (userClient && isUserSupabaseConfigured()) {
     try {
       const [annosRes, readsRes] = await Promise.all([
         userClient.from('announcements').select('*').order('created_at', { ascending: false }),
@@ -176,7 +176,7 @@ export async function bulkSaveAnnouncements(
 
   // 2. User Connected DB - upsert all announcements if configured
   const userClient = getUserSupabaseClient();
-  if (userClient && isUserSupabaseConfigured() && userClient !== universalClient) {
+  if (userClient && isUserSupabaseConfigured()) {
     try {
       const targetAnnos = mode === 'replace' ? finalAnnos : annosList;
       const rows = targetAnnos.map(anno => {
@@ -242,7 +242,7 @@ export async function createAnnouncement(data: Omit<Announcement, 'id' | 'create
   }
 
   // 2. If user has connected their own Team Cloud Sync DB, push to user DB
-  if (userClient && isUserSupabaseConfigured() && userClient !== universalClient) {
+  if (userClient && isUserSupabaseConfigured()) {
     try {
       const row = mapAnnouncementToRow(newAnno);
       const { data: inserted, error } = await userClient
@@ -342,13 +342,46 @@ export async function updateAnnouncement(anno: Announcement): Promise<Announceme
   }
 
   // 2. Handle User Connected Database
-  if (userClient && isUserSupabaseConfigured() && userClient !== universalClient) {
+  if (userClient && isUserSupabaseConfigured()) {
     try {
       const row = mapAnnouncementToRow(updatedAnno);
       if (isUUID(anno.id)) {
-        await userClient.from('announcements').update(row).eq('id', anno.id);
+        const { data: updatedRow, error } = await userClient
+          .from('announcements')
+          .update(row)
+          .eq('id', anno.id)
+          .select()
+          .single();
+
+        if (!error && updatedRow) {
+          const saved = mapRowToAnnouncement(updatedRow, anno.isRead);
+          const local = loadLocalAnnouncements();
+          saveLocalAnnouncements(local.map(a => (a.id === anno.id ? saved : a)));
+          return saved;
+        }
       } else {
-        await userClient.from('announcements').insert([row]);
+        const { data: inserted, error } = await userClient
+          .from('announcements')
+          .insert([
+            {
+              title: row.title,
+              content: row.content,
+              priority: row.priority,
+              category: row.category,
+              is_pinned: row.is_pinned,
+              expires_at: row.expires_at,
+              author_name: row.author_name,
+            }
+          ])
+          .select()
+          .single();
+
+        if (!error && inserted) {
+          const saved = mapRowToAnnouncement(inserted, anno.isRead);
+          const local = loadLocalAnnouncements();
+          saveLocalAnnouncements([saved, ...local.filter(a => a.id !== anno.id)]);
+          return saved;
+        }
       }
     } catch (err) {
       console.warn('User DB announcement update error:', err);
@@ -374,7 +407,7 @@ export async function deleteAnnouncement(id: string): Promise<boolean> {
     }
   }
 
-  if (userClient && isUserSupabaseConfigured() && userClient !== universalClient && isUUID(id)) {
+  if (userClient && isUserSupabaseConfigured() && isUUID(id)) {
     try {
       await userClient.from('announcements').delete().eq('id', id);
     } catch (err) {
@@ -404,7 +437,7 @@ export async function markAnnouncementAsRead(announcementId: string): Promise<vo
     }
   }
 
-  if (userClient && isUserSupabaseConfigured() && userClient !== universalClient && isUUID(announcementId)) {
+  if (userClient && isUserSupabaseConfigured() && isUUID(announcementId)) {
     try {
       await userClient.from('announcement_reads').upsert({
         announcement_id: announcementId,
@@ -441,7 +474,7 @@ export function subscribeToRealtimeAnnouncements(onUpdate: (payload: any) => voi
     clients.push(universal);
   }
   const user = getUserSupabaseClient();
-  if (user && isUserSupabaseConfigured() && user !== universal) {
+  if (user && isUserSupabaseConfigured()) {
     clients.push(user);
   }
 
