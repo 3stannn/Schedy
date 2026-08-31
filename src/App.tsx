@@ -65,12 +65,10 @@ export function App() {
   // Navigation & Role State
   const [activeTab, setActiveTab] = useState<'schedule' | 'announcements' | 'overview'>('schedule');
   const [scheduleViewType, setScheduleViewType] = useState<'calendar' | 'list'>('calendar');
-  const [isAdmin, setIsAdmin] = useState<boolean>(true);
 
   // Data State
   const [events, setEvents] = useState<ScheduleEvent[]>([]);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
-  const [, setLoading] = useState<boolean>(true);
   const [isCloudConnected, setIsCloudConnected] = useState<boolean>(false);
 
   // Modals
@@ -114,7 +112,6 @@ export function App() {
 
   // Load Data
   const loadData = useCallback(async () => {
-    setLoading(true);
     try {
       const [fetchedEvents, fetchedAnnos] = await Promise.all([
         fetchAllEvents(),
@@ -132,8 +129,6 @@ export function App() {
     } catch (err: any) {
       console.error('Failed to load data:', err);
       addToast('error', 'Failed to load data', err.message);
-    } finally {
-      setLoading(false);
     }
   }, [addToast]);
 
@@ -327,8 +322,6 @@ export function App() {
       <Navbar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
-        isAdmin={isAdmin}
-        setIsAdmin={setIsAdmin}
         unreadCount={unreadCount}
         isCloudConnected={isCloudConnected}
         theme={theme}
@@ -396,12 +389,9 @@ export function App() {
             {scheduleViewType === 'calendar' ? (
               <CalendarView
                 events={expandedEvents}
-                isAdmin={isAdmin}
                 onSelectEvent={(evt) => {
-                  if (isAdmin) {
-                    setEditingEvent(evt);
-                    setIsEventModalOpen(true);
-                  }
+                  setEditingEvent(evt);
+                  setIsEventModalOpen(true);
                 }}
                 onAddEventForDate={(date) => {
                   setEditingEvent(null);
@@ -414,7 +404,6 @@ export function App() {
             ) : (
               <EventListView
                 events={events}
-                isAdmin={isAdmin}
                 onEditEvent={(evt) => {
                   setEditingEvent(evt);
                   setIsEventModalOpen(true);
@@ -443,7 +432,6 @@ export function App() {
 
             <AnnouncementFeed
               announcements={announcements}
-              isAdmin={isAdmin}
               onAcknowledge={handleAcknowledgeAnnouncement}
               onEdit={(anno) => {
                 setEditingAnnouncement(anno);
@@ -469,7 +457,6 @@ export function App() {
             <OverviewDashboard
               events={events}
               announcements={announcements}
-              isAdmin={isAdmin}
               onNavigateTab={setActiveTab}
               onNewEvent={() => {
                 setEditingEvent(null);

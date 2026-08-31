@@ -17,7 +17,7 @@ import { isToday, parseISO, format } from 'date-fns';
 interface OverviewDashboardProps {
   events: ScheduleEvent[];
   announcements: Announcement[];
-  isAdmin: boolean;
+  isAdmin?: boolean;
   onNavigateTab: (tab: 'schedule' | 'announcements') => void;
   onNewEvent: () => void;
   onNewAnnouncement?: () => void;
@@ -40,7 +40,7 @@ const formatEventTime = (isoString?: string, isAllDay?: boolean) => {
 export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
   events = [],
   announcements = [],
-  isAdmin,
+  isAdmin = true,
   onNavigateTab,
   onNewEvent,
   onStatusChange,

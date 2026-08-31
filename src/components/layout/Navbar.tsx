@@ -7,8 +7,6 @@ import {
   Download, 
   Share2, 
   Plus, 
-  ShieldCheck, 
-  User, 
   Sun, 
   Moon, 
   Flower2,
@@ -19,8 +17,6 @@ import {
 interface NavbarProps {
   activeTab: 'schedule' | 'announcements' | 'overview';
   setActiveTab: (tab: 'schedule' | 'announcements' | 'overview') => void;
-  isAdmin: boolean;
-  setIsAdmin: (isAdmin: boolean) => void;
   unreadCount: number;
   isCloudConnected: boolean;
   theme: 'light' | 'dark' | 'pink';
@@ -36,8 +32,6 @@ interface NavbarProps {
 export const Navbar: React.FC<NavbarProps> = ({
   activeTab,
   setActiveTab,
-  isAdmin,
-  setIsAdmin,
   unreadCount,
   isCloudConnected,
   theme,
@@ -184,33 +178,17 @@ export const Navbar: React.FC<NavbarProps> = ({
               >
                 <Download className="w-3.5 h-3.5" />
               </button>
-
-              {/* Admin Toggle */}
-              <button
-                onClick={() => setIsAdmin(!isAdmin)}
-                className={`flex items-center gap-1 px-2 py-1 rounded-xl text-[11px] font-medium border transition-all active:scale-95 ${
-                  isAdmin
-                    ? 'bg-neutral-100 dark:bg-neutral-800 border-neutral-300/80 dark:border-neutral-700 text-neutral-800 dark:text-neutral-200'
-                    : 'border-transparent text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800'
-                }`}
-                title="Toggle Admin / Member Role"
-              >
-                {isAdmin ? <ShieldCheck className="w-3 h-3 text-[#2383e2]" /> : <User className="w-3 h-3" />}
-                <span>{isAdmin ? 'Admin' : 'Member'}</span>
-              </button>
             </div>
 
             {/* "+ New" Action Button (Both mobile & desktop) */}
-            {isAdmin && (
-              <button
-                onClick={activeTab === 'announcements' ? onNewAnnouncement : onNewEvent}
-                className="flex items-center gap-1 px-2.5 sm:px-3 py-1.5 text-xs font-semibold text-white bg-[#2383e2] hover:bg-[#1a73e8] rounded-xl shadow-xs hover:shadow-md transition-all active:scale-95"
-                title="Create New Item"
-              >
-                <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
-                <span className="hidden xs:inline">New</span>
-              </button>
-            )}
+            <button
+              onClick={activeTab === 'announcements' ? onNewAnnouncement : onNewEvent}
+              className="flex items-center gap-1 px-2.5 sm:px-3 py-1.5 text-xs font-semibold text-white bg-[#2383e2] hover:bg-[#1a73e8] rounded-xl shadow-xs hover:shadow-md transition-all active:scale-95"
+              title="Create New Item"
+            >
+              <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+              <span className="hidden xs:inline">New</span>
+            </button>
 
             {/* Mobile Menu Button (< md) */}
             <button
@@ -275,20 +253,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         {/* Mobile Dropdown Menu Drawer */}
         {mobileMenuOpen && (
           <div className="md:hidden mt-2 p-3 rounded-2xl bg-white dark:bg-[#18181b] border border-neutral-200/90 dark:border-neutral-800/90 shadow-xl space-y-2 text-xs animate-fade-in">
-            <div className="grid grid-cols-2 gap-2">
-              {/* Role Toggle */}
-              <button
-                onClick={() => setIsAdmin(!isAdmin)}
-                className={`flex items-center justify-center gap-1.5 p-2.5 rounded-xl border font-medium transition-all ${
-                  isAdmin
-                    ? 'bg-neutral-100 dark:bg-neutral-800 border-neutral-300 dark:border-neutral-700 text-neutral-900 dark:text-white font-semibold'
-                    : 'border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-400'
-                }`}
-              >
-                {isAdmin ? <ShieldCheck className="w-4 h-4 text-[#2383e2]" /> : <User className="w-4 h-4" />}
-                <span>Role: {isAdmin ? 'Admin' : 'Member'}</span>
-              </button>
-
+            <div className="grid grid-cols-3 gap-2">
               {/* Share Code */}
               <button
                 onClick={() => handleActionAndClose(onOpenShare)}

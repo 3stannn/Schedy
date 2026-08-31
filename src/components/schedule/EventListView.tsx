@@ -18,7 +18,7 @@ import {
 
 interface EventListViewProps {
   events: ScheduleEvent[];
-  isAdmin: boolean;
+  isAdmin?: boolean;
   onEditEvent: (event: ScheduleEvent) => void;
   onDeleteEvent: (id: string) => void;
   onStatusChange: (event: ScheduleEvent, status: EventStatus) => void;
@@ -27,7 +27,7 @@ interface EventListViewProps {
 
 export const EventListView: React.FC<EventListViewProps> = ({
   events,
-  isAdmin,
+  isAdmin = true,
   onEditEvent,
   onDeleteEvent,
   onStatusChange,

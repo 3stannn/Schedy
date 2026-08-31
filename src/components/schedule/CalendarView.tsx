@@ -33,7 +33,7 @@ import {
 
 interface CalendarViewProps {
   events: ScheduleEvent[];
-  isAdmin: boolean;
+  isAdmin?: boolean;
   onSelectEvent: (event: ScheduleEvent) => void;
   onAddEventForDate: (date: Date) => void;
   onDeleteEvent?: (id: string) => void;
@@ -42,7 +42,7 @@ interface CalendarViewProps {
 
 export const CalendarView: React.FC<CalendarViewProps> = ({
   events,
-  isAdmin,
+  isAdmin = true,
   onSelectEvent,
   onAddEventForDate,
   onDeleteEvent,

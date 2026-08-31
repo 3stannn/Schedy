@@ -287,9 +287,17 @@ export function expandRecurringEvents(events: ScheduleEvent[], viewStart: Date, 
 /**
  * Export schedule to .ics (iCalendar) format
  */
-export function exportToICal(events: ScheduleEvent[]): string {
-  const formatICSDate = (isoStr: string) => {
-    return format(parseISO(isoStr), "yyyyMMdd'T'HHmmss'Z'");
+export function exportToICal(events: ScheduleEvent[] = []): string {
+  const safeEvents = Array.isArray(events) ? events.filter(Boolean) : [];
+  const formatICSDate = (isoStr?: string) => {
+    if (!isoStr) return format(new Date(), "yyyyMMdd'T'HHmmss'Z'");
+    try {
+      const d = parseISO(isoStr);
+      if (isNaN(d.getTime())) return format(new Date(), "yyyyMMdd'T'HHmmss'Z'");
+      return format(d, "yyyyMMdd'T'HHmmss'Z'");
+    } catch {
+      return format(new Date(), "yyyyMMdd'T'HHmmss'Z'");
+    }
   };
 
   const lines = [
@@ -300,18 +308,18 @@ export function exportToICal(events: ScheduleEvent[]): string {
     'METHOD:PUBLISH',
   ];
 
-  events.forEach(event => {
+  safeEvents.forEach(event => {
     lines.push('BEGIN:VEVENT');
-    lines.push(`UID:${event.id}@schedulemanager.local`);
+    lines.push(`UID:${event.id || ('evt_' + Math.random().toString(36).substring(2, 9))}@schedulemanager.local`);
     lines.push(`DTSTAMP:${formatICSDate(new Date().toISOString())}`);
     lines.push(`DTSTART:${formatICSDate(event.startTime)}`);
-    lines.push(`DTEND:${formatICSDate(event.endTime)}`);
-    lines.push(`SUMMARY:${event.title.replace(/,/g, '\\,')}`);
+    lines.push(`DTEND:${formatICSDate(event.endTime || event.startTime)}`);
+    lines.push(`SUMMARY:${(event.title || 'Untitled Event').replace(/,/g, '\\,')}`);
     if (event.description) {
-      lines.push(`DESCRIPTION:${event.description.replace(/\n/g, '\\n').replace(/,/g, '\\,')}`);
+      lines.push(`DESCRIPTION:${String(event.description).replace(/\n/g, '\\n').replace(/,/g, '\\,')}`);
     }
     if (event.location) {
-      lines.push(`LOCATION:${event.location.replace(/,/g, '\\,')}`);
+      lines.push(`LOCATION:${String(event.location).replace(/,/g, '\\,')}`);
     }
     if (event.recurrenceRule && event.recurrenceRule !== 'none') {
       const freqMap: Record<string, string> = {
@@ -333,21 +341,22 @@ export function exportToICal(events: ScheduleEvent[]): string {
 /**
  * Export schedule to CSV format
  */
-export function exportToCSV(events: ScheduleEvent[]): string {
+export function exportToCSV(events: ScheduleEvent[] = []): string {
+  const safeEvents = Array.isArray(events) ? events.filter(Boolean) : [];
   const headers = ['ID', 'Title', 'Description', 'StartTime', 'EndTime', 'IsAllDay', 'Category', 'Priority', 'Status', 'Location', 'MeetingUrl', 'Recurrence'];
-  const rows = events.map(e => [
-    `"${e.id}"`,
-    `"${e.title.replace(/"/g, '""')}"`,
-    `"${(e.description || '').replace(/"/g, '""')}"`,
-    `"${e.startTime}"`,
-    `"${e.endTime}"`,
-    `"${e.isAllDay}"`,
-    `"${e.category}"`,
-    `"${e.priority}"`,
-    `"${e.status}"`,
-    `"${(e.location || '').replace(/"/g, '""')}"`,
-    `"${(e.meetingUrl || '').replace(/"/g, '""')}"`,
-    `"${e.recurrenceRule}"`
+  const rows = safeEvents.map(e => [
+    `"${e.id || ''}"`,
+    `"${String(e.title || '').replace(/"/g, '""')}"`,
+    `"${String(e.description || '').replace(/"/g, '""')}"`,
+    `"${e.startTime || ''}"`,
+    `"${e.endTime || ''}"`,
+    `"${Boolean(e.isAllDay)}"`,
+    `"${e.category || 'general'}"`,
+    `"${e.priority || 'medium'}"`,
+    `"${e.status || 'pending'}"`,
+    `"${String(e.location || '').replace(/"/g, '""')}"`,
+    `"${String(e.meetingUrl || '').replace(/"/g, '""')}"`,
+    `"${e.recurrenceRule || 'none'}"`
   ].join(','));
 
   return [headers.join(','), ...rows].join('\n');
@@ -356,20 +365,34 @@ export function exportToCSV(events: ScheduleEvent[]): string {
 /**
  * Export all data to JSON backup
  */
-export function exportToJSON(events: ScheduleEvent[]): string {
-  return JSON.stringify(events, null, 2);
+export function exportToJSON(events: ScheduleEvent[] = []): string {
+  return JSON.stringify(events || [], null, 2);
 }
 
 /**
  * Export schedule and announcements as clean, readable plain text
  */
-export function exportToPlainText(events: ScheduleEvent[], announcements: any[] = []): string {
+export function exportToPlainText(events: ScheduleEvent[] = [], announcements: any[] = []): string {
+  const safeEvents = Array.isArray(events) ? events.filter(Boolean) : [];
+  const safeAnnos = Array.isArray(announcements) ? announcements.filter(Boolean) : [];
   const exportDate = format(new Date(), 'EEEE, MMMM d, yyyy h:mm a');
+
+  const safeFormatDate = (isoStr?: string, fmt: string = 'EEE, MMM d, yyyy h:mm a') => {
+    if (!isoStr) return 'N/A';
+    try {
+      const d = parseISO(isoStr);
+      if (isNaN(d.getTime())) return isoStr;
+      return format(d, fmt);
+    } catch {
+      return isoStr;
+    }
+  };
+
   const lines: string[] = [
     '============================================================',
     'SCHEDY — PLAIN TEXT EXPORT',
     `Export Date: ${exportDate}`,
-    `Total Events: ${events.length} | Total Announcements: ${announcements.length}`,
+    `Total Events: ${safeEvents.length} | Total Announcements: ${safeAnnos.length}`,
     '============================================================',
     '',
     '------------------------------------------------------------',
@@ -377,20 +400,24 @@ export function exportToPlainText(events: ScheduleEvent[], announcements: any[] 
     '------------------------------------------------------------',
   ];
 
-  if (events.length === 0) {
+  if (safeEvents.length === 0) {
     lines.push('No scheduled events found.');
   } else {
     // Sort chronologically
-    const sorted = [...events].sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
+    const sorted = [...safeEvents].sort((a, b) => {
+      const timeA = a.startTime ? new Date(a.startTime).getTime() : 0;
+      const timeB = b.startTime ? new Date(b.startTime).getTime() : 0;
+      return timeA - timeB;
+    });
     sorted.forEach((event, idx) => {
-      const startStr = format(parseISO(event.startTime), 'EEE, MMM d, yyyy h:mm a');
-      const endStr = format(parseISO(event.endTime), 'h:mm a');
-      const timeDisplay = event.isAllDay ? `${format(parseISO(event.startTime), 'EEE, MMM d, yyyy')} (All Day)` : `${startStr} - ${endStr}`;
+      const startStr = safeFormatDate(event.startTime, 'EEE, MMM d, yyyy h:mm a');
+      const endStr = safeFormatDate(event.endTime, 'h:mm a');
+      const timeDisplay = event.isAllDay ? `${safeFormatDate(event.startTime, 'EEE, MMM d, yyyy')} (All Day)` : `${startStr} - ${endStr}`;
       
       lines.push('');
-      lines.push(`${idx + 1}. [${event.status.toUpperCase()}] ${event.title}`);
+      lines.push(`${idx + 1}. [${String(event.status || 'pending').toUpperCase()}] ${event.title || 'Untitled'}`);
       lines.push(`   - When:       ${timeDisplay}`);
-      lines.push(`   - Category:   ${event.category} | Priority: ${event.priority}`);
+      lines.push(`   - Category:   ${event.category || 'general'} | Priority: ${event.priority || 'medium'}`);
       if (event.recurrenceRule && event.recurrenceRule !== 'none') {
         lines.push(`   - Recurrence: ${event.recurrenceRule}`);
       }
@@ -406,18 +433,18 @@ export function exportToPlainText(events: ScheduleEvent[], announcements: any[] 
     });
   }
 
-  if (announcements.length > 0) {
+  if (safeAnnos.length > 0) {
     lines.push('');
     lines.push('------------------------------------------------------------');
     lines.push('ANNOUNCEMENTS & BULLETINS');
     lines.push('------------------------------------------------------------');
-    announcements.forEach((anno, idx) => {
-      const createdStr = format(parseISO(anno.createdAt), 'EEE, MMM d, yyyy h:mm a');
+    safeAnnos.forEach((anno, idx) => {
+      const createdStr = safeFormatDate(anno.createdAt, 'EEE, MMM d, yyyy h:mm a');
       lines.push('');
-      lines.push(`${idx + 1}. ${anno.isPinned ? '[PINNED] ' : ''}[${anno.priority.toUpperCase()}] ${anno.title}`);
-      lines.push(`   • Author:   ${anno.authorName} (${createdStr})`);
+      lines.push(`${idx + 1}. ${anno.isPinned ? '[PINNED] ' : ''}[${String(anno.priority || 'important').toUpperCase()}] ${anno.title || 'Untitled'}`);
+      lines.push(`   • Author:   ${anno.authorName || 'Admin'} (${createdStr})`);
       lines.push(`   • Category: ${anno.category || 'General'}`);
-      lines.push(`   • Content:  ${anno.content}`);
+      lines.push(`   • Content:  ${anno.content || ''}`);
     });
   }
 

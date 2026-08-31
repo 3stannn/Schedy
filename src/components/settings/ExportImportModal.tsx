@@ -42,25 +42,28 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
   const [importStatus, setImportStatus] = useState<{ success: boolean; message: string } | null>(null);
 
   const previewData = useMemo(() => {
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date().toISOString().split('T')[0] || 'backup';
+    const safeEvents = Array.isArray(events) ? events : [];
+    const safeAnnos = Array.isArray(announcements) ? announcements : [];
+
     switch (selectedFormat) {
       case 'txt':
         return {
-          content: exportToPlainText(events, announcements),
+          content: exportToPlainText(safeEvents, safeAnnos),
           filename: `schedule-export-${today}.txt`,
           mimeType: 'text/plain;charset=utf-8',
           label: 'Plain Text Agenda (.txt)',
         };
       case 'ics':
         return {
-          content: exportToICal(events),
+          content: exportToICal(safeEvents),
           filename: `schedule-export-${today}.ics`,
           mimeType: 'text/calendar;charset=utf-8',
           label: 'iCalendar (.ics)',
         };
       case 'csv':
         return {
-          content: exportToCSV(events),
+          content: exportToCSV(safeEvents),
           filename: `schedule-export-${today}.csv`,
           mimeType: 'text/csv;charset=utf-8',
           label: 'Spreadsheet CSV (.csv)',
@@ -70,13 +73,13 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
         const payload = {
           version: '1.0',
           exportedAt: new Date().toISOString(),
-          events,
-          announcements,
+          events: safeEvents,
+          announcements: safeAnnos,
         };
         return {
           content: JSON.stringify(payload, null, 2),
           filename: `schedy-backup-${today}.json`,
-          mimeType: 'application/json',
+          mimeType: 'application/json;charset=utf-8',
           label: 'Full JSON Backup (.json)',
         };
       }
@@ -84,21 +87,32 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
   }, [selectedFormat, events, announcements]);
 
   const handleDownload = () => {
-    const blob = new Blob([previewData.content], { type: previewData.mimeType });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = previewData.filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    try {
+      const content = previewData.content || '';
+      const blob = new Blob([content], { type: previewData.mimeType });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = previewData.filename;
+      document.body.appendChild(link);
+      link.click();
+      setTimeout(() => {
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      }, 100);
+    } catch (err) {
+      console.error('Download error:', err);
+    }
   };
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(previewData.content);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    try {
+      navigator.clipboard.writeText(previewData.content || '');
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Copy error:', err);
+    }
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {

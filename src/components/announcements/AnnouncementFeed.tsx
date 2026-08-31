@@ -20,7 +20,7 @@ import { DevPasswordModal } from './DevPasswordModal';
 
 interface AnnouncementFeedProps {
   announcements: Announcement[];
-  isAdmin: boolean;
+  isAdmin?: boolean;
   onAcknowledge: (id: string) => void;
   onEdit: (anno: Announcement) => void;
   onDelete: (id: string) => void;
@@ -60,7 +60,7 @@ const formatTimeAgo = (dateStr?: string) => {
 
 export const AnnouncementFeed: React.FC<AnnouncementFeedProps> = ({
   announcements = [],
-  isAdmin,
+  isAdmin = true,
   onAcknowledge,
   onEdit,
   onDelete,

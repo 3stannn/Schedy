@@ -254,7 +254,7 @@ export const EventModal: React.FC<EventModalProps> = ({
                 <div className="flex items-center gap-2 flex-wrap">
                   <input
                     type={isAllDay ? 'date' : 'datetime-local'}
-                    value={isAllDay ? startTime.split('T')[0] : startTime}
+                    value={isAllDay ? (startTime ? startTime.split('T')[0] : '') : (startTime || '')}
                     onChange={e => {
                       const val = e.target.value;
                       setStartTime(isAllDay ? `${val}T00:00` : val);
@@ -264,7 +264,7 @@ export const EventModal: React.FC<EventModalProps> = ({
                   <span className="text-neutral-400 text-xs">→</span>
                   <input
                     type={isAllDay ? 'date' : 'datetime-local'}
-                    value={isAllDay ? endTime.split('T')[0] : endTime}
+                    value={isAllDay ? (endTime ? endTime.split('T')[0] : '') : (endTime || '')}
                     onChange={e => {
                       const val = e.target.value;
                       setEndTime(isAllDay ? `${val}T23:59` : val);

@@ -15,7 +15,7 @@ import { ConfirmModal } from '../common/ConfirmModal';
 
 interface EventCardProps {
   event: ScheduleEvent;
-  isAdmin: boolean;
+  isAdmin?: boolean;
   onEdit: (event: ScheduleEvent) => void;
   onDelete: (id: string) => void;
   onStatusChange: (event: ScheduleEvent, status: EventStatus) => void;
@@ -39,7 +39,7 @@ const categoryLabels: Record<EventCategory, { label: string; tag: string }> = {
 
 export const EventCard: React.FC<EventCardProps> = ({
   event,
-  isAdmin,
+  isAdmin = true,
   onEdit,
   onDelete,
   onStatusChange,
