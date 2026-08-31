@@ -1,5 +1,5 @@
 import type { ScheduleEvent } from '../types/schedule';
-import type { Announcement, AnnouncementRead } from '../types/announcement';
+import type { Announcement, AnnouncementPriority, AnnouncementRead } from '../types/announcement';
 
 const LOCAL_EVENTS_KEY = 'schedule_manager_events_v1';
 const LOCAL_ANNOUNCEMENTS_KEY = 'schedule_manager_announcements_v1';
@@ -26,7 +26,7 @@ export function getInitialAnnouncements(): Announcement[] {
       id: 'anno-welcome',
       title: 'Welcome to Schedy',
       content: 'Welcome to Schedy! Use this dashboard to plan your schedule, track events, and stay updated with announcements.',
-      priority: 'general',
+      priority: 'important',
       category: 'general',
       isPinned: true,
       authorName: 'Developer: Kodekz',
@@ -73,29 +73,33 @@ export function loadLocalAnnouncements(): Announcement[] {
       saveLocalAnnouncements(initial);
       return initial;
     }
-    const parsed: Announcement[] = JSON.parse(raw);
-    // Filter out old demo notices and ensure general pinned welcome announcement exists
+    const parsed: any[] = JSON.parse(raw);
+    // Filter out old demo notices and ensure welcome announcement exists
     let hasChanges = false;
     let welcomeFound = false;
-    const filtered = parsed
+    const filtered: Announcement[] = parsed
       .filter(a => a.id !== 'anno-demo-1' && a.id !== 'anno-demo-2' && a.id !== 'anno-demo-3')
       .map(a => {
+        const p: AnnouncementPriority = a.priority === 'dev' ? 'dev' : 'important';
         if (a.id === 'anno-welcome') {
           welcomeFound = true;
           const [initialWelcome] = getInitialAnnouncements();
-          if (a.priority !== 'general' || !a.isPinned || a.authorName !== initialWelcome.authorName) {
+          if (a.priority !== 'important' || !a.isPinned || a.authorName !== initialWelcome.authorName) {
             hasChanges = true;
             return {
               ...a,
               authorName: initialWelcome.authorName,
-              priority: 'general' as const,
+              priority: 'important',
               isPinned: true,
             };
           }
         }
+        if (a.priority !== p) {
+          hasChanges = true;
+          return { ...a, priority: p };
+        }
         return a;
       });
-
 
     if (!welcomeFound) {
       const [welcome] = getInitialAnnouncements();

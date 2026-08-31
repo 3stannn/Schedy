@@ -193,11 +193,8 @@ export const AnnouncementModal: React.FC<AnnouncementModalProps> = ({
                       : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 focus:ring-neutral-400'
                   }`}
                 >
+                  <option value="important">Important (Client-Side)</option>
                   <option value="dev">Dev Announcement (Universal Broadcast)</option>
-                  <option value="urgent">Urgent Notice</option>
-                  <option value="important">Important</option>
-                  <option value="notice">General Notice</option>
-                  <option value="general">Info / Update</option>
                 </select>
               </div>
 

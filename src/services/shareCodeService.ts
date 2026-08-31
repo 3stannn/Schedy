@@ -116,7 +116,7 @@ function expandAnnouncement(t: any[]): Announcement {
     id: t[0] || ('anno_' + Math.random().toString(36).substring(2, 9)),
     title: t[1] || 'Announcement',
     content: t[2] || '',
-    priority: (t[3] || 'general') as AnnouncementPriority,
+    priority: (t[3] === 'dev' ? 'dev' : 'important') as AnnouncementPriority,
     category: t[4] || 'general',
     isPinned: Boolean(t[5]),
     expiresAt: t[6] || undefined,

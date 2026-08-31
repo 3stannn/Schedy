@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
-import type { Announcement, AnnouncementPriority } from '../../types/announcement';
+import type { Announcement } from '../../types/announcement';
 import { 
-  Megaphone, 
+  Megaphone,
   Pin, 
   Search, 
   CheckSquare, 
@@ -12,8 +12,6 @@ import {
   User, 
   Plus,
   AlertTriangle,
-  Bell,
-  Info,
   Sparkles
 } from 'lucide-react';
 import { parseISO, formatDistanceToNow } from 'date-fns';
@@ -29,42 +27,24 @@ interface AnnouncementFeedProps {
   onAddNew: () => void;
 }
 
-const priorityStyles: Record<AnnouncementPriority, { bg: string; border: string; tag: string }> = {
+const priorityStyles: Record<string, { bg: string; border: string; tag: string }> = {
   dev: {
     bg: 'bg-[#f6f2ff] dark:bg-[#1f1633]',
     border: 'border-[#ded2f9] dark:border-[#4d2d84]',
     tag: 'bg-[#ede5ff] text-[#7335e6] dark:bg-[#381f66] dark:text-[#c8aeff]',
-  },
-  urgent: {
-    bg: 'bg-[#fdebec] dark:bg-[#2e1c1c]',
-    border: 'border-[#f5c2c5] dark:border-[#4d2828]',
-    tag: 'bg-[#fdebec] text-[#c4554d] dark:bg-[#3c1e1e] dark:text-[#e06c75]',
   },
   important: {
     bg: 'bg-[#fbf3db] dark:bg-[#2d2516]',
     border: 'border-[#f5df9e] dark:border-[#473b1f]',
     tag: 'bg-[#fbf3db] text-[#89632a] dark:bg-[#392e1e] dark:text-[#dfab01]',
   },
-  notice: {
-    bg: 'bg-[#e7f3f8] dark:bg-[#182632]',
-    border: 'border-[#bcdbec] dark:border-[#22394c]',
-    tag: 'bg-[#e7f3f8] text-[#245e82] dark:bg-[#182937] dark:text-[#78b3dc]',
-  },
-  general: {
-    bg: 'bg-[#f7f6f3] dark:bg-[#202020]',
-    border: 'border-[#e9e9e7] dark:border-[#2e2e2e]',
-    tag: 'bg-[#f1f1ef] text-[#787774] dark:bg-[#2e2e2e] dark:text-[#9b9a97]',
-  },
 };
 
-const getPriorityIcon = (priority?: AnnouncementPriority) => {
-  switch (priority) {
-    case 'dev': return <Sparkles className="w-4 h-4 text-purple-600 dark:text-purple-400" />;
-    case 'urgent': return <AlertTriangle className="w-4 h-4 text-rose-600 dark:text-rose-400" />;
-    case 'important': return <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400" />;
-    case 'notice': return <Bell className="w-4 h-4 text-blue-600 dark:text-blue-400" />;
-    default: return <Info className="w-4 h-4 text-neutral-500 dark:text-neutral-400" />;
+const getPriorityIcon = (priority?: string) => {
+  if (priority === 'dev') {
+    return <Sparkles className="w-4 h-4 text-purple-600 dark:text-purple-400" />;
   }
+  return <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400" />;
 };
 
 const formatTimeAgo = (dateStr?: string) => {
@@ -87,7 +67,7 @@ export const AnnouncementFeed: React.FC<AnnouncementFeedProps> = ({
   onAddNew,
 }) => {
   const [search, setSearch] = useState('');
-  const [filter, setFilter] = useState<'all' | 'dev' | 'unread' | 'pinned' | 'urgent'>('all');
+  const [filter, setFilter] = useState<'all' | 'dev' | 'important' | 'unread' | 'pinned'>('all');
   const [annoToDelete, setAnnoToDelete] = useState<Announcement | null>(null);
   const [isDevPasswordModalOpen, setIsDevPasswordModalOpen] = useState(false);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
@@ -111,9 +91,9 @@ export const AnnouncementFeed: React.FC<AnnouncementFeedProps> = ({
 
       let matchFilter = true;
       if (filter === 'dev') matchFilter = a.priority === 'dev';
+      else if (filter === 'important') matchFilter = a.priority === 'important' || a.priority !== 'dev';
       else if (filter === 'unread') matchFilter = !a.isRead;
       else if (filter === 'pinned') matchFilter = !!a.isPinned;
-      else if (filter === 'urgent') matchFilter = a.priority === 'urgent';
 
       return matchSearch && matchFilter;
     }).sort((a, b) => {
@@ -239,14 +219,14 @@ export const AnnouncementFeed: React.FC<AnnouncementFeedProps> = ({
               </button>
 
               <button
-                onClick={() => setFilter('urgent')}
+                onClick={() => setFilter('important')}
                 className={`px-3 py-1 font-semibold rounded-lg transition-all whitespace-nowrap ${
-                  filter === 'urgent'
+                  filter === 'important'
                     ? 'bg-white dark:bg-[#202024] text-[#1c1917] dark:text-white shadow-xs'
                     : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
                 }`}
               >
-                Urgent
+                Important
               </button>
             </div>
 

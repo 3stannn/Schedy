@@ -148,7 +148,7 @@ export function App() {
       if (payload.eventType === 'INSERT') {
         const newRecord = payload.new;
         addToast(
-          newRecord.priority === 'urgent' ? 'urgent' : 'info',
+          newRecord.priority === 'dev' ? 'urgent' : 'info',
           `New Announcement: ${newRecord.title}`,
           newRecord.content?.substring(0, 100)
         );
@@ -221,7 +221,7 @@ export function App() {
         const created = await createAnnouncement(annoData);
         setAnnouncements(prev => [created, ...prev]);
         addToast(
-          created.priority === 'urgent' ? 'urgent' : 'success',
+          created.priority === 'dev' ? 'urgent' : 'success',
           'Broadcast Published',
           `"${created.title}" is now active.`
         );
@@ -281,7 +281,6 @@ export function App() {
         setAnnouncements(finalAnnos);
       }
 
-      // Clean up ?sync= parameter from URL if present so refreshing doesn't re-trigger share modal
       if (window.location.search.includes('sync=')) {
         try {
           const url = new URL(window.location.href);
@@ -306,9 +305,8 @@ export function App() {
     }
   };
 
-
   const unreadCount = announcements.filter(a => !a.isRead).length;
-  const urgentAnnouncements = announcements.filter(a => a.priority === 'dev' || a.priority === 'urgent');
+  const urgentAnnouncements = announcements.filter(a => a.priority === 'dev' || a.priority === 'important');
 
   // Expanded recurring events for calendar display
   const viewRangeStart = subMonths(startOfMonth(new Date()), 1);
