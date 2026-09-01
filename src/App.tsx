@@ -35,7 +35,7 @@ import {
 } from './services/announcementService';
 
 import { isUserSupabaseConfigured, testUserSupabaseConnection } from './services/supabaseClient';
-import { Calendar, List, Megaphone, BarChart3 } from 'lucide-react';
+import { Calendar, List } from 'lucide-react';
 import { startOfMonth, endOfMonth, addMonths, subMonths } from 'date-fns';
 
 export function App() {
@@ -353,9 +353,8 @@ export function App() {
             {/* View sub-switcher (Calendar vs List) */}
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-lg sm:text-xl font-bold text-[#1c1917] dark:text-white tracking-tight flex items-center gap-2">
-                  <Calendar className="w-5 h-5 text-[#2383e2]" />
-                  <span>Schedule</span>
+                <h1 className="text-lg sm:text-xl font-bold text-[#1c1917] dark:text-white tracking-tight">
+                  Schedule
                 </h1>
               </div>
 
@@ -424,9 +423,8 @@ export function App() {
         {activeTab === 'announcements' && (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h1 className="text-xl font-bold text-[#37352f] dark:text-white tracking-tight flex items-center gap-2">
-                <Megaphone className="w-5 h-5 text-[#2383e2]" />
-                <span>Announcements</span>
+              <h1 className="text-xl font-bold text-[#37352f] dark:text-white tracking-tight">
+                Announcements
               </h1>
             </div>
 
@@ -449,9 +447,8 @@ export function App() {
         {/* TAB 3: OVERVIEW DASHBOARD */}
         {activeTab === 'overview' && (
           <div className="space-y-4">
-            <h1 className="text-xl font-bold text-[#37352f] dark:text-white tracking-tight flex items-center gap-2">
-              <BarChart3 className="w-5 h-5 text-[#2383e2]" />
-              <span>Overview</span>
+            <h1 className="text-xl font-bold text-[#37352f] dark:text-white tracking-tight">
+              Overview
             </h1>
 
             <OverviewDashboard

@@ -1,9 +1,6 @@
 import React, { useState } from 'react';
 import schedyLogo from '../../assets/schedy.png';
 import { 
-  Calendar, 
-  Megaphone, 
-  BarChart3, 
   Database, 
   Download, 
   Share2, 
@@ -80,7 +77,6 @@ export const Navbar: React.FC<NavbarProps> = ({
                   : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
               }`}
             >
-              <Calendar className="w-3.5 h-3.5 shrink-0" />
               <span>Schedule</span>
             </button>
 
@@ -92,7 +88,6 @@ export const Navbar: React.FC<NavbarProps> = ({
                   : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
               }`}
             >
-              <Megaphone className="w-3.5 h-3.5 shrink-0" />
               <span>Notices</span>
               {unreadCount > 0 && (
                 <span className="px-1.5 py-0.2 text-[9px] font-bold rounded-full bg-rose-500 text-white shadow-xs animate-pulse">
@@ -109,7 +104,6 @@ export const Navbar: React.FC<NavbarProps> = ({
                   : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
               }`}
             >
-              <BarChart3 className="w-3.5 h-3.5 shrink-0" />
               <span>Overview</span>
             </button>
           </nav>
@@ -219,7 +213,6 @@ export const Navbar: React.FC<NavbarProps> = ({
                 : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
             }`}
           >
-            <Calendar className="w-3.5 h-3.5 shrink-0" />
             <span>Schedule</span>
           </button>
 
@@ -231,7 +224,6 @@ export const Navbar: React.FC<NavbarProps> = ({
                 : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
             }`}
           >
-            <Megaphone className="w-3.5 h-3.5 shrink-0" />
             <span>Notices</span>
             {unreadCount > 0 && (
               <span className="px-1.5 py-0.2 text-[9px] font-bold rounded-full bg-rose-500 text-white shadow-xs">
@@ -248,7 +240,6 @@ export const Navbar: React.FC<NavbarProps> = ({
                 : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
             }`}
           >
-            <BarChart3 className="w-3.5 h-3.5 shrink-0" />
             <span>Overview</span>
           </button>
         </div>
