@@ -257,7 +257,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       {/* MOBILE TOP BAR (Visible on < md)                                         */}
       {/* ========================================================================= */}
       <header className="md:hidden sticky top-0 z-40 w-full bg-white/95 dark:bg-[#141416]/95 backdrop-blur-xl border-b border-neutral-200/80 dark:border-neutral-800/80 transition-all">
-        <div className="max-w-6xl w-full mx-auto px-3 sm:px-6 py-2">
+        <div className="w-full max-w-[1760px] mx-auto px-3 sm:px-6 py-2">
           
           {/* Mobile Main Row */}
           <div className="flex items-center justify-between gap-2 min-h-[38px]">

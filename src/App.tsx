@@ -458,7 +458,7 @@ export function App() {
         />
 
         {/* Main Container */}
-        <main className="flex-1 max-w-6xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4">
+        <main className="flex-1 w-full max-w-[1760px] mx-auto px-3 sm:px-6 lg:px-8 xl:px-10 py-4 sm:py-6 space-y-4">
         
         {/* TAB 1: SCHEDULE VIEW */}
         {activeTab === 'schedule' && (
@@ -620,7 +620,7 @@ export function App() {
 
       {/* Minimal Footer */}
       <footer className="mt-auto border-t border-[#e9e9e7] dark:border-[#2e2e2e] bg-white dark:bg-[#191919] py-3 text-xs text-neutral-400">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2">
+        <div className="w-full max-w-[1760px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 flex flex-col sm:flex-row items-center justify-between gap-2">
           <p className="flex items-center gap-1.5 flex-wrap">
             <span>Schedy • Simple Schedule & Announcements</span>
             <span>•</span>
