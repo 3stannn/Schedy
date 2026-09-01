@@ -1,9 +1,11 @@
 import type { ScheduleEvent } from '../types/schedule';
 import type { Announcement, AnnouncementPriority, AnnouncementRead } from '../types/announcement';
+import type { Note } from '../types/note';
 
 const LOCAL_EVENTS_KEY = 'schedule_manager_events_v1';
 const LOCAL_ANNOUNCEMENTS_KEY = 'schedule_manager_announcements_v1';
 const LOCAL_READS_KEY = 'schedule_manager_reads_v1';
+const LOCAL_NOTES_KEY = 'schedule_manager_notes_v1';
 const USER_ID_KEY = 'schedule_manager_user_id';
 
 export function getOrCreateUserId(): string {
@@ -144,3 +146,42 @@ export function saveLocalReads(reads: AnnouncementRead[]): void {
     console.error('Failed to save reads:', e);
   }
 }
+
+export function getInitialNotes(): Note[] {
+  const now = new Date().toISOString();
+  return [
+    {
+      id: 'note-welcome',
+      title: 'Quick Scratchpad',
+      content: 'Jot down ideas, to-do lists, links, and temporary thoughts here! Notes are saved separately.',
+      color: 'yellow',
+      isPinned: true,
+      createdAt: now,
+      updatedAt: now,
+    }
+  ];
+}
+
+export function loadLocalNotes(): Note[] {
+  try {
+    const raw = localStorage.getItem(LOCAL_NOTES_KEY);
+    if (!raw) {
+      const initial = getInitialNotes();
+      saveLocalNotes(initial);
+      return initial;
+    }
+    return JSON.parse(raw);
+  } catch (e) {
+    console.error('Failed to load local notes:', e);
+    return getInitialNotes();
+  }
+}
+
+export function saveLocalNotes(notes: Note[]): void {
+  try {
+    localStorage.setItem(LOCAL_NOTES_KEY, JSON.stringify(notes));
+  } catch (e) {
+    console.error('Failed to save local notes:', e);
+  }
+}
+

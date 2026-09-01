@@ -414,89 +414,97 @@ export function exportToJSON(events: ScheduleEvent[] = []): string {
 }
 
 /**
- * Export schedule and announcements as clean, readable plain text
+ * Export schedule and notes as clean, minimal plain text
  */
-export function exportToPlainText(events: ScheduleEvent[] = [], announcements: any[] = []): string {
+export function exportToPlainText(
+  events: ScheduleEvent[] = [], 
+  _announcements: any[] = [],
+  notes: any[] = []
+): string {
   const safeEvents = Array.isArray(events) ? events.filter(Boolean) : [];
-  const safeAnnos = Array.isArray(announcements) ? announcements.filter(Boolean) : [];
-  const exportDate = format(new Date(), 'EEEE, MMMM d, yyyy h:mm a');
+  const safeNotes = Array.isArray(notes) ? notes.filter(Boolean) : [];
 
-  const safeFormatDate = (isoStr?: string, fmt: string = 'EEE, MMM d, yyyy h:mm a') => {
-    if (!isoStr) return 'N/A';
+  const safeFormatDate = (isoStr?: string) => {
+    if (!isoStr) return '';
     try {
       const d = parseISO(isoStr);
       if (isNaN(d.getTime())) return isoStr;
-      return format(d, fmt);
+      return format(d, 'EEE, MMM d, yyyy');
     } catch {
       return isoStr;
     }
   };
 
-  const lines: string[] = [
-    '============================================================',
-    'SCHEDY — PLAIN TEXT EXPORT',
-    `Export Date: ${exportDate}`,
-    `Total Events: ${safeEvents.length} | Total Announcements: ${safeAnnos.length}`,
-    '============================================================',
-    '',
-    '------------------------------------------------------------',
-    'SCHEDULE & EVENTS',
-    '------------------------------------------------------------',
-  ];
+  const safeFormatTime = (isoStr?: string) => {
+    if (!isoStr) return '';
+    try {
+      const d = parseISO(isoStr);
+      if (isNaN(d.getTime())) return isoStr;
+      return format(d, 'h:mm a');
+    } catch {
+      return isoStr;
+    }
+  };
 
-  if (safeEvents.length === 0) {
-    lines.push('No scheduled events found.');
-  } else {
+  const lines: string[] = [];
+
+  if (safeEvents.length > 0) {
+    lines.push('SCHEDULE');
+    lines.push('');
+
     // Sort chronologically
     const sorted = [...safeEvents].sort((a, b) => {
       const timeA = a.startTime ? new Date(a.startTime).getTime() : 0;
       const timeB = b.startTime ? new Date(b.startTime).getTime() : 0;
       return timeA - timeB;
     });
-    sorted.forEach((event, idx) => {
-      const startStr = safeFormatDate(event.startTime, 'EEE, MMM d, yyyy h:mm a');
-      const endStr = safeFormatDate(event.endTime, 'h:mm a');
-      const timeDisplay = event.isAllDay ? `${safeFormatDate(event.startTime, 'EEE, MMM d, yyyy')} (All Day)` : `${startStr} - ${endStr}`;
+
+    sorted.forEach((event) => {
+      const startDate = safeFormatDate(event.startTime);
+      const startTime = safeFormatTime(event.startTime);
+      const endTime = safeFormatTime(event.endTime);
       
-      lines.push('');
-      lines.push(`${idx + 1}. [${String(event.status || 'pending').toUpperCase()}] ${event.title || 'Untitled'}`);
-      lines.push(`   - When:       ${timeDisplay}`);
-      lines.push(`   - Category:   ${event.category || 'general'} | Priority: ${event.priority || 'medium'}`);
-      if (event.recurrenceRule && event.recurrenceRule !== 'none') {
-        lines.push(`   - Recurrence: ${event.recurrenceRule}`);
-      }
+      const timeDisplay = event.isAllDay
+        ? `${startDate} (All Day)`
+        : `${startDate} • ${startTime} - ${endTime}`;
+
+      const statusTag = event.status === 'completed' 
+        ? '[Done] ' 
+        : event.status === 'in_progress' 
+          ? '[In Progress] ' 
+          : '';
+      
+      lines.push(`• ${statusTag}${event.title || 'Untitled'}`);
+      lines.push(`  Time: ${timeDisplay}`);
       if (event.location) {
-        lines.push(`   - Location:   ${event.location}`);
+        lines.push(`  Location: ${event.location}`);
       }
       if (event.meetingUrl) {
-        lines.push(`   - Link:       ${event.meetingUrl}`);
+        lines.push(`  Link: ${event.meetingUrl}`);
       }
       if (event.description) {
-        lines.push(`   - Notes:      ${event.description}`);
+        lines.push(`  Note: ${event.description}`);
       }
-    });
-  }
-
-  if (safeAnnos.length > 0) {
-    lines.push('');
-    lines.push('------------------------------------------------------------');
-    lines.push('ANNOUNCEMENTS & BULLETINS');
-    lines.push('------------------------------------------------------------');
-    safeAnnos.forEach((anno, idx) => {
-      const createdStr = safeFormatDate(anno.createdAt, 'EEE, MMM d, yyyy h:mm a');
       lines.push('');
-      lines.push(`${idx + 1}. ${anno.isPinned ? '[PINNED] ' : ''}[${String(anno.priority || 'important').toUpperCase()}] ${anno.title || 'Untitled'}`);
-      lines.push(`   • Author:   ${anno.authorName || 'Admin'} (${createdStr})`);
-      lines.push(`   • Category: ${anno.category || 'General'}`);
-      lines.push(`   • Content:  ${anno.content || ''}`);
     });
   }
 
-  lines.push('');
-  lines.push('============================================================');
-  lines.push('End of Schedy Plain Text Export');
-  lines.push('============================================================');
+  if (safeNotes.length > 0) {
+    lines.push('NOTES');
+    lines.push('');
+    safeNotes.forEach((n) => {
+      lines.push(`• ${n.title || 'Untitled'}`);
+      if (n.content) {
+        lines.push(`  ${n.content.split('\n').join('\n  ')}`);
+      }
+      lines.push('');
+    });
+  }
 
-  return lines.join('\n');
+  if (lines.length === 0) {
+    return 'No events or notes to export.';
+  }
+
+  return lines.join('\n').trim();
 }
 

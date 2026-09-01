@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { ScheduleEvent, EventStatus } from './types/schedule';
 import type { Announcement } from './types/announcement';
+import type { Note } from './types/note';
 import { Navbar } from './components/layout/Navbar';
 import { TopBanner } from './components/layout/TopBanner';
 import { CalendarView } from './components/schedule/CalendarView';
@@ -8,6 +9,8 @@ import { EventListView } from './components/schedule/EventListView';
 import { EventModal } from './components/schedule/EventModal';
 import { AnnouncementFeed } from './components/announcements/AnnouncementFeed';
 import { AnnouncementModal } from './components/announcements/AnnouncementModal';
+import { TaskBoard } from './components/tasks/TaskBoard';
+import { NoteModal } from './components/tasks/NoteModal';
 import { DatabaseConfigModal } from './components/settings/DatabaseConfigModal';
 import { ExportImportModal } from './components/settings/ExportImportModal';
 import { ShareCodeModal } from './components/settings/ShareCodeModal';
@@ -33,6 +36,14 @@ import {
   markAnnouncementAsRead,
   subscribeToRealtimeAnnouncements
 } from './services/announcementService';
+import {
+  fetchAllNotes,
+  createNote,
+  updateNote,
+  deleteNote,
+  bulkSaveNotes,
+  subscribeToRealtimeNotes
+} from './services/noteService';
 
 import { isUserSupabaseConfigured, testUserSupabaseConnection } from './services/supabaseClient';
 import { Calendar, List } from 'lucide-react';
@@ -63,21 +74,26 @@ export function App() {
   };
 
   // Navigation & Role State
-  const [activeTab, setActiveTab] = useState<'schedule' | 'announcements' | 'overview'>('schedule');
+  const [activeTab, setActiveTab] = useState<'schedule' | 'announcements' | 'overview' | 'tasks'>('schedule');
   const [scheduleViewType, setScheduleViewType] = useState<'calendar' | 'list'>('calendar');
 
   // Data State
   const [events, setEvents] = useState<ScheduleEvent[]>([]);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [notes, setNotes] = useState<Note[]>([]);
   const [isCloudConnected, setIsCloudConnected] = useState<boolean>(false);
 
   // Modals
   const [isEventModalOpen, setIsEventModalOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<ScheduleEvent | null>(null);
   const [selectedDateForNewEvent, setSelectedDateForNewEvent] = useState<Date | null>(null);
+  const [initialTaskStatusForModal, setInitialTaskStatusForModal] = useState<EventStatus>('pending');
 
   const [isAnnouncementModalOpen, setIsAnnouncementModalOpen] = useState(false);
   const [editingAnnouncement, setEditingAnnouncement] = useState<Announcement | null>(null);
+
+  const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
+  const [editingNote, setEditingNote] = useState<Note | null>(null);
 
   const [isDbConfigModalOpen, setIsDbConfigModalOpen] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
@@ -113,12 +129,14 @@ export function App() {
   // Load Data
   const loadData = useCallback(async () => {
     try {
-      const [fetchedEvents, fetchedAnnos] = await Promise.all([
+      const [fetchedEvents, fetchedAnnos, fetchedNotes] = await Promise.all([
         fetchAllEvents(),
         fetchAllAnnouncements(),
+        fetchAllNotes(),
       ]);
       setEvents(fetchedEvents);
       setAnnouncements(fetchedAnnos);
+      setNotes(fetchedNotes);
 
       if (isUserSupabaseConfigured()) {
         const check = await testUserSupabaseConnection();
@@ -163,8 +181,13 @@ export function App() {
       fetchAllEvents().then(setEvents);
     });
 
+    const unsubNotes = subscribeToRealtimeNotes(() => {
+      fetchAllNotes().then(setNotes);
+    });
+
     return () => {
       unsubSched();
+      unsubNotes();
     };
   }, [isCloudConnected]);
 
@@ -251,13 +274,60 @@ export function App() {
     }
   };
 
-  const handleImportSuccess = async (newEvents: ScheduleEvent[], newAnnos?: Announcement[]) => {
+  // Note Handlers
+  const handleSaveNote = async (noteData: any) => {
+    try {
+      if (noteData.id) {
+        const updated = await updateNote(noteData);
+        setNotes(prev => prev.map(n => (n.id === updated.id ? updated : n)));
+        addToast('success', 'Note Updated', `"${updated.title}" updated.`);
+      } else {
+        const created = await createNote(noteData);
+        setNotes(prev => [created, ...prev]);
+        addToast('success', 'Note Created', `"${created.title}" saved.`);
+      }
+    } catch (err: any) {
+      addToast('error', 'Error saving note', err.message);
+    }
+  };
+
+  const handleDeleteNote = async (id: string) => {
+    try {
+      await deleteNote(id);
+      setNotes(prev => prev.filter(n => n.id !== id));
+      addToast('info', 'Note Deleted', 'The note was removed.');
+    } catch (err: any) {
+      addToast('error', 'Failed to delete note', err.message);
+    }
+  };
+
+  const handleTogglePinNote = async (note: Note) => {
+    try {
+      const updated = await updateNote({ ...note, isPinned: !note.isPinned });
+      setNotes(prev => prev.map(n => (n.id === updated.id ? updated : n)));
+    } catch (err: any) {
+      console.error(err);
+    }
+  };
+
+  const handleAddNewTaskFromBoard = (status: EventStatus) => {
+    setEditingEvent(null);
+    setSelectedDateForNewEvent(new Date());
+    setInitialTaskStatusForModal(status);
+    setIsEventModalOpen(true);
+  };
+
+  const handleImportSuccess = async (newEvents: ScheduleEvent[], newAnnos?: Announcement[], newNotes?: Note[]) => {
     try {
       const finalEvents = await bulkSaveEvents(newEvents, 'replace');
       setEvents(finalEvents);
       if (newAnnos && newAnnos.length > 0) {
         const finalAnnos = await bulkSaveAnnouncements(newAnnos, 'replace');
         setAnnouncements(finalAnnos);
+      }
+      if (newNotes && newNotes.length > 0) {
+        const finalNotes = await bulkSaveNotes(newNotes, 'replace');
+        setNotes(finalNotes);
       }
       addToast('success', 'Import Complete', 'Your schedule backup was restored.');
       setIsExportModalOpen(false);
@@ -334,11 +404,18 @@ export function App() {
         onNewEvent={() => {
           setEditingEvent(null);
           setSelectedDateForNewEvent(new Date());
+          setInitialTaskStatusForModal('pending');
           setIsEventModalOpen(true);
         }}
         onNewAnnouncement={() => {
           setEditingAnnouncement(null);
           setIsAnnouncementModalOpen(true);
+        }}
+        onNewTask={() => {
+          setEditingEvent(null);
+          setSelectedDateForNewEvent(new Date());
+          setInitialTaskStatusForModal('pending');
+          setIsEventModalOpen(true);
         }}
       />
 
@@ -465,6 +542,7 @@ export function App() {
               onNewEvent={() => {
                 setEditingEvent(null);
                 setSelectedDateForNewEvent(new Date());
+                setInitialTaskStatusForModal('pending');
                 setIsEventModalOpen(true);
               }}
               onNewAnnouncement={() => {
@@ -473,6 +551,38 @@ export function App() {
               }}
               onStatusChange={handleStatusChange}
               onAcknowledgeAnnouncement={handleAcknowledgeAnnouncement}
+            />
+          </div>
+        )}
+
+        {/* TAB 4: TASKS (KANBAN & NOTES) VIEW */}
+        {activeTab === 'tasks' && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h1 className="text-xl font-bold text-[#37352f] dark:text-white tracking-tight">
+                Task Board
+              </h1>
+            </div>
+
+            <TaskBoard
+              events={events}
+              notes={notes}
+              onSelectEvent={(evt) => {
+                setEditingEvent(evt);
+                setIsEventModalOpen(true);
+              }}
+              onStatusChange={handleStatusChange}
+              onAddNewEvent={handleAddNewTaskFromBoard}
+              onSelectNote={(note) => {
+                setEditingNote(note);
+                setIsNoteModalOpen(true);
+              }}
+              onAddNewNote={() => {
+                setEditingNote(null);
+                setIsNoteModalOpen(true);
+              }}
+              onDeleteNote={handleDeleteNote}
+              onTogglePinNote={handleTogglePinNote}
             />
           </div>
         )}
@@ -522,6 +632,7 @@ export function App() {
         onDelete={handleDeleteEvent}
         initialEvent={editingEvent}
         selectedDate={selectedDateForNewEvent}
+        initialStatus={initialTaskStatusForModal}
       />
 
       <AnnouncementModal
@@ -529,6 +640,14 @@ export function App() {
         onClose={() => setIsAnnouncementModalOpen(false)}
         onSave={handleSaveAnnouncement}
         initialAnnouncement={editingAnnouncement}
+      />
+
+      <NoteModal
+        isOpen={isNoteModalOpen}
+        onClose={() => setIsNoteModalOpen(false)}
+        onSave={handleSaveNote}
+        onDelete={handleDeleteNote}
+        initialNote={editingNote}
       />
 
       <DatabaseConfigModal
@@ -545,6 +664,7 @@ export function App() {
         onClose={() => setIsExportModalOpen(false)}
         events={events}
         announcements={announcements}
+        notes={notes}
         onImportSuccess={handleImportSuccess}
       />
 

@@ -1,6 +1,7 @@
 import React, { useRef, useState, useMemo } from 'react';
 import type { ScheduleEvent } from '../../types/schedule';
 import type { Announcement } from '../../types/announcement';
+import type { Note } from '../../types/note';
 import { exportToICal, exportToCSV, exportToPlainText } from '../../services/scheduleService';
 import { 
   Upload, 
@@ -22,7 +23,8 @@ interface ExportImportModalProps {
   onClose: () => void;
   events: ScheduleEvent[];
   announcements: Announcement[];
-  onImportSuccess: (importedEvents: ScheduleEvent[], importedAnnouncements?: Announcement[]) => void;
+  notes?: Note[];
+  onImportSuccess: (importedEvents: ScheduleEvent[], importedAnnouncements?: Announcement[], importedNotes?: Note[]) => void;
 }
 
 type ExportFormat = 'txt' | 'ics' | 'csv' | 'json';
@@ -32,6 +34,7 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
   onClose,
   events,
   announcements,
+  notes = [],
   onImportSuccess,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -46,11 +49,12 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
     const today = new Date().toISOString().split('T')[0] || 'backup';
     const safeEvents = Array.isArray(events) ? events : [];
     const safeAnnos = Array.isArray(announcements) ? announcements : [];
+    const safeNotes = Array.isArray(notes) ? notes : [];
 
     switch (selectedFormat) {
       case 'txt':
         return {
-          content: exportToPlainText(safeEvents, safeAnnos),
+          content: exportToPlainText(safeEvents, safeAnnos, safeNotes),
           filename: `schedule-export-${today}.txt`,
           mimeType: 'text/plain;charset=utf-8',
           label: 'Plain Text Agenda (.txt)',
@@ -76,6 +80,7 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
           exportedAt: new Date().toISOString(),
           events: safeEvents,
           announcements: safeAnnos,
+          notes: safeNotes,
         };
         return {
           content: JSON.stringify(payload, null, 2),
@@ -85,7 +90,7 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
         };
       }
     }
-  }, [isOpen, selectedFormat, events, announcements]);
+  }, [isOpen, selectedFormat, events, announcements, notes]);
 
   if (!isOpen) return null;
 
@@ -130,20 +135,28 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
 
         let newEvents: ScheduleEvent[] = [];
         let newAnnouncements: Announcement[] | undefined = undefined;
+        let newNotes: Note[] | undefined = undefined;
 
         if (Array.isArray(parsed)) {
           newEvents = parsed;
         } else if (parsed.events && Array.isArray(parsed.events)) {
           newEvents = parsed.events;
           newAnnouncements = parsed.announcements;
+          newNotes = parsed.notes;
         } else {
           throw new Error('Unrecognized JSON backup structure.');
         }
 
-        onImportSuccess(newEvents, newAnnouncements);
+        onImportSuccess(newEvents, newAnnouncements, newNotes);
+        const details = [
+          `${newEvents.length} events`,
+          newAnnouncements ? `${newAnnouncements.length} notices` : null,
+          newNotes ? `${newNotes.length} notes` : null,
+        ].filter(Boolean).join(', ');
+
         setImportStatus({
           success: true,
-          message: 'Successfully imported ' + newEvents.length + ' events' + (newAnnouncements ? ' and ' + newAnnouncements.length + ' announcements' : '') + '!',
+          message: `Successfully imported ${details}!`,
         });
       } catch (err: any) {
         setImportStatus({

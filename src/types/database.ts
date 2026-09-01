@@ -1,4 +1,4 @@
-﻿export interface DatabaseScheduleRow {
+export interface DatabaseScheduleRow {
   id: string;
   title: string;
   description: string;
@@ -35,3 +35,14 @@ export interface DatabaseAnnouncementReadRow {
   user_id: string;
   read_at: string;
 }
+
+export interface DatabaseNoteRow {
+  id: string;
+  title: string;
+  content: string;
+  color: string;
+  is_pinned: boolean;
+  created_at: string;
+  updated_at: string;
+}
+

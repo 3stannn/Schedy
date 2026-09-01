@@ -13,8 +13,8 @@ import {
 } from 'lucide-react';
 
 interface NavbarProps {
-  activeTab: 'schedule' | 'announcements' | 'overview';
-  setActiveTab: (tab: 'schedule' | 'announcements' | 'overview') => void;
+  activeTab: 'schedule' | 'announcements' | 'overview' | 'tasks';
+  setActiveTab: (tab: 'schedule' | 'announcements' | 'overview' | 'tasks') => void;
   unreadCount: number;
   isCloudConnected: boolean;
   theme: 'light' | 'dark' | 'pink';
@@ -25,6 +25,7 @@ interface NavbarProps {
   onOpenShare: () => void;
   onNewEvent: () => void;
   onNewAnnouncement: () => void;
+  onNewTask?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -40,12 +41,29 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenShare,
   onNewEvent,
   onNewAnnouncement,
+  onNewTask,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleActionAndClose = (action: () => void) => {
     action();
     setMobileMenuOpen(false);
+  };
+
+  const handlePrimaryNewAction = () => {
+    if (activeTab === 'announcements') {
+      onNewAnnouncement();
+    } else if (activeTab === 'tasks' && onNewTask) {
+      onNewTask();
+    } else {
+      onNewEvent();
+    }
+  };
+
+  const getPrimaryButtonText = () => {
+    if (activeTab === 'announcements') return 'New Notice';
+    if (activeTab === 'tasks') return 'New Task';
+    return 'New Event';
   };
 
   return (
@@ -88,12 +106,12 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           {/* Primary "+ New" Action Button */}
           <button
-            onClick={activeTab === 'announcements' ? onNewAnnouncement : onNewEvent}
+            onClick={handlePrimaryNewAction}
             className="w-full flex items-center justify-center gap-2 px-3 py-2.5 text-xs font-semibold text-white bg-[#2383e2] hover:bg-[#1a73e8] rounded-[14px] shadow-xs hover:shadow-md transition-all active:scale-[0.98]"
             title="Create New Item"
           >
             <Plus className="w-4 h-4 stroke-[2.5]" />
-            <span>{activeTab === 'announcements' ? 'New Notice' : 'New Event'}</span>
+            <span>{getPrimaryButtonText()}</span>
           </button>
 
           {/* Vertical Segmented View Switcher */}
@@ -140,6 +158,17 @@ export const Navbar: React.FC<NavbarProps> = ({
                 }`}
               >
                 <span>Overview</span>
+              </button>
+
+              <button
+                onClick={() => setActiveTab('tasks')}
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-[10px] text-xs font-medium transition-all ${
+                  activeTab === 'tasks'
+                    ? 'bg-white dark:bg-[#202024] text-[#1c1917] dark:text-white shadow-xs font-semibold'
+                    : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-white/40 dark:hover:bg-white/5'
+                }`}
+              >
+                <span>Tasks</span>
               </button>
             </nav>
           </div>
@@ -249,7 +278,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <div className="flex items-center gap-1.5 shrink-0">
               {/* "+ New" Action Button */}
               <button
-                onClick={activeTab === 'announcements' ? onNewAnnouncement : onNewEvent}
+                onClick={handlePrimaryNewAction}
                 className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-white bg-[#2383e2] hover:bg-[#1a73e8] rounded-[10px] shadow-xs transition-all active:scale-95"
                 title="Create New Item"
               >
@@ -311,6 +340,17 @@ export const Navbar: React.FC<NavbarProps> = ({
               }`}
             >
               <span>Overview</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('tasks')}
+              className={`flex-1 flex items-center justify-center py-1 rounded-[10px] text-xs font-medium transition-all ${
+                activeTab === 'tasks'
+                  ? 'bg-white dark:bg-[#202024] text-[#1c1917] dark:text-white shadow-xs font-semibold'
+                  : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+              }`}
+            >
+              <span>Tasks</span>
             </button>
           </div>
 

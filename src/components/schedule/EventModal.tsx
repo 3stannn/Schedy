@@ -23,6 +23,7 @@ interface EventModalProps {
   onDelete?: (id: string) => void;
   initialEvent?: ScheduleEvent | null;
   selectedDate?: Date | null;
+  initialStatus?: EventStatus;
 }
 
 export const EventModal: React.FC<EventModalProps> = ({
@@ -32,6 +33,7 @@ export const EventModal: React.FC<EventModalProps> = ({
   onDelete,
   initialEvent,
   selectedDate,
+  initialStatus,
 }) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -80,13 +82,13 @@ export const EventModal: React.FC<EventModalProps> = ({
       setIsAllDay(false);
       setCategory('general');
       setPriority('medium');
-      setStatus('pending');
+      setStatus(initialStatus || 'pending');
       setLocation('');
       setMeetingUrl('');
       setRecurrenceRule('none');
     }
     setError(null);
-  }, [initialEvent, selectedDate, isOpen]);
+  }, [initialEvent, selectedDate, initialStatus, isOpen]);
 
   if (!isOpen) return null;
 
