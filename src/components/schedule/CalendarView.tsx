@@ -585,17 +585,17 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
         {viewMode === 'week' && (
           <div className="bg-white/90 dark:bg-[#161619]/90 backdrop-blur-md rounded-2xl border border-neutral-200/80 dark:border-neutral-800/80 overflow-hidden shadow-sm">
             
-            {/* Scrollable timetable container */}
+            {/* Scrollable timetable container with touch-friendly scrolling */}
             <div
               ref={timeGridScrollRef}
-              className="max-h-[640px] overflow-y-auto overflow-x-auto relative select-none"
+              className="max-h-[70vh] sm:max-h-[640px] overflow-y-auto overflow-x-auto relative select-none scrollbar-thin"
             >
-              <div className="min-w-[760px]">
+              <div className="min-w-[770px] sm:min-w-full">
                 
                 {/* Sticky Header Row with Day Names */}
-                <div className="sticky top-0 z-20 flex bg-white/95 dark:bg-[#161619]/95 backdrop-blur-md border-b border-neutral-200/80 dark:border-neutral-800 shadow-2xs">
-                  {/* Empty corner over time column */}
-                  <div className="w-14 sm:w-16 shrink-0 border-r border-neutral-200/60 dark:border-neutral-800/60 py-2.5 px-1 text-center text-[10px] font-bold text-neutral-400 uppercase tracking-wider">
+                <div className="sticky top-0 z-30 flex bg-white/95 dark:bg-[#161619]/95 backdrop-blur-md border-b border-neutral-200/80 dark:border-neutral-800 shadow-2xs">
+                  {/* Sticky top-left corner over time column */}
+                  <div className="sticky left-0 z-40 w-12 sm:w-16 shrink-0 border-r border-neutral-200/60 dark:border-neutral-800/60 py-2 sm:py-2.5 px-1 text-center text-[9px] sm:text-[10px] font-bold text-neutral-400 uppercase tracking-wider bg-white/95 dark:bg-[#161619]/95 backdrop-blur-md shadow-2xs">
                     Time
                   </div>
 
@@ -610,16 +610,16 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                             setSelectedDate(day);
                             onAddEventForDate(day);
                           }}
-                          className={`py-2 px-1 text-center cursor-pointer transition-colors hover:bg-neutral-50 dark:hover:bg-white/5 ${
+                          className={`py-1.5 sm:py-2 px-1 text-center cursor-pointer transition-colors hover:bg-neutral-50 dark:hover:bg-white/5 active:bg-blue-500/10 ${
                             isCurrentDay ? 'bg-blue-50/40 dark:bg-blue-950/20' : ''
                           }`}
                           title="Click to add event on this day"
                         >
-                          <span className="text-[11px] font-medium text-neutral-500 dark:text-neutral-400 block">
+                          <span className="text-[10px] sm:text-[11px] font-medium text-neutral-500 dark:text-neutral-400 block">
                             {format(day, 'EEE')}
                           </span>
                           <span
-                            className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold mt-0.5 ${
+                            className={`inline-flex items-center justify-center w-5 h-5 sm:w-6 sm:h-6 rounded-full text-[11px] sm:text-xs font-bold mt-0.5 ${
                               isCurrentDay
                                 ? 'bg-[#2383e2] text-white shadow-xs'
                                 : 'text-neutral-800 dark:text-neutral-200'
@@ -643,20 +643,20 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                   if (!hasAllDay) return null;
 
                   return (
-                    <div className="flex border-b border-neutral-200/80 dark:border-neutral-800 bg-neutral-50/60 dark:bg-neutral-900/40 text-xs">
-                      <div className="w-14 sm:w-16 shrink-0 border-r border-neutral-200/60 dark:border-neutral-800/60 p-2 text-[10px] font-bold text-neutral-400 uppercase tracking-wider flex items-center justify-center">
+                    <div className="flex border-b border-neutral-200/80 dark:border-neutral-800 bg-neutral-50/70 dark:bg-neutral-900/50 text-xs">
+                      <div className="sticky left-0 z-30 w-12 sm:w-16 shrink-0 border-r border-neutral-200/60 dark:border-neutral-800/60 p-1.5 sm:p-2 text-[9px] sm:text-[10px] font-bold text-neutral-400 uppercase tracking-wider flex items-center justify-center bg-neutral-100/90 dark:bg-neutral-900/90 backdrop-blur-md shadow-2xs">
                         All Day
                       </div>
                       <div className="flex-1 grid grid-cols-7 divide-x divide-neutral-200/60 dark:divide-neutral-800/60 p-1">
                         {allDayEventsInWeek.map(({ events: dayAllDayEvents }, idx) => (
-                          <div key={idx} className="space-y-1 px-1">
+                          <div key={idx} className="space-y-1 px-0.5 sm:px-1">
                             {dayAllDayEvents.map(evt => {
                               const theme = getEventCardTheme(evt);
                               return (
                                 <div
                                   key={evt.id}
                                   onClick={() => onSelectEvent(evt)}
-                                  className={`p-1.5 rounded-lg border text-[11px] font-semibold truncate cursor-pointer transition-all hover:scale-[1.02] shadow-2xs ${theme.card} ${
+                                  className={`p-1 sm:p-1.5 rounded-lg border text-[10px] sm:text-[11px] font-semibold truncate cursor-pointer transition-all hover:scale-[1.02] shadow-2xs ${theme.card} ${
                                     evt.status === 'completed' ? 'line-through opacity-50' : ''
                                   }`}
                                   title={evt.title}
@@ -675,12 +675,12 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                 {/* Timetable Body (24 Hours Grid) */}
                 <div className="relative flex" style={{ height: `${24 * HOUR_HEIGHT}px` }}>
                   
-                  {/* Left Time Axis Labels */}
-                  <div className="w-14 sm:w-16 shrink-0 border-r border-neutral-200/60 dark:border-neutral-800/60 relative bg-white/40 dark:bg-[#161619]/40 select-none">
+                  {/* Left Time Axis Labels (Sticky on X-axis so it stays visible while scrolling horizontally on mobile) */}
+                  <div className="sticky left-0 z-20 w-12 sm:w-16 shrink-0 border-r border-neutral-200/60 dark:border-neutral-800/60 relative bg-white/95 dark:bg-[#161619]/95 backdrop-blur-md select-none shadow-2xs">
                     {HOURS.map(hour => (
                       <div
                         key={hour}
-                        className="absolute right-2 -translate-y-1/2 text-[10px] font-semibold text-neutral-400 dark:text-neutral-500 whitespace-nowrap"
+                        className="absolute right-1.5 sm:right-2 -translate-y-1/2 text-[9px] sm:text-[10px] font-semibold text-neutral-400 dark:text-neutral-500 whitespace-nowrap"
                         style={{ top: `${hour * HOUR_HEIGHT}px` }}
                       >
                         {formatHourDisplay(hour)}
@@ -727,7 +727,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                               className="absolute inset-x-0 z-10 pointer-events-none flex items-center"
                               style={{ top: `${currentTimeTop}px` }}
                             >
-                              <div className="w-2.5 h-2.5 -ml-1 rounded-full bg-rose-500 shadow-xs" />
+                              <div className="w-2 sm:w-2.5 h-2 sm:h-2.5 -ml-1 rounded-full bg-rose-500 shadow-xs" />
                               <div className="flex-1 h-[2px] bg-rose-500" />
                             </div>
                           )}
@@ -768,30 +768,30 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                                   left: `${leftPercent}%`,
                                   width: `${widthPercent}%`,
                                 }}
-                                className={`absolute z-10 p-2 rounded-[14px] border shadow-2xs hover:shadow-md hover:z-20 transition-all cursor-pointer flex flex-col justify-between overflow-hidden group ${
+                                className={`absolute z-10 p-1.5 sm:p-2 rounded-[10px] sm:rounded-[14px] border shadow-2xs hover:shadow-md hover:z-20 transition-all cursor-pointer flex flex-col justify-between overflow-hidden group ${
                                   theme.card
                                 } ${evt.status === 'completed' ? 'opacity-50' : ''}`}
                                 title={`${evt.title}\n${startTimeLabel} - ${endTimeLabel}`}
                               >
                                 {/* Top: Event Title */}
-                                <div>
-                                  <h4 className={`text-xs font-bold leading-snug line-clamp-2 ${theme.title}`}>
+                                <div className="min-w-0">
+                                  <h4 className={`text-[11px] sm:text-xs font-bold leading-tight line-clamp-2 ${theme.title}`}>
                                     {evt.title}
                                   </h4>
                                   {evt.location && (
-                                    <p className="text-[10px] opacity-75 truncate mt-0.5 flex items-center gap-1">
+                                    <p className="text-[9px] sm:text-[10px] opacity-75 truncate mt-0.5 hidden sm:flex items-center gap-1">
                                       <MapPin className="w-2.5 h-2.5 shrink-0" />
                                       <span>{evt.location}</span>
                                     </p>
                                   )}
                                 </div>
 
-                                {/* Bottom: Start & End Time Pills (Exact Design from Screenshot) */}
-                                <div className="flex items-center gap-1 mt-1 pt-1 flex-wrap">
-                                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-[6px] ${theme.pill} font-mono tracking-tight`}>
+                                {/* Bottom: Start & End Time Pills (Responsive sizing) */}
+                                <div className="flex items-center gap-0.5 sm:gap-1 mt-0.5 sm:mt-1 pt-0.5 sm:pt-1 flex-wrap">
+                                  <span className={`text-[8px] sm:text-[10px] font-bold px-1 sm:px-1.5 py-0.2 sm:py-0.5 rounded-[4px] sm:rounded-[6px] ${theme.pill} font-mono tracking-tight`}>
                                     {startTimeLabel}
                                   </span>
-                                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-[6px] ${theme.pill} font-mono tracking-tight`}>
+                                  <span className={`text-[8px] sm:text-[10px] font-bold px-1 sm:px-1.5 py-0.2 sm:py-0.5 rounded-[4px] sm:rounded-[6px] ${theme.pill} font-mono tracking-tight`}>
                                     {endTimeLabel}
                                   </span>
                                 </div>
@@ -813,20 +813,20 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
         {/* 3. DAY TIMETABLE VIEW (Occupying Exact Event Times)                        */}
         {/* ========================================================================= */}
         {viewMode === 'day' && (
-          <div className="bg-white/90 dark:bg-[#161619]/90 backdrop-blur-md rounded-2xl border border-neutral-200/80 dark:border-neutral-800/80 overflow-hidden shadow-sm">
+          <div className="bg-white/90 dark:bg-[#161619]/90 backdrop-blur-md rounded-2xl border border-neutral-200/80 dark:border-neutral-800/80 overflow-hidden shadow-sm w-full">
             
             {/* Scrollable timetable container */}
             <div
               ref={timeGridScrollRef}
-              className="max-h-[640px] overflow-y-auto relative select-none"
+              className="max-h-[70vh] sm:max-h-[640px] overflow-y-auto relative select-none w-full scrollbar-thin"
             >
-              <div className="min-w-[480px]">
+              <div className="w-full min-w-0">
                 
                 {/* Sticky Header with Day Title */}
-                <div className="sticky top-0 z-20 flex items-center justify-between bg-white/95 dark:bg-[#161619]/95 backdrop-blur-md border-b border-neutral-200/80 dark:border-neutral-800 p-3 shadow-2xs">
-                  <div className="flex items-center gap-2">
+                <div className="sticky top-0 z-20 flex items-center justify-between bg-white/95 dark:bg-[#161619]/95 backdrop-blur-md border-b border-neutral-200/80 dark:border-neutral-800 p-2.5 sm:p-3 shadow-2xs">
+                  <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
                     <span
-                      className={`inline-flex items-center justify-center w-8 h-8 rounded-xl text-sm font-bold ${
+                      className={`inline-flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-xl text-xs sm:text-sm font-bold shrink-0 ${
                         isToday(currentDate)
                           ? 'bg-[#2383e2] text-white shadow-xs'
                           : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200'
@@ -834,12 +834,12 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                     >
                       {format(currentDate, 'd')}
                     </span>
-                    <div>
-                      <h3 className="text-sm font-bold text-[#1c1917] dark:text-white">
+                    <div className="min-w-0">
+                      <h3 className="text-xs sm:text-sm font-bold text-[#1c1917] dark:text-white truncate">
                         {format(currentDate, 'EEEE')}
                       </h3>
-                      <p className="text-[11px] text-neutral-400 font-medium">
-                        {selectedDayEvents.length} events scheduled
+                      <p className="text-[10px] sm:text-[11px] text-neutral-400 font-medium truncate">
+                        {selectedDayEvents.length} event{selectedDayEvents.length === 1 ? '' : 's'}
                       </p>
                     </div>
                   </div>
@@ -847,7 +847,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                   {isAdmin && (
                     <button
                       onClick={() => onAddEventForDate(currentDate)}
-                      className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-white bg-[#2383e2] hover:bg-[#1a73e8] rounded-xl shadow-xs transition-all active:scale-95"
+                      className="flex items-center gap-1 px-2.5 sm:px-3 py-1 sm:py-1.5 text-[11px] sm:text-xs font-semibold text-white bg-[#2383e2] hover:bg-[#1a73e8] rounded-xl shadow-xs transition-all active:scale-95 shrink-0"
                     >
                       <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
                       <span>Add Event</span>
@@ -862,17 +862,17 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
 
                   return (
                     <div className="flex border-b border-neutral-200/80 dark:border-neutral-800 bg-neutral-50/60 dark:bg-neutral-900/40 text-xs">
-                      <div className="w-14 sm:w-16 shrink-0 border-r border-neutral-200/60 dark:border-neutral-800/60 p-2 text-[10px] font-bold text-neutral-400 uppercase tracking-wider flex items-center justify-center">
+                      <div className="w-12 sm:w-16 shrink-0 border-r border-neutral-200/60 dark:border-neutral-800/60 p-1.5 sm:p-2 text-[9px] sm:text-[10px] font-bold text-neutral-400 uppercase tracking-wider flex items-center justify-center">
                         All Day
                       </div>
-                      <div className="flex-1 p-2 flex flex-wrap gap-2">
+                      <div className="flex-1 p-1.5 sm:p-2 flex flex-wrap gap-1.5 sm:gap-2">
                         {dayAllDay.map(evt => {
                           const theme = getEventCardTheme(evt);
                           return (
                             <div
                               key={evt.id}
                               onClick={() => onSelectEvent(evt)}
-                              className={`px-3 py-1.5 rounded-xl border text-xs font-semibold cursor-pointer transition-all hover:scale-[1.02] shadow-2xs ${theme.card} ${
+                              className={`px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-lg sm:rounded-xl border text-[11px] sm:text-xs font-semibold cursor-pointer transition-all hover:scale-[1.02] shadow-2xs ${theme.card} ${
                                 evt.status === 'completed' ? 'line-through opacity-50' : ''
                               }`}
                               title={evt.title}
@@ -887,14 +887,14 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                 })()}
 
                 {/* Day Timetable Body */}
-                <div className="relative flex" style={{ height: `${24 * HOUR_HEIGHT}px` }}>
+                <div className="relative flex w-full" style={{ height: `${24 * HOUR_HEIGHT}px` }}>
                   
                   {/* Left Time Axis Labels */}
-                  <div className="w-14 sm:w-16 shrink-0 border-r border-neutral-200/60 dark:border-neutral-800/60 relative bg-white/40 dark:bg-[#161619]/40 select-none">
+                  <div className="w-12 sm:w-16 shrink-0 border-r border-neutral-200/60 dark:border-neutral-800/60 relative bg-white/40 dark:bg-[#161619]/40 select-none">
                     {HOURS.map(hour => (
                       <div
                         key={hour}
-                        className="absolute right-2 -translate-y-1/2 text-[10px] font-semibold text-neutral-400 dark:text-neutral-500 whitespace-nowrap"
+                        className="absolute right-1.5 sm:right-2 -translate-y-1/2 text-[9px] sm:text-[10px] font-semibold text-neutral-400 dark:text-neutral-500 whitespace-nowrap"
                         style={{ top: `${hour * HOUR_HEIGHT}px` }}
                       >
                         {formatHourDisplay(hour)}
@@ -903,7 +903,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                   </div>
 
                   {/* Single Column for Day View */}
-                  <div className="flex-1 relative h-full">
+                  <div className="flex-1 relative h-full min-w-0">
                     
                     {/* Background Horizontal Hour Guidelines */}
                     <div className="absolute inset-0 pointer-events-none">
@@ -922,7 +922,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                         className="absolute inset-x-0 z-10 pointer-events-none flex items-center"
                         style={{ top: `${currentTimeTop}px` }}
                       >
-                        <div className="w-2.5 h-2.5 -ml-1 rounded-full bg-rose-500 shadow-xs" />
+                        <div className="w-2 sm:w-2.5 h-2 sm:h-2.5 -ml-1 rounded-full bg-rose-500 shadow-xs" />
                         <div className="flex-1 h-[2px] bg-rose-500" />
                       </div>
                     )}
@@ -963,15 +963,15 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                             left: `${leftPercent}%`,
                             width: `${widthPercent}%`,
                           }}
-                          className={`absolute z-10 p-2.5 rounded-[14px] border shadow-2xs hover:shadow-md hover:z-20 transition-all cursor-pointer flex flex-col justify-between overflow-hidden group ${
+                          className={`absolute z-10 p-2 sm:p-2.5 rounded-[12px] sm:rounded-[14px] border shadow-2xs hover:shadow-md hover:z-20 transition-all cursor-pointer flex flex-col justify-between overflow-hidden group ${
                             theme.card
                           } ${evt.status === 'completed' ? 'opacity-50' : ''}`}
                           title={`${evt.title}\n${startTimeLabel} - ${endTimeLabel}`}
                         >
                           {/* Top: Event Title & Meta */}
-                          <div>
+                          <div className="min-w-0">
                             <div className="flex items-start justify-between gap-1">
-                              <h4 className={`text-xs font-bold leading-snug line-clamp-2 ${theme.title}`}>
+                              <h4 className={`text-[11px] sm:text-xs font-bold leading-tight line-clamp-2 ${theme.title}`}>
                                 {evt.title}
                               </h4>
                               {evt.meetingUrl && (
@@ -988,12 +988,12 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                               )}
                             </div>
                             {evt.description && (
-                              <p className="text-[11px] opacity-80 line-clamp-2 mt-0.5 font-normal leading-relaxed">
+                              <p className="text-[10px] sm:text-[11px] opacity-80 line-clamp-2 mt-0.5 font-normal leading-relaxed">
                                 {evt.description}
                               </p>
                             )}
                             {evt.location && (
-                              <p className="text-[10px] opacity-75 truncate mt-1 flex items-center gap-1 font-medium">
+                              <p className="text-[9px] sm:text-[10px] opacity-75 truncate mt-0.5 sm:mt-1 flex items-center gap-1 font-medium">
                                 <MapPin className="w-2.5 h-2.5 shrink-0" />
                                 <span>{evt.location}</span>
                               </p>
@@ -1001,11 +1001,11 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                           </div>
 
                           {/* Bottom: Start & End Time Pills */}
-                          <div className="flex items-center gap-1.5 mt-1 pt-1 flex-wrap">
-                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-[6px] ${theme.pill} font-mono tracking-tight`}>
+                          <div className="flex items-center gap-1 sm:gap-1.5 mt-0.5 sm:mt-1 pt-0.5 sm:pt-1 flex-wrap">
+                            <span className={`text-[9px] sm:text-[10px] font-bold px-1.5 sm:px-2 py-0.2 sm:py-0.5 rounded-[5px] sm:rounded-[6px] ${theme.pill} font-mono tracking-tight`}>
                               {startTimeLabel}
                             </span>
-                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-[6px] ${theme.pill} font-mono tracking-tight`}>
+                            <span className={`text-[9px] sm:text-[10px] font-bold px-1.5 sm:px-2 py-0.2 sm:py-0.5 rounded-[5px] sm:rounded-[6px] ${theme.pill} font-mono tracking-tight`}>
                               {endTimeLabel}
                             </span>
                           </div>
