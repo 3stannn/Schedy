@@ -84,31 +84,75 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   const [eventToDelete, setEventToDelete] = useState<ScheduleEvent | null>(null);
   const timeGridScrollRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll time grid to daytime hours (~7:30 AM) on view change
+  // Week grid generation
+  const weekStart = startOfWeek(currentDate);
+  const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
+
+  // Auto-scroll time grid vertically to daytime and horizontally to center today on mobile
   useEffect(() => {
     if (viewMode === 'week' || viewMode === 'day') {
       const timer = setTimeout(() => {
         if (timeGridScrollRef.current) {
+          const container = timeGridScrollRef.current;
           const now = new Date();
+          
+          // Vertical auto-scroll to daytime (~7:30 AM or current hour)
           const targetHour = Math.max(6, Math.min(now.getHours() - 1, 18));
-          timeGridScrollRef.current.scrollTop = targetHour * HOUR_HEIGHT;
+          container.scrollTop = targetHour * HOUR_HEIGHT;
+
+          // Horizontal auto-scroll to center present day in week view on mobile
+          if (viewMode === 'week') {
+            const todayIdx = weekDays.findIndex(day => isToday(day));
+            if (todayIdx !== -1) {
+              const scrollWidth = container.scrollWidth;
+              const clientWidth = container.clientWidth;
+              if (scrollWidth > clientWidth) {
+                const timeAxisWidth = window.innerWidth < 640 ? 48 : 64;
+                const daysWidth = scrollWidth - timeAxisWidth;
+                const colWidth = daysWidth / 7;
+                const todayCenter = timeAxisWidth + (todayIdx * colWidth) + (colWidth / 2);
+                const targetScrollLeft = Math.max(0, todayCenter - (clientWidth / 2));
+                container.scrollTo({ left: targetScrollLeft, behavior: 'smooth' });
+              }
+            }
+          }
         }
-      }, 50);
+      }, 60);
       return () => clearTimeout(timer);
     }
-  }, [viewMode, currentDate]);
+  }, [viewMode, currentDate, weekDays]);
 
   // Navigation handlers
   const handlePrev = () => {
-    if (viewMode === 'month') setCurrentDate(subMonths(currentDate, 1));
-    else if (viewMode === 'week') setCurrentDate(subWeeks(currentDate, 1));
-    else setCurrentDate(subDays(currentDate, 1));
+    if (viewMode === 'month') {
+      const d = subMonths(currentDate, 1);
+      setCurrentDate(d);
+      setSelectedDate(d);
+    } else if (viewMode === 'week') {
+      const d = subWeeks(currentDate, 1);
+      setCurrentDate(d);
+      setSelectedDate(d);
+    } else {
+      const d = subDays(currentDate, 1);
+      setCurrentDate(d);
+      setSelectedDate(d);
+    }
   };
 
   const handleNext = () => {
-    if (viewMode === 'month') setCurrentDate(addMonths(currentDate, 1));
-    else if (viewMode === 'week') setCurrentDate(addWeeks(currentDate, 1));
-    else setCurrentDate(addDays(currentDate, 1));
+    if (viewMode === 'month') {
+      const d = addMonths(currentDate, 1);
+      setCurrentDate(d);
+      setSelectedDate(d);
+    } else if (viewMode === 'week') {
+      const d = addWeeks(currentDate, 1);
+      setCurrentDate(d);
+      setSelectedDate(d);
+    } else {
+      const d = addDays(currentDate, 1);
+      setCurrentDate(d);
+      setSelectedDate(d);
+    }
   };
 
   const handleToday = () => {
@@ -142,10 +186,6 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   const startDate = startOfWeek(monthStart);
   const endDate = endOfWeek(monthEnd);
   const monthDays = eachDayOfInterval({ start: startDate, end: endDate });
-
-  // Week grid generation
-  const weekStart = startOfWeek(currentDate);
-  const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
 
   // Notion-style pastel chip tags for Month list
   const getPriorityChipStyle = (priority: string) => {
@@ -603,6 +643,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                   <div className="flex-1 grid grid-cols-7 divide-x divide-neutral-200/60 dark:divide-neutral-800/60">
                     {weekDays.map((day, idx) => {
                       const isCurrentDay = isToday(day);
+                      const dayEvents = getEventsForDay(day);
                       return (
                         <div
                           key={idx}
@@ -613,20 +654,30 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                           className={`py-1.5 sm:py-2 px-1 text-center cursor-pointer transition-colors hover:bg-neutral-50 dark:hover:bg-white/5 active:bg-blue-500/10 ${
                             isCurrentDay ? 'bg-blue-50/40 dark:bg-blue-950/20' : ''
                           }`}
-                          title="Click to add event on this day"
+                          title={`Click to add event on this day (${dayEvents.length} event${dayEvents.length === 1 ? '' : 's'})`}
                         >
                           <span className="text-[10px] sm:text-[11px] font-medium text-neutral-500 dark:text-neutral-400 block">
                             {format(day, 'EEE')}
                           </span>
-                          <span
-                            className={`inline-flex items-center justify-center w-5 h-5 sm:w-6 sm:h-6 rounded-full text-[11px] sm:text-xs font-bold mt-0.5 ${
-                              isCurrentDay
-                                ? 'bg-[#2383e2] text-white shadow-xs'
-                                : 'text-neutral-800 dark:text-neutral-200'
-                            }`}
-                          >
-                            {format(day, 'd')}
-                          </span>
+                          <div className="flex items-center justify-center gap-1 mt-0.5">
+                            <span
+                              className={`inline-flex items-center justify-center w-5 h-5 sm:w-6 sm:h-6 rounded-full text-[11px] sm:text-xs font-bold ${
+                                isCurrentDay
+                                  ? 'bg-[#2383e2] text-white shadow-xs'
+                                  : 'text-neutral-800 dark:text-neutral-200'
+                              }`}
+                            >
+                              {format(day, 'd')}
+                            </span>
+                            {dayEvents.length > 0 && (
+                              <span
+                                className="inline-flex items-center justify-center min-w-[16px] sm:min-w-[18px] h-4 sm:h-[18px] px-1 rounded-full text-[9px] sm:text-[10px] font-bold text-white bg-rose-500 shadow-xs"
+                                title={`${dayEvents.length} event${dayEvents.length === 1 ? '' : 's'} on this day`}
+                              >
+                                {dayEvents.length}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       );
                     })}
@@ -812,7 +863,12 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
         {/* ========================================================================= */}
         {/* 3. DAY TIMETABLE VIEW (Occupying Exact Event Times)                        */}
         {/* ========================================================================= */}
-        {viewMode === 'day' && (
+        {viewMode === 'day' && (() => {
+          const dayViewEvents = getEventsForDay(currentDate);
+          const dayAllDay = dayViewEvents.filter(e => e.isAllDay);
+          const timedEvents = calculateTimedLayout(dayViewEvents, currentDate);
+
+          return (
           <div className="bg-white/90 dark:bg-[#161619]/90 backdrop-blur-md rounded-2xl border border-neutral-200/80 dark:border-neutral-800/80 overflow-hidden shadow-sm w-full">
             
             {/* Scrollable timetable container */}
@@ -835,11 +891,21 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                       {format(currentDate, 'd')}
                     </span>
                     <div className="min-w-0">
-                      <h3 className="text-xs sm:text-sm font-bold text-[#1c1917] dark:text-white truncate">
-                        {format(currentDate, 'EEEE')}
-                      </h3>
+                      <div className="flex items-center gap-1.5">
+                        <h3 className="text-xs sm:text-sm font-bold text-[#1c1917] dark:text-white truncate">
+                          {format(currentDate, 'EEEE')}
+                        </h3>
+                        {dayViewEvents.length > 0 && (
+                          <span
+                            className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1.5 rounded-full text-[10px] font-bold text-white bg-rose-500 shadow-xs"
+                            title={`${dayViewEvents.length} event${dayViewEvents.length === 1 ? '' : 's'} scheduled`}
+                          >
+                            {dayViewEvents.length}
+                          </span>
+                        )}
+                      </div>
                       <p className="text-[10px] sm:text-[11px] text-neutral-400 font-medium truncate">
-                        {selectedDayEvents.length} event{selectedDayEvents.length === 1 ? '' : 's'}
+                        {dayViewEvents.length} event{dayViewEvents.length === 1 ? '' : 's'}
                       </p>
                     </div>
                   </div>
@@ -856,35 +922,30 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                 </div>
 
                 {/* All-Day Events Strip for Day View */}
-                {(() => {
-                  const dayAllDay = selectedDayEvents.filter(e => e.isAllDay);
-                  if (dayAllDay.length === 0) return null;
-
-                  return (
-                    <div className="flex border-b border-neutral-200/80 dark:border-neutral-800 bg-neutral-50/60 dark:bg-neutral-900/40 text-xs">
-                      <div className="w-12 sm:w-16 shrink-0 border-r border-neutral-200/60 dark:border-neutral-800/60 p-1.5 sm:p-2 text-[9px] sm:text-[10px] font-bold text-neutral-400 uppercase tracking-wider flex items-center justify-center">
-                        All Day
-                      </div>
-                      <div className="flex-1 p-1.5 sm:p-2 flex flex-wrap gap-1.5 sm:gap-2">
-                        {dayAllDay.map(evt => {
-                          const theme = getEventCardTheme(evt);
-                          return (
-                            <div
-                              key={evt.id}
-                              onClick={() => onSelectEvent(evt)}
-                              className={`px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-lg sm:rounded-xl border text-[11px] sm:text-xs font-semibold cursor-pointer transition-all hover:scale-[1.02] shadow-2xs ${theme.card} ${
-                                evt.status === 'completed' ? 'line-through opacity-50' : ''
-                              }`}
-                              title={evt.title}
-                            >
-                              {evt.title}
-                            </div>
-                          );
-                        })}
-                      </div>
+                {dayAllDay.length > 0 && (
+                  <div className="flex border-b border-neutral-200/80 dark:border-neutral-800 bg-neutral-50/60 dark:bg-neutral-900/40 text-xs">
+                    <div className="w-12 sm:w-16 shrink-0 border-r border-neutral-200/60 dark:border-neutral-800/60 p-1.5 sm:p-2 text-[9px] sm:text-[10px] font-bold text-neutral-400 uppercase tracking-wider flex items-center justify-center">
+                      All Day
                     </div>
-                  );
-                })()}
+                    <div className="flex-1 p-1.5 sm:p-2 flex flex-wrap gap-1.5 sm:gap-2">
+                      {dayAllDay.map(evt => {
+                        const theme = getEventCardTheme(evt);
+                        return (
+                          <div
+                            key={evt.id}
+                            onClick={() => onSelectEvent(evt)}
+                            className={`px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-lg sm:rounded-xl border text-[11px] sm:text-xs font-semibold cursor-pointer transition-all hover:scale-[1.02] shadow-2xs ${theme.card} ${
+                              evt.status === 'completed' ? 'line-through opacity-50' : ''
+                            }`}
+                            title={evt.title}
+                          >
+                            {evt.title}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
 
                 {/* Day Timetable Body */}
                 <div className="relative flex w-full" style={{ height: `${24 * HOUR_HEIGHT}px` }}>
@@ -946,7 +1007,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                     ))}
 
                     {/* Time-Occupying Event Cards */}
-                    {calculateTimedLayout(selectedDayEvents, currentDate).map((pos) => {
+                    {timedEvents.map((pos) => {
                       const { event: evt, top, height, leftPercent, widthPercent, startTimeLabel, endTimeLabel } = pos;
                       const theme = getEventCardTheme(evt);
 
@@ -1019,7 +1080,8 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
               </div>
             </div>
           </div>
-        )}
+          );
+        })()}
 
       </div>
     </>
