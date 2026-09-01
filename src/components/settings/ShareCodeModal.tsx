@@ -252,7 +252,7 @@ export const ShareCodeModal: React.FC<ShareCodeModalProps> = ({
                       </span>
                     </div>
                     <span className="text-[10px] text-neutral-400 font-mono">
-                      Exported: {format(parseISO(previewData.createdAt), 'MMM d, yyyy HH:mm')}
+                      Exported: {format(parseISO(previewData.createdAt), 'MMM d, yyyy, h:mm a')}
                     </span>
                   </div>
 
