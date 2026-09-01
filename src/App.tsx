@@ -25,7 +25,8 @@ import {
   deleteEvent, 
   bulkSaveEvents,
   expandRecurringEvents,
-  subscribeToRealtimeUserSchedules
+  subscribeToRealtimeUserSchedules,
+  cleanupExpiredEvents
 } from './services/scheduleService';
 import { 
   fetchAllAnnouncements, 
@@ -153,6 +154,34 @@ export function App() {
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  // Periodic Auto-Cleanup for Expired Events (5 days uncompleted, 2 days completed)
+  useEffect(() => {
+    const runAutoCleanup = async () => {
+      const { activeEvents, deletedCount } = await cleanupExpiredEvents();
+      if (deletedCount > 0) {
+        setEvents(activeEvents);
+        addToast(
+          'info',
+          'Auto-Cleanup Completed',
+          `Removed ${deletedCount} expired event${deletedCount > 1 ? 's' : ''} (5d uncompleted / 2d completed rule).`
+        );
+      }
+    };
+
+    const interval = setInterval(runAutoCleanup, 15 * 60 * 1000);
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        runAutoCleanup();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
+  }, [addToast]);
 
   // Realtime Subscriptions for Universal Announcements (App Owner Broadcasts)
   useEffect(() => {

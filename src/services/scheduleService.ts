@@ -3,6 +3,7 @@ import { getUserSupabaseClient, isUserSupabaseConfigured } from './supabaseClien
 import { loadLocalEvents, saveLocalEvents } from './storageService';
 import type { DatabaseScheduleRow } from '../types/database';
 import { format, parseISO, addDays, addWeeks, addMonths, addYears, isBefore, isAfter } from 'date-fns';
+import { purgeExpiredEvents } from '../utils/autoDeleteUtils';
 
 const isUUID = (str?: string): boolean =>
   typeof str === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
@@ -47,6 +48,7 @@ function mapEventToRow(event: ScheduleEvent): Partial<DatabaseScheduleRow> {
 }
 
 export async function fetchAllEvents(): Promise<ScheduleEvent[]> {
+  let loadedEvents: ScheduleEvent[] = [];
   const supabase = getUserSupabaseClient();
   if (supabase && isUserSupabaseConfigured()) {
     try {
@@ -56,17 +58,58 @@ export async function fetchAllEvents(): Promise<ScheduleEvent[]> {
         .order('start_time', { ascending: true });
 
       if (!error && data) {
-        const events = data.map(mapRowToEvent);
-        saveLocalEvents(events);
-        return events;
+        loadedEvents = data.map(mapRowToEvent);
+      } else {
+        console.warn('User Supabase fetch failed, falling back to local:', error?.message);
+        loadedEvents = loadLocalEvents();
       }
-      console.warn('User Supabase fetch failed, falling back to local:', error?.message);
     } catch (err) {
       console.warn('User Supabase error:', err);
+      loadedEvents = loadLocalEvents();
+    }
+  } else {
+    loadedEvents = loadLocalEvents();
+  }
+
+  // Run auto-cleanup on fetch
+  const { activeEvents, expiredEventIds, deletedCount } = purgeExpiredEvents(loadedEvents);
+  saveLocalEvents(activeEvents);
+
+  if (deletedCount > 0 && supabase && isUserSupabaseConfigured()) {
+    const validUUIDs = expiredEventIds.filter(isUUID);
+    if (validUUIDs.length > 0) {
+      try {
+        await supabase.from('schedules').delete().in('id', validUUIDs);
+      } catch (err) {
+        console.warn('Supabase auto-cleanup delete error:', err);
+      }
     }
   }
 
-  return loadLocalEvents();
+  return activeEvents;
+}
+
+export async function cleanupExpiredEvents(events?: ScheduleEvent[]): Promise<{ activeEvents: ScheduleEvent[]; deletedCount: number }> {
+  const all = events || (await fetchAllEvents());
+  const { activeEvents, expiredEventIds, deletedCount } = purgeExpiredEvents(all);
+
+  if (deletedCount > 0) {
+    saveLocalEvents(activeEvents);
+
+    const supabase = getUserSupabaseClient();
+    if (supabase && isUserSupabaseConfigured()) {
+      const validUUIDs = expiredEventIds.filter(isUUID);
+      if (validUUIDs.length > 0) {
+        try {
+          await supabase.from('schedules').delete().in('id', validUUIDs);
+        } catch (err) {
+          console.warn('Supabase cleanup error:', err);
+        }
+      }
+    }
+  }
+
+  return { activeEvents, deletedCount };
 }
 
 export async function bulkSaveEvents(

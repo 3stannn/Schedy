@@ -16,6 +16,7 @@ import {
 import { format, addHours, parseISO } from 'date-fns';
 import { ConfirmModal } from '../common/ConfirmModal';
 import { RichTextEditor } from '../tasks/RichTextEditor';
+import { getEventAutoDeleteInfo } from '../../utils/autoDeleteUtils';
 
 interface EventModalProps {
   isOpen: boolean;
@@ -218,6 +219,21 @@ export const EventModal: React.FC<EventModalProps> = ({
               className="w-full text-2xl sm:text-3xl font-bold text-[#37352f] dark:text-[#e6e6e6] placeholder-neutral-300 dark:placeholder-neutral-600 bg-transparent border-none outline-none focus:ring-0 p-0 tracking-tight"
             />
           </div>
+
+          {/* Auto-Deletion Notice Banner */}
+          {initialEvent && (() => {
+            const autoInfo = getEventAutoDeleteInfo(initialEvent);
+            if (!autoInfo.isExpiringSoon || !autoInfo.noticeMessage) return null;
+            return (
+              <div className={`flex items-start gap-2.5 p-3 text-xs rounded-xl border ${autoInfo.badgeClass} animate-fade-in`}>
+                <Clock className="w-4 h-4 shrink-0 mt-0.5" />
+                <div className="flex-1 leading-relaxed">
+                  <p className="font-semibold text-xs">{autoInfo.badgeText}</p>
+                  <p className="text-[11px] opacity-90 mt-0.5">{autoInfo.noticeMessage}</p>
+                </div>
+              </div>
+            );
+          })()}
 
           {/* Notion Properties List */}
           <div className="space-y-2.5 pt-3 border-t border-neutral-100 dark:border-neutral-800 text-xs">

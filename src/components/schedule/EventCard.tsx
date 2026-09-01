@@ -13,6 +13,7 @@ import {
 import { format, parseISO } from 'date-fns';
 import { ConfirmModal } from '../common/ConfirmModal';
 import { FormattedNoteContent } from '../tasks/FormattedNoteContent';
+import { getEventAutoDeleteInfo } from '../../utils/autoDeleteUtils';
 
 interface EventCardProps {
   event: ScheduleEvent;
@@ -56,6 +57,7 @@ export const EventCard: React.FC<EventCardProps> = ({
 
   const category = categoryLabels[event.category] || categoryLabels.general;
   const priority = priorityColors[event.priority] || priorityColors.medium;
+  const autoDeleteInfo = getEventAutoDeleteInfo(event);
 
   return (
     <>
@@ -102,6 +104,15 @@ export const EventCard: React.FC<EventCardProps> = ({
                   <span className="flex items-center gap-1 text-[10px] font-medium text-neutral-500 dark:text-neutral-400 bg-neutral-100 dark:bg-neutral-800 px-2 py-0.5 rounded-md">
                     <Repeat className="w-2.5 h-2.5" />
                     <span className="capitalize">{event.recurrenceRule}</span>
+                  </span>
+                )}
+                {autoDeleteInfo.isExpiringSoon && autoDeleteInfo.badgeText && (
+                  <span
+                    className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-md border ${autoDeleteInfo.badgeClass}`}
+                    title={autoDeleteInfo.noticeMessage || undefined}
+                  >
+                    <Clock className="w-2.5 h-2.5 shrink-0" />
+                    <span>{autoDeleteInfo.badgeText}</span>
                   </span>
                 )}
               </div>

@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { ConfirmModal } from '../common/ConfirmModal';
 import { FormattedNoteContent } from '../tasks/FormattedNoteContent';
+import { getEventAutoDeleteInfo } from '../../utils/autoDeleteUtils';
 import { 
   format, 
   addMonths, 
@@ -1070,6 +1071,18 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                             <span className={`text-[9px] sm:text-[10px] font-bold px-1.5 sm:px-2 py-0.2 sm:py-0.5 rounded-[5px] sm:rounded-[6px] ${theme.pill} font-mono tracking-tight`}>
                               {endTimeLabel}
                             </span>
+                            {(() => {
+                              const autoInfo = getEventAutoDeleteInfo(evt);
+                              if (!autoInfo.isExpiringSoon || !autoInfo.badgeText) return null;
+                              return (
+                                <span
+                                  className={`text-[9px] sm:text-[10px] font-semibold px-1.5 sm:px-2 py-0.2 sm:py-0.5 rounded-[5px] sm:rounded-[6px] border ${autoInfo.badgeClass}`}
+                                  title={autoInfo.noticeMessage || undefined}
+                                >
+                                  {autoInfo.badgeText}
+                                </span>
+                              );
+                            })()}
                           </div>
                         </div>
                       );

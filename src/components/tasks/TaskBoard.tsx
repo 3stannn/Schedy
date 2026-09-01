@@ -21,6 +21,7 @@ import {
 import { format, parseISO } from 'date-fns';
 import { FormattedNoteContent } from './FormattedNoteContent';
 import { stripHtml } from './noteFormattingUtils';
+import { getEventAutoDeleteInfo } from '../../utils/autoDeleteUtils';
 
 interface TaskBoardProps {
   events: ScheduleEvent[];
@@ -302,6 +303,19 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
                           <Video className="w-3 h-3 shrink-0" />
                         </span>
                       )}
+                      {(() => {
+                        const autoInfo = getEventAutoDeleteInfo(evt);
+                        if (!autoInfo.isExpiringSoon || !autoInfo.badgeText) return null;
+                        return (
+                          <span
+                            className={`inline-flex items-center gap-1 text-[9px] font-semibold px-1.5 py-0.5 rounded-[5px] border ${autoInfo.badgeClass}`}
+                            title={autoInfo.noticeMessage || undefined}
+                          >
+                            <Clock className="w-2.5 h-2.5 shrink-0" />
+                            <span>{autoInfo.badgeText}</span>
+                          </span>
+                        );
+                      })()}
                     </div>
                   </div>
 
@@ -394,6 +408,19 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
                         <Clock className="w-3 h-3" />
                         <span>{formatEventDate(evt.startTime)}</span>
                       </span>
+                      {(() => {
+                        const autoInfo = getEventAutoDeleteInfo(evt);
+                        if (!autoInfo.isExpiringSoon || !autoInfo.badgeText) return null;
+                        return (
+                          <span
+                            className={`inline-flex items-center gap-1 text-[9px] font-semibold px-1.5 py-0.5 rounded-[5px] border ${autoInfo.badgeClass}`}
+                            title={autoInfo.noticeMessage || undefined}
+                          >
+                            <Clock className="w-2.5 h-2.5 shrink-0" />
+                            <span>{autoInfo.badgeText}</span>
+                          </span>
+                        );
+                      })()}
                     </div>
                   </div>
 
@@ -491,9 +518,24 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
 
                   {/* Actions Row */}
                   <div className="flex items-center justify-between pt-2 border-t border-neutral-100 dark:border-neutral-800/40 text-[10px]" onClick={e => e.stopPropagation()}>
-                    <span className="text-neutral-400 font-mono text-[9px]">
-                      {formatEventDate(evt.startTime)}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-neutral-400 font-mono text-[9px]">
+                        {formatEventDate(evt.startTime)}
+                      </span>
+                      {(() => {
+                        const autoInfo = getEventAutoDeleteInfo(evt);
+                        if (!autoInfo.isExpiringSoon || !autoInfo.badgeText) return null;
+                        return (
+                          <span
+                            className={`inline-flex items-center gap-1 text-[9px] font-semibold px-1.5 py-0.5 rounded-[5px] border ${autoInfo.badgeClass}`}
+                            title={autoInfo.noticeMessage || undefined}
+                          >
+                            <Clock className="w-2.5 h-2.5 shrink-0" />
+                            <span>{autoInfo.badgeText}</span>
+                          </span>
+                        );
+                      })()}
+                    </div>
 
                     <button
                       onClick={() => onStatusChange(evt, 'in_progress')}
