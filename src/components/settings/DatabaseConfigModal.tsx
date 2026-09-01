@@ -12,7 +12,6 @@ import {
   BookOpen
 } from 'lucide-react';
 import { ConfirmModal } from '../common/ConfirmModal';
-import supabaseLogo from '../../assets/supabase.jpg';
 import {
   getSupabaseConfig,
   saveSupabaseConfig,
@@ -188,13 +187,9 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.notes;`;
 
           {/* Header */}
           <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 border-b border-neutral-100 dark:border-neutral-800/80 text-xs">
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-7 h-7 rounded-[8px] overflow-hidden flex items-center justify-center shrink-0 shadow-2xs">
-                <img
-                  src={supabaseLogo}
-                  alt="Supabase"
-                  className="w-full h-full object-cover"
-                />
+            <div className="flex items-center gap-2.5">
+              <div className="w-7 h-7 rounded-xl bg-blue-500/10 text-[#2383e2] flex items-center justify-center shrink-0">
+                <Server className="w-4 h-4 shrink-0" />
               </div>
               <span className="font-bold text-sm text-[#1c1917] dark:text-white">
                 Team Calendar Database & Cloud Sync
@@ -263,18 +258,16 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.notes;`;
                   <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">
                     Supabase Project URL *
                   </label>
-                  <div className="relative">
-                    <div className="w-4 h-4 rounded overflow-hidden absolute left-3.5 top-3 flex items-center justify-center shrink-0">
-                      <img src={supabaseLogo} alt="Supabase" className="w-full h-full object-cover" />
-                    </div>
-                    <input
-                      type="url"
-                      value={url}
-                      onChange={e => setUrl(e.target.value)}
-                      placeholder="https://your-project-id.supabase.co"
-                      className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                    />
-                  </div>
+                <div className="relative">
+                  <Server className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                  <input
+                    type="url"
+                    value={url}
+                    onChange={e => setUrl(e.target.value)}
+                    placeholder="https://your-project-id.supabase.co"
+                    className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
                 </div>
 
                 <div>

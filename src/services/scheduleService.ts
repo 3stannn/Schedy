@@ -256,7 +256,7 @@ export async function deleteEvent(id: string): Promise<boolean> {
 export function subscribeToRealtimeUserSchedules(onUpdate: (payload: any) => void): () => void {
   const supabase = getUserSupabaseClient();
   if (!supabase || !isUserSupabaseConfigured()) {
-    return () => {};
+    return () => { };
   }
 
   const channel = supabase
@@ -460,7 +460,7 @@ export function exportToJSON(events: ScheduleEvent[] = []): string {
  * Export schedule and notes as clean, minimal plain text
  */
 export function exportToPlainText(
-  events: ScheduleEvent[] = [], 
+  events: ScheduleEvent[] = [],
   _announcements: any[] = [],
   notes: any[] = []
 ): string {
@@ -492,7 +492,7 @@ export function exportToPlainText(
   const lines: string[] = [];
 
   if (safeEvents.length > 0) {
-    lines.push('SCHEDULE');
+    lines.push('');
     lines.push('');
 
     // Sort chronologically
@@ -504,21 +504,34 @@ export function exportToPlainText(
 
     sorted.forEach((event) => {
       const startDate = safeFormatDate(event.startTime);
+      const endDate = safeFormatDate(event.endTime);
       const startTime = safeFormatTime(event.startTime);
       const endTime = safeFormatTime(event.endTime);
-      
-      const timeDisplay = event.isAllDay
-        ? `${startDate} (All Day)`
-        : `${startDate} • ${startTime} - ${endTime}`;
 
-      const statusTag = event.status === 'completed' 
-        ? '[Done] ' 
-        : event.status === 'in_progress' 
-          ? '[In Progress] ' 
+      const statusTag = event.status === 'completed'
+        ? '[Done] '
+        : event.status === 'in_progress'
+          ? '[In Progress] '
           : '';
-      
+
       lines.push(`• ${statusTag}${event.title || 'Untitled'}`);
-      lines.push(`  Time: ${timeDisplay}`);
+
+      // Separate Date line
+      if (endDate && endDate !== startDate) {
+        lines.push(`  Date: ${startDate} - ${endDate}`);
+      } else {
+        lines.push(`  Date: ${startDate}`);
+      }
+
+      // Separate Time line
+      if (event.isAllDay) {
+        lines.push(`  Time: All Day`);
+      } else if (startTime && endTime) {
+        lines.push(`  Time: ${startTime} - ${endTime}`);
+      } else if (startTime) {
+        lines.push(`  Time: ${startTime}`);
+      }
+
       if (event.location) {
         lines.push(`  Location: ${event.location}`);
       }
@@ -526,7 +539,14 @@ export function exportToPlainText(
         lines.push(`  Link: ${event.meetingUrl}`);
       }
       if (event.description) {
-        lines.push(`  Note: ${event.description}`);
+        const cleanDesc = event.description
+          .replace(/<br\s*\/?>/gi, '\n')
+          .replace(/<\/p>/gi, '\n')
+          .replace(/<[^>]*>/g, '')
+          .trim();
+        if (cleanDesc) {
+          lines.push(`  Note: ${cleanDesc.split('\n').join('\n        ')}`);
+        }
       }
       lines.push('');
     });
@@ -538,7 +558,14 @@ export function exportToPlainText(
     safeNotes.forEach((n) => {
       lines.push(`• ${n.title || 'Untitled'}`);
       if (n.content) {
-        lines.push(`  ${n.content.split('\n').join('\n  ')}`);
+        const cleanContent = n.content
+          .replace(/<br\s*\/?>/gi, '\n')
+          .replace(/<\/p>/gi, '\n')
+          .replace(/<[^>]*>/g, '')
+          .trim();
+        if (cleanContent) {
+          lines.push(`  ${cleanContent.split('\n').join('\n  ')}`);
+        }
       }
       lines.push('');
     });
