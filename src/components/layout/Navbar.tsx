@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import schedyLogo from '../../assets/schedy.png';
 import { 
   Calendar, 
   Megaphone, 
@@ -59,9 +60,11 @@ export const Navbar: React.FC<NavbarProps> = ({
           
           {/* Logo & Brand */}
           <div className="flex items-center gap-2 shrink-0">
-            <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-neutral-100 to-neutral-200 dark:from-neutral-800 dark:to-neutral-900 border border-neutral-300/60 dark:border-neutral-700/60 flex items-center justify-center shadow-xs">
-              <Calendar className="w-3.5 h-3.5 text-[#2383e2]" />
-            </div>
+            <img 
+              src={schedyLogo} 
+              alt="Schedy" 
+              className="w-6 h-6 sm:w-7 sm:h-7 object-contain rounded-md shrink-0" 
+            />
             <span className="font-bold text-xs sm:text-sm tracking-tight text-[#1c1917] dark:text-neutral-100">
               Schedy
             </span>
