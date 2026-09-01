@@ -4,6 +4,7 @@ import { loadLocalEvents, saveLocalEvents } from './storageService';
 import type { DatabaseScheduleRow } from '../types/database';
 import { format, parseISO, addDays, addWeeks, addMonths, addYears, isBefore, isAfter } from 'date-fns';
 import { purgeExpiredEvents } from '../utils/autoDeleteUtils';
+import { htmlToPlainText } from '../components/tasks/noteFormattingUtils';
 
 const isUUID = (str?: string): boolean =>
   typeof str === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
@@ -539,13 +540,9 @@ export function exportToPlainText(
         lines.push(`  Link: ${event.meetingUrl}`);
       }
       if (event.description) {
-        const cleanDesc = event.description
-          .replace(/<br\s*\/?>/gi, '\n')
-          .replace(/<\/p>/gi, '\n')
-          .replace(/<[^>]*>/g, '')
-          .trim();
-        if (cleanDesc) {
-          lines.push(`  Note: ${cleanDesc.split('\n').join('\n        ')}`);
+        const plainDesc = htmlToPlainText(event.description);
+        if (plainDesc) {
+          lines.push(`  Note: ${plainDesc.split('\n').join('\n        ')}`);
         }
       }
       lines.push('');
@@ -558,13 +555,9 @@ export function exportToPlainText(
     safeNotes.forEach((n) => {
       lines.push(`• ${n.title || 'Untitled'}`);
       if (n.content) {
-        const cleanContent = n.content
-          .replace(/<br\s*\/?>/gi, '\n')
-          .replace(/<\/p>/gi, '\n')
-          .replace(/<[^>]*>/g, '')
-          .trim();
-        if (cleanContent) {
-          lines.push(`  ${cleanContent.split('\n').join('\n  ')}`);
+        const plainContent = htmlToPlainText(n.content);
+        if (plainContent) {
+          lines.push(`  ${plainContent.split('\n').join('\n  ')}`);
         }
       }
       lines.push('');
