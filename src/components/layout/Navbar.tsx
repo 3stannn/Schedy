@@ -77,18 +77,18 @@ export const Navbar: React.FC<NavbarProps> = ({
         <div className="space-y-4">
           
           {/* Brand Header Card: Outer R (18px) = Inner R (8px) + Padding (10px / p-2.5) */}
-          <div className="p-2.5 rounded-[18px] bg-neutral-50/80 dark:bg-neutral-900/60 border border-neutral-200/60 dark:border-neutral-800/60 flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
+          <div className="px-3 py-2.5 rounded-[18px] bg-neutral-50/80 dark:bg-neutral-900/60 border border-neutral-200/60 dark:border-neutral-800/60 flex items-center justify-between">
+            <div className="flex items-center gap-2.5 min-w-0">
               <img 
                 src={schedyLogo} 
                 alt="Schedy" 
                 className="w-7 h-7 object-contain rounded-[8px] shrink-0 shadow-xs" 
               />
-              <div>
-                <span className="font-bold text-sm tracking-tight text-[#1c1917] dark:text-neutral-100 block leading-none">
+              <div className="flex flex-col justify-center min-w-0">
+                <span className="font-bold text-sm tracking-tight text-[#1c1917] dark:text-neutral-100 leading-tight">
                   Schedy
                 </span>
-                <span className="text-[10px] text-neutral-400 dark:text-neutral-500 font-medium">
+                <span className="text-[10px] text-neutral-400 dark:text-neutral-500 font-medium leading-tight mt-0.5">
                   Planner & Notices
                 </span>
               </div>
@@ -97,7 +97,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* Cloud Status Indicator Dot */}
             <button
               onClick={onOpenConfig}
-              className="p-1 rounded-[6px] hover:bg-neutral-200/50 dark:hover:bg-neutral-800 transition-colors"
+              className="p-1.5 rounded-[6px] hover:bg-neutral-200/50 dark:hover:bg-neutral-800 transition-colors flex items-center justify-center shrink-0"
               title={isCloudConnected ? 'Cloud Synced' : 'Offline / Local'}
             >
               <span className={`block w-2 h-2 rounded-full ${isCloudConnected ? 'bg-emerald-500 animate-pulse' : 'bg-neutral-400'}`} />
