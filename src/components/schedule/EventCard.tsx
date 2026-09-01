@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { ConfirmModal } from '../common/ConfirmModal';
+import { FormattedNoteContent } from '../tasks/FormattedNoteContent';
 
 interface EventCardProps {
   event: ScheduleEvent;
@@ -110,9 +111,9 @@ export const EventCard: React.FC<EventCardProps> = ({
               </h4>
 
               {event.description && (
-                <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400 leading-relaxed line-clamp-2 font-normal">
-                  {event.description}
-                </p>
+                <div className="mt-1 text-xs text-neutral-500 dark:text-neutral-400 leading-relaxed font-normal overflow-hidden">
+                  <FormattedNoteContent content={event.description} isCompact={true} />
+                </div>
               )}
 
               {/* Time & metadata */}

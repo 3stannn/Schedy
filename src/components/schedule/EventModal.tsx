@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { format, addHours, parseISO } from 'date-fns';
 import { ConfirmModal } from '../common/ConfirmModal';
+import { RichTextEditor } from '../tasks/RichTextEditor';
 
 interface EventModalProps {
   isOpen: boolean;
@@ -369,14 +370,17 @@ export const EventModal: React.FC<EventModalProps> = ({
 
           </div>
 
-          {/* Notion Page Description / Content */}
-          <div className="pt-4 border-t border-neutral-100 dark:border-neutral-800">
-            <textarea
-              value={description}
-              onChange={e => setDescription(e.target.value)}
-              placeholder="Add notes, agenda, or description..."
-              rows={5}
-              className="w-full text-sm text-[#37352f] dark:text-[#e6e6e6] placeholder-neutral-400 bg-transparent border-none outline-none focus:ring-0 p-0 resize-y leading-relaxed font-sans min-h-[120px]"
+          {/* Notion Page Description / Rich Content */}
+          <div className="pt-4 border-t border-neutral-100 dark:border-neutral-800 flex flex-col min-h-[220px]">
+            <label className="block text-xs font-semibold text-neutral-600 dark:text-neutral-300 mb-2">
+              Notes & Description
+            </label>
+            <RichTextEditor
+              key={initialEvent?.id || 'new-event'}
+              initialHtml={description}
+              onChange={setDescription}
+              placeholder="Add rich notes, agenda, checklist, or event details..."
+              className="min-h-[180px]"
             />
           </div>
 

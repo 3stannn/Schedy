@@ -12,6 +12,7 @@ import {
   Edit3
 } from 'lucide-react';
 import { ConfirmModal } from '../common/ConfirmModal';
+import { FormattedNoteContent } from '../tasks/FormattedNoteContent';
 import { 
   format, 
   addMonths, 
@@ -1049,9 +1050,9 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                               )}
                             </div>
                             {evt.description && (
-                              <p className="text-[10px] sm:text-[11px] opacity-80 line-clamp-2 mt-0.5 font-normal leading-relaxed">
-                                {evt.description}
-                              </p>
+                              <div className="text-[10px] sm:text-[11px] opacity-80 mt-0.5 font-normal leading-relaxed overflow-hidden">
+                                <FormattedNoteContent content={evt.description} isCompact={true} />
+                              </div>
                             )}
                             {evt.location && (
                               <p className="text-[9px] sm:text-[10px] opacity-75 truncate mt-0.5 sm:mt-1 flex items-center gap-1 font-medium">

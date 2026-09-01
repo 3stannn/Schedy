@@ -19,6 +19,8 @@ import {
   Sparkles
 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
+import { FormattedNoteContent } from './FormattedNoteContent';
+import { stripHtml } from './noteFormattingUtils';
 
 interface TaskBoardProps {
   events: ScheduleEvent[];
@@ -127,7 +129,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
       result = result.filter(
-        n => n.title.toLowerCase().includes(q) || n.content.toLowerCase().includes(q)
+        n => n.title.toLowerCase().includes(q) || stripHtml(n.content).toLowerCase().includes(q)
       );
     }
     return [...result].sort((a, b) => {
@@ -279,9 +281,9 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
                     </div>
 
                     {evt.description && (
-                      <p className="text-[11px] text-neutral-500 dark:text-neutral-400 line-clamp-2 leading-relaxed font-normal">
-                        {evt.description}
-                      </p>
+                      <div className="text-[11px] text-neutral-500 dark:text-neutral-400 font-normal overflow-hidden">
+                        <FormattedNoteContent content={evt.description} isCompact={true} />
+                      </div>
                     )}
 
                     <div className="flex items-center gap-2 pt-1 text-[10px] text-neutral-400 font-medium flex-wrap">
@@ -382,9 +384,9 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
                     </div>
 
                     {evt.description && (
-                      <p className="text-[11px] text-neutral-500 dark:text-neutral-400 line-clamp-2 leading-relaxed font-normal">
-                        {evt.description}
-                      </p>
+                      <div className="text-[11px] text-neutral-500 dark:text-neutral-400 font-normal overflow-hidden">
+                        <FormattedNoteContent content={evt.description} isCompact={true} />
+                      </div>
                     )}
 
                     <div className="flex items-center gap-2 pt-1 text-[10px] text-neutral-400 font-medium flex-wrap">
@@ -481,9 +483,9 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
                     </div>
 
                     {evt.description && (
-                      <p className="text-[11px] text-neutral-400 line-clamp-1 leading-relaxed font-normal">
-                        {evt.description}
-                      </p>
+                      <div className="text-[11px] text-neutral-400 font-normal overflow-hidden">
+                        <FormattedNoteContent content={evt.description} isCompact={true} />
+                      </div>
                     )}
                   </div>
 
@@ -594,9 +596,9 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
                       </div>
 
                       {note.content && (
-                        <p className={`text-[11px] ${style.text} line-clamp-3 leading-relaxed whitespace-pre-wrap font-normal`}>
-                          {note.content}
-                        </p>
+                        <div className={`text-[11px] ${style.text} overflow-hidden font-normal`}>
+                          <FormattedNoteContent content={note.content} isCompact={true} />
+                        </div>
                       )}
                     </div>
 

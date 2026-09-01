@@ -15,6 +15,7 @@ import {
   parseISO, 
   compareAsc
 } from 'date-fns';
+import { stripHtml } from '../tasks/noteFormattingUtils';
 
 interface EventListViewProps {
   events: ScheduleEvent[];
@@ -46,7 +47,7 @@ export const EventListView: React.FC<EventListViewProps> = ({
       const q = search.toLowerCase();
       const matchSearch = !search || 
         e.title.toLowerCase().includes(q) ||
-        e.description.toLowerCase().includes(q) ||
+        (e.description && stripHtml(e.description).toLowerCase().includes(q)) ||
         (e.location && e.location.toLowerCase().includes(q));
 
       // Category match
