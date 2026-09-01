@@ -235,33 +235,72 @@ export function expandRecurringEvents(events: ScheduleEvent[], viewStart: Date, 
   const expanded: ScheduleEvent[] = [];
 
   for (const event of events) {
-    const origStart = parseISO(event.startTime);
-    const origEnd = parseISO(event.endTime);
-    const duration = origEnd.getTime() - origStart.getTime();
+    if (!event.startTime || !event.endTime) continue;
 
-    if (event.recurrenceRule === 'none') {
+    let origStart: Date;
+    let origEnd: Date;
+    try {
+      origStart = parseISO(event.startTime);
+      origEnd = parseISO(event.endTime);
+      if (isNaN(origStart.getTime()) || isNaN(origEnd.getTime())) continue;
+    } catch {
+      continue;
+    }
+
+    const duration = Math.max(0, origEnd.getTime() - origStart.getTime());
+
+    if (!event.recurrenceRule || event.recurrenceRule === 'none') {
       expanded.push(event);
       continue;
     }
 
-    // Generate instances
+    // Fast-forward start date close to viewStart to handle old recurring series correctly
     let currentStart = origStart;
-    let index = 0;
-    const maxInstances = 60; // safety limit
+    if (isBefore(origStart, viewStart)) {
+      const msDiff = viewStart.getTime() - origStart.getTime();
+      switch (event.recurrenceRule) {
+        case 'daily': {
+          const daysToJump = Math.max(0, Math.floor(msDiff / (24 * 3600 * 1000)) - 1);
+          currentStart = addDays(origStart, daysToJump);
+          break;
+        }
+        case 'weekly': {
+          const weeksToJump = Math.max(0, Math.floor(msDiff / (7 * 24 * 3600 * 1000)) - 1);
+          currentStart = addWeeks(origStart, weeksToJump);
+          break;
+        }
+        case 'monthly': {
+          const monthsToJump = Math.max(0, (viewStart.getFullYear() - origStart.getFullYear()) * 12 + (viewStart.getMonth() - origStart.getMonth()) - 1);
+          currentStart = addMonths(origStart, monthsToJump);
+          break;
+        }
+        case 'yearly': {
+          const yearsToJump = Math.max(0, viewStart.getFullYear() - origStart.getFullYear() - 1);
+          currentStart = addYears(origStart, yearsToJump);
+          break;
+        }
+      }
+    }
 
-    while (isBefore(currentStart, viewEnd) && index < maxInstances) {
+    // Generate visible instances in the range
+    let iterations = 0;
+    const maxInstances = 200; // safety ceiling per visible window
+
+    while (isBefore(currentStart, viewEnd) && iterations < maxInstances) {
       const currentEnd = new Date(currentStart.getTime() + duration);
 
-      if (isAfter(currentEnd, viewStart) || isBefore(currentStart, viewEnd)) {
+      // Check if instance overlaps view range
+      if (!isBefore(currentEnd, viewStart) && !isAfter(currentStart, viewEnd)) {
+        const isOriginal = currentStart.getTime() === origStart.getTime();
         expanded.push({
           ...event,
-          id: index === 0 ? event.id : `${event.id}_rec_${index}`,
+          id: isOriginal ? event.id : `${event.id}_rec_${currentStart.getTime()}`,
           startTime: currentStart.toISOString(),
           endTime: currentEnd.toISOString(),
         });
       }
 
-      index++;
+      iterations++;
       switch (event.recurrenceRule) {
         case 'daily':
           currentStart = addDays(currentStart, 1);
@@ -276,12 +315,17 @@ export function expandRecurringEvents(events: ScheduleEvent[], viewStart: Date, 
           currentStart = addYears(currentStart, 1);
           break;
         default:
+          iterations = maxInstances;
           break;
       }
     }
   }
 
-  return expanded.sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
+  return expanded.sort((a, b) => {
+    const tA = new Date(a.startTime).getTime();
+    const tB = new Date(b.startTime).getTime();
+    return tA - tB;
+  });
 }
 
 /**

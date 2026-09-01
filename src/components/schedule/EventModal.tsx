@@ -13,7 +13,7 @@ import {
   Layers,
   Calendar
 } from 'lucide-react';
-import { format, addHours } from 'date-fns';
+import { format, addHours, parseISO } from 'date-fns';
 import { ConfirmModal } from '../common/ConfirmModal';
 
 interface EventModalProps {
@@ -33,8 +33,6 @@ export const EventModal: React.FC<EventModalProps> = ({
   initialEvent,
   selectedDate,
 }) => {
-  if (!isOpen) return null;
-
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [startTime, setStartTime] = useState('');
@@ -50,15 +48,25 @@ export const EventModal: React.FC<EventModalProps> = ({
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   useEffect(() => {
+    if (!isOpen) return;
+
     if (initialEvent) {
-      setTitle(initialEvent.title);
+      setTitle(initialEvent.title || '');
       setDescription(initialEvent.description || '');
-      setStartTime(initialEvent.startTime.substring(0, 16));
-      setEndTime(initialEvent.endTime.substring(0, 16));
-      setIsAllDay(initialEvent.isAllDay);
-      setCategory(initialEvent.category);
-      setPriority(initialEvent.priority);
-      setStatus(initialEvent.status);
+      try {
+        const parsedStart = parseISO(initialEvent.startTime);
+        const parsedEnd = parseISO(initialEvent.endTime);
+        setStartTime(format(parsedStart, "yyyy-MM-dd'T'HH:mm"));
+        setEndTime(format(parsedEnd, "yyyy-MM-dd'T'HH:mm"));
+      } catch {
+        const start = new Date();
+        setStartTime(format(start, "yyyy-MM-dd'T'HH:mm"));
+        setEndTime(format(addHours(start, 1), "yyyy-MM-dd'T'HH:mm"));
+      }
+      setIsAllDay(!!initialEvent.isAllDay);
+      setCategory(initialEvent.category || 'general');
+      setPriority(initialEvent.priority || 'medium');
+      setStatus(initialEvent.status || 'pending');
       setLocation(initialEvent.location || '');
       setMeetingUrl(initialEvent.meetingUrl || '');
       setRecurrenceRule(initialEvent.recurrenceRule || 'none');
@@ -80,6 +88,8 @@ export const EventModal: React.FC<EventModalProps> = ({
     setError(null);
   }, [initialEvent, selectedDate, isOpen]);
 
+  if (!isOpen) return null;
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) {
@@ -87,20 +97,41 @@ export const EventModal: React.FC<EventModalProps> = ({
       return;
     }
 
-    const start = new Date(startTime);
-    const end = new Date(endTime);
+    let startIso: string;
+    let endIso: string;
 
-    if (end < start) {
-      setError('End time cannot be earlier than start time.');
-      return;
+    if (isAllDay) {
+      const datePart = startTime.includes('T') ? startTime.split('T')[0] : startTime;
+      const endDatePart = endTime.includes('T') ? endTime.split('T')[0] : (endTime || datePart);
+      const s = new Date(`${datePart}T00:00:00`);
+      const e = new Date(`${endDatePart}T23:59:59`);
+      if (e < s) {
+        setError('End date cannot be earlier than start date.');
+        return;
+      }
+      startIso = s.toISOString();
+      endIso = e.toISOString();
+    } else {
+      const s = new Date(startTime);
+      const e = new Date(endTime);
+      if (isNaN(s.getTime()) || isNaN(e.getTime())) {
+        setError('Please provide valid start and end dates.');
+        return;
+      }
+      if (e < s) {
+        setError('End time cannot be earlier than start time.');
+        return;
+      }
+      startIso = s.toISOString();
+      endIso = e.toISOString();
     }
 
     onSave({
       ...(initialEvent ? { id: initialEvent.id } : {}),
       title: title.trim(),
       description: description.trim(),
-      startTime: start.toISOString(),
-      endTime: end.toISOString(),
+      startTime: startIso,
+      endTime: endIso,
       isAllDay,
       category,
       priority,

@@ -17,11 +17,11 @@ export const DevPasswordModal: React.FC<DevPasswordModalProps> = ({
   actionTitle = 'Developer Verification',
   actionDescription = 'Enter the Developer Password to publish or manage Universal Dev Announcements broadcasted to all users.',
 }) => {
-  if (!isOpen) return null;
-
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  if (!isOpen) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

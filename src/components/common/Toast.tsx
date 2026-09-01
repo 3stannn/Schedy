@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { CheckCircle2, AlertCircle, Info, AlertTriangle, X } from 'lucide-react';
 
 export interface ToastMessage {
@@ -48,7 +48,7 @@ export const ToastContainer: React.FC<ToastContainerProps> = ({ toasts, onDismis
 };
 
 const ToastItem: React.FC<{ toast: ToastMessage; onDismiss: (id: string) => void }> = ({ toast, onDismiss }) => {
-  const totalDuration = useRef(calculateToastDuration(toast)).current;
+  const totalDuration = useMemo(() => calculateToastDuration(toast), [toast]);
   const [remainingTime, setRemainingTime] = useState(totalDuration);
   const [isHovered, setIsHovered] = useState(false);
 

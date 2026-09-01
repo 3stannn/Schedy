@@ -172,8 +172,10 @@ export function App() {
   const handleSaveEvent = async (eventData: any) => {
     try {
       if (eventData.id) {
-        const updated = await updateEvent(eventData);
-        setEvents(prev => prev.map(e => (e.id === updated.id ? updated : e)));
+        const realId = eventData.id.includes('_rec_') ? eventData.id.split('_rec_')[0] : eventData.id;
+        const payload = { ...eventData, id: realId };
+        const updated = await updateEvent(payload);
+        setEvents(prev => prev.map(e => (e.id === realId ? updated : e)));
         addToast('success', 'Event Updated', `"${updated.title}" was updated.`);
       } else {
         const created = await createEvent(eventData);
@@ -187,8 +189,9 @@ export function App() {
 
   const handleDeleteEvent = async (id: string) => {
     try {
-      await deleteEvent(id);
-      setEvents(prev => prev.filter(e => e.id !== id));
+      const realId = id.includes('_rec_') ? id.split('_rec_')[0] : id;
+      await deleteEvent(realId);
+      setEvents(prev => prev.filter(e => e.id !== realId));
       addToast('info', 'Event Deleted', 'The event was removed.');
     } catch (err: any) {
       addToast('error', 'Failed to delete event', err.message);
@@ -197,8 +200,10 @@ export function App() {
 
   const handleStatusChange = async (event: ScheduleEvent, status: EventStatus) => {
     try {
-      const updated = await updateEvent({ ...event, status });
-      setEvents(prev => prev.map(e => (e.id === updated.id ? updated : e)));
+      const realId = event.id.includes('_rec_') ? event.id.split('_rec_')[0] : event.id;
+      const baseEvent = events.find(e => e.id === realId) || event;
+      const updated = await updateEvent({ ...baseEvent, status });
+      setEvents(prev => prev.map(e => (e.id === realId ? updated : e)));
       addToast('success', status === 'completed' ? 'Event Completed' : 'Status Updated');
     } catch (err: any) {
       addToast('error', 'Failed to update status', err.message);
@@ -311,14 +316,7 @@ export function App() {
   return (
     <div className="min-h-screen bg-transparent text-[#1c1917] dark:text-[#f4f4f5] flex flex-col font-sans transition-colors">
       
-      {/* Top Banner for Urgent Notices */}
-      <TopBanner
-        urgentAnnouncements={urgentAnnouncements}
-        onAcknowledge={handleAcknowledgeAnnouncement}
-        onOpenFeed={() => setActiveTab('announcements')}
-      />
-
-      {/* App Navbar */}
+      {/* App Navbar / Desktop Left Sidebar */}
       <Navbar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
@@ -344,8 +342,17 @@ export function App() {
         }}
       />
 
-      {/* Main Container */}
-      <main className="flex-1 max-w-6xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 space-y-4">
+      {/* Main Content Area (Offset for desktop fixed sidebar) */}
+      <div className="flex-1 flex flex-col min-w-0 md:pl-60 lg:pl-64 transition-all">
+        {/* Top Banner for Urgent Notices */}
+        <TopBanner
+          urgentAnnouncements={urgentAnnouncements}
+          onAcknowledge={handleAcknowledgeAnnouncement}
+          onOpenFeed={() => setActiveTab('announcements')}
+        />
+
+        {/* Main Container */}
+        <main className="flex-1 max-w-6xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4">
         
         {/* TAB 1: SCHEDULE VIEW */}
         {activeTab === 'schedule' && (
@@ -358,7 +365,7 @@ export function App() {
                 </h1>
               </div>
 
-              <div className="flex items-center rounded-xl bg-white/80 dark:bg-[#161619]/80 backdrop-blur-md border border-neutral-200/80 dark:border-neutral-800 p-0.5 text-xs shadow-2xs">
+              <div className="flex items-center rounded-xl bg-white/80 dark:bg-[#161619]/80 backdrop-blur-md border border-neutral-200/80 dark:border-neutral-800 p-1 text-xs shadow-2xs">
                 <button
                   onClick={() => setScheduleViewType('calendar')}
                   className={`flex items-center gap-1.5 px-3 py-1 font-semibold rounded-lg transition-all ${
@@ -505,6 +512,7 @@ export function App() {
           </div>
         </div>
       </footer>
+      </div>
 
       {/* Modals */}
       <EventModal

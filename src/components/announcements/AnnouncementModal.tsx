@@ -16,8 +16,6 @@ export const AnnouncementModal: React.FC<AnnouncementModalProps> = ({
   onSave,
   initialAnnouncement,
 }) => {
-  if (!isOpen) return null;
-
   const [title, setTitle] = useState(initialAnnouncement?.title || '');
   const [content, setContent] = useState(initialAnnouncement?.content || '');
   const [priority, setPriority] = useState<AnnouncementPriority>(initialAnnouncement?.priority || 'important');
@@ -32,6 +30,7 @@ export const AnnouncementModal: React.FC<AnnouncementModalProps> = ({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!isOpen) return;
     if (initialAnnouncement) {
       setTitle(initialAnnouncement.title);
       setContent(initialAnnouncement.content);
@@ -51,7 +50,9 @@ export const AnnouncementModal: React.FC<AnnouncementModalProps> = ({
       setAuthorName('Admin');
       setDevPassword('');
     }
-  }, [initialAnnouncement]);
+  }, [isOpen, initialAnnouncement]);
+
+  if (!isOpen) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

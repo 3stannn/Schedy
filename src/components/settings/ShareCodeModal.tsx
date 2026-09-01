@@ -38,8 +38,6 @@ export const ShareCodeModal: React.FC<ShareCodeModalProps> = ({
   onApplySync,
   initialCode = '',
 }) => {
-  if (!isOpen) return null;
-
   const [activeTab, setActiveTab] = useState<'generate' | 'join'>(initialCode ? 'join' : 'generate');
   const [generatedCode, setGeneratedCode] = useState('');
   const [copiedCode, setCopiedCode] = useState(false);
@@ -52,14 +50,16 @@ export const ShareCodeModal: React.FC<ShareCodeModalProps> = ({
 
   // Auto-generate code when tab is active or events change
   useEffect(() => {
+    if (!isOpen) return;
     if (activeTab === 'generate') {
       const code = generateShareCode(events, announcements);
       setGeneratedCode(code);
     }
-  }, [activeTab, events, announcements]);
+  }, [isOpen, activeTab, events, announcements]);
 
   // Auto-parse input code if initial code provided or typed
   useEffect(() => {
+    if (!isOpen) return;
     if (inputCode.trim()) {
       const res = parseShareCode(inputCode);
       if (res.success && res.data) {
@@ -73,7 +73,9 @@ export const ShareCodeModal: React.FC<ShareCodeModalProps> = ({
       setPreviewData(null);
       setParseError(null);
     }
-  }, [inputCode]);
+  }, [isOpen, inputCode]);
+
+  if (!isOpen) return null;
 
   const handleCopyCode = () => {
     navigator.clipboard.writeText(generatedCode);

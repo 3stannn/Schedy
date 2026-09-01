@@ -34,14 +34,15 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
   announcements,
   onImportSuccess,
 }) => {
-  if (!isOpen) return null;
-
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedFormat, setSelectedFormat] = useState<ExportFormat>('txt');
   const [copied, setCopied] = useState(false);
   const [importStatus, setImportStatus] = useState<{ success: boolean; message: string } | null>(null);
 
   const previewData = useMemo(() => {
+    if (!isOpen) {
+      return { content: '', filename: '', mimeType: 'text/plain', label: '' };
+    }
     const today = new Date().toISOString().split('T')[0] || 'backup';
     const safeEvents = Array.isArray(events) ? events : [];
     const safeAnnos = Array.isArray(announcements) ? announcements : [];
@@ -84,7 +85,9 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
         };
       }
     }
-  }, [selectedFormat, events, announcements]);
+  }, [isOpen, selectedFormat, events, announcements]);
+
+  if (!isOpen) return null;
 
   const handleDownload = () => {
     try {

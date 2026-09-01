@@ -30,8 +30,6 @@ export const DatabaseConfigModal: React.FC<DatabaseConfigModalProps> = ({
   onClose,
   onConfigSaved,
 }) => {
-  if (!isOpen) return null;
-
   const [url, setUrl] = useState('');
   const [anonKey, setAnonKey] = useState('');
   const [isTesting, setIsTesting] = useState(false);
@@ -41,11 +39,14 @@ export const DatabaseConfigModal: React.FC<DatabaseConfigModalProps> = ({
   const [showDisconnectConfirm, setShowDisconnectConfirm] = useState(false);
 
   useEffect(() => {
+    if (!isOpen) return;
     const cfg = getSupabaseConfig();
     setUrl(cfg.url);
     setAnonKey(cfg.anonKey);
     setTestResult(null);
   }, [isOpen]);
+
+  if (!isOpen) return null;
 
   const handleTest = async () => {
     setIsTesting(true);

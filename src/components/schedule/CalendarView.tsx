@@ -28,7 +28,11 @@ import {
   subWeeks, 
   parseISO, 
   isToday, 
-  eachDayOfInterval
+  eachDayOfInterval,
+  startOfDay,
+  endOfDay,
+  isBefore,
+  isAfter
 } from 'date-fns';
 
 interface CalendarViewProps {
@@ -71,9 +75,21 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
     setSelectedDate(now);
   };
 
-  // Helper to get events on a specific day
+  // Helper to get events on a specific day (supporting multi-day events)
   const getEventsForDay = (date: Date) => {
-    return events.filter(e => isSameDay(parseISO(e.startTime), date));
+    const dayStart = startOfDay(date);
+    const dayEnd = endOfDay(date);
+    return events.filter(e => {
+      if (!e.startTime) return false;
+      try {
+        const s = parseISO(e.startTime);
+        const end = e.endTime ? parseISO(e.endTime) : s;
+        if (isNaN(s.getTime())) return false;
+        return !isAfter(s, dayEnd) && !isBefore(end, dayStart);
+      } catch {
+        return false;
+      }
+    });
   };
 
   const selectedDayEvents = getEventsForDay(selectedDate);
