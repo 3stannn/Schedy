@@ -134,6 +134,17 @@ export const Navbar: React.FC<NavbarProps> = ({
               </button>
 
               <button
+                onClick={() => setActiveTab('tasks')}
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-[10px] text-xs font-medium transition-all ${
+                  activeTab === 'tasks'
+                    ? 'bg-white dark:bg-[#202024] text-[#1c1917] dark:text-white shadow-xs font-semibold'
+                    : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-white/40 dark:hover:bg-white/5'
+                }`}
+              >
+                <span>Tasks</span>
+              </button>
+
+              <button
                 onClick={() => setActiveTab('announcements')}
                 className={`w-full relative flex items-center justify-between px-3 py-2 rounded-[10px] text-xs font-medium transition-all ${
                   activeTab === 'announcements'
@@ -158,17 +169,6 @@ export const Navbar: React.FC<NavbarProps> = ({
                 }`}
               >
                 <span>Overview</span>
-              </button>
-
-              <button
-                onClick={() => setActiveTab('tasks')}
-                className={`w-full flex items-center justify-between px-3 py-2 rounded-[10px] text-xs font-medium transition-all ${
-                  activeTab === 'tasks'
-                    ? 'bg-white dark:bg-[#202024] text-[#1c1917] dark:text-white shadow-xs font-semibold'
-                    : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-white/40 dark:hover:bg-white/5'
-                }`}
-              >
-                <span>Tasks</span>
               </button>
             </nav>
           </div>
@@ -316,6 +316,17 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
 
             <button
+              onClick={() => setActiveTab('tasks')}
+              className={`flex-1 flex items-center justify-center py-1 rounded-[10px] text-xs font-medium transition-all ${
+                activeTab === 'tasks'
+                  ? 'bg-white dark:bg-[#202024] text-[#1c1917] dark:text-white shadow-xs font-semibold'
+                  : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+              }`}
+            >
+              <span>Tasks</span>
+            </button>
+
+            <button
               onClick={() => setActiveTab('announcements')}
               className={`flex-1 relative flex items-center justify-center py-1 rounded-[10px] text-xs font-medium transition-all ${
                 activeTab === 'announcements'
@@ -340,17 +351,6 @@ export const Navbar: React.FC<NavbarProps> = ({
               }`}
             >
               <span>Overview</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab('tasks')}
-              className={`flex-1 flex items-center justify-center py-1 rounded-[10px] text-xs font-medium transition-all ${
-                activeTab === 'tasks'
-                  ? 'bg-white dark:bg-[#202024] text-[#1c1917] dark:text-white shadow-xs font-semibold'
-                  : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
-              }`}
-            >
-              <span>Tasks</span>
             </button>
           </div>
 
