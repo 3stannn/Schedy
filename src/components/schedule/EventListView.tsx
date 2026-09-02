@@ -1,18 +1,18 @@
 import React, { useState, useMemo } from 'react';
 import type { ScheduleEvent, EventStatus } from '../../types/schedule';
 import { EventCard } from './EventCard';
-import { 
-  Search, 
-  Calendar, 
-  SlidersHorizontal, 
+import {
+  Search,
+  Calendar,
+  SlidersHorizontal,
   Plus
 } from 'lucide-react';
-import { 
-  isToday, 
-  isTomorrow, 
-  isThisWeek, 
-  isPast, 
-  parseISO, 
+import {
+  isToday,
+  isTomorrow,
+  isThisWeek,
+  isPast,
+  parseISO,
   compareAsc
 } from 'date-fns';
 import { stripHtml } from '../tasks/noteFormattingUtils';
@@ -45,7 +45,7 @@ export const EventListView: React.FC<EventListViewProps> = ({
     return events.filter(e => {
       // Search match
       const q = search.toLowerCase();
-      const matchSearch = !search || 
+      const matchSearch = !search ||
         e.title.toLowerCase().includes(q) ||
         (e.description && stripHtml(e.description).toLowerCase().includes(q)) ||
         (e.location && e.location.toLowerCase().includes(q));
@@ -104,11 +104,11 @@ export const EventListView: React.FC<EventListViewProps> = ({
 
   return (
     <div className="space-y-4 text-[#1c1917] dark:text-[#f4f4f5]">
-      
+
       {/* Search & Filter Toolbar */}
       <div className="bg-white/85 dark:bg-[#161619]/85 backdrop-blur-md p-4 rounded-2xl border border-neutral-200/80 dark:border-neutral-800/80 shadow-xs space-y-3">
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-          
+
           {/* Search Input */}
           <div className="relative flex-1">
             <Search className="w-3.5 h-3.5 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -127,11 +127,10 @@ export const EventListView: React.FC<EventListViewProps> = ({
               <button
                 key={tf}
                 onClick={() => setTimeFilter(tf)}
-                className={`px-3 py-1 font-semibold capitalize rounded-lg transition-all whitespace-nowrap ${
-                  timeFilter === tf
+                className={`px-3 py-1 font-semibold capitalize rounded-lg transition-all whitespace-nowrap ${timeFilter === tf
                     ? 'bg-white dark:bg-[#202024] text-[#1c1917] dark:text-white shadow-xs'
                     : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
-                }`}
+                  }`}
               >
                 {tf}
               </button>

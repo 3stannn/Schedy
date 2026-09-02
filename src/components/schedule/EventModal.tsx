@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import type { ScheduleEvent, PriorityLevel, EventCategory, EventStatus, RecurrenceRule } from '../../types/schedule';
-import { 
-  X, 
-  Trash2, 
-  MapPin, 
-  Video, 
-  AlertTriangle, 
-  Tag, 
-  Clock, 
-  Repeat, 
-  CheckSquare, 
+import {
+  X,
+  Trash2,
+  MapPin,
+  Video,
+  AlertTriangle,
+  Tag,
+  Clock,
+  Repeat,
+  CheckSquare,
   Layers,
   Calendar
 } from 'lucide-react';
@@ -168,7 +168,7 @@ export const EventModal: React.FC<EventModalProps> = ({
         />
       )}
       <div className="bg-white/95 dark:bg-[#161619]/95 backdrop-blur-2xl rounded-2xl max-w-3xl w-full max-h-[92vh] overflow-y-auto border border-neutral-200/80 dark:border-neutral-800/80 shadow-2xl transition-all text-[#1c1917] dark:text-[#f4f4f5]">
-        
+
         {/* Notion-style Top Action Bar */}
         <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 border-b border-neutral-100 dark:border-neutral-800 text-xs text-neutral-400">
           <div className="flex items-center gap-2 font-medium">
@@ -237,7 +237,7 @@ export const EventModal: React.FC<EventModalProps> = ({
 
           {/* Notion Properties List */}
           <div className="space-y-2.5 pt-3 border-t border-neutral-100 dark:border-neutral-800 text-xs">
-            
+
             {/* Category Property */}
             <div className="flex items-center gap-3 py-1">
               <div className="w-32 flex items-center gap-2 text-neutral-400 shrink-0">

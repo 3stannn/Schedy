@@ -59,7 +59,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   // Initialize editor HTML only once on mount or when external initialHtml changes (not from user typing)
   useEffect(() => {
     if (!editorRef.current) return;
-    
+
     // Only set innerHTML if not initialized yet or if changed from outside while not actively focused/typing
     if (!isInitializedRef.current || (initialHtml !== lastHtmlRef.current && document.activeElement !== editorRef.current)) {
       const formattedHtml = convertMarkdownOrTextToHtml(initialHtml);
@@ -357,10 +357,9 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   };
 
   const btnClass = (isActive: boolean) =>
-    `p-1.5 rounded-lg transition-all text-xs font-medium flex items-center justify-center ${
-      isActive
-        ? 'bg-[#2383e2]/15 text-[#2383e2] dark:bg-[#2383e2]/25 dark:text-sky-300 font-bold shadow-2xs'
-        : 'text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-200/60 dark:hover:bg-neutral-800'
+    `p-1.5 rounded-lg transition-all text-xs font-medium flex items-center justify-center ${isActive
+      ? 'bg-[#2383e2]/15 text-[#2383e2] dark:bg-[#2383e2]/25 dark:text-sky-300 font-bold shadow-2xs'
+      : 'text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-200/60 dark:hover:bg-neutral-800'
     }`;
 
   return (

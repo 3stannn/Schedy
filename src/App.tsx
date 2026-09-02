@@ -457,8 +457,8 @@ export function App() {
           onOpenFeed={() => setActiveTab('announcements')}
         />
 
-        {/* Main Container */}
-        <main className="flex-1 w-full max-w-[1760px] mx-auto px-3 sm:px-6 lg:px-8 xl:px-10 py-4 sm:py-6 space-y-4">
+        {/* Main Container with generous left and right spacing */}
+        <main className="flex-1 w-full max-w-[1560px] mx-auto px-6 sm:px-10 md:px-12 lg:px-16 xl:px-20 2xl:px-24 py-6 sm:py-8 space-y-5">
         
         {/* TAB 1: SCHEDULE VIEW */}
         {activeTab === 'schedule' && (
@@ -620,7 +620,7 @@ export function App() {
 
       {/* Minimal Footer */}
       <footer className="mt-auto border-t border-[#e9e9e7] dark:border-[#2e2e2e] bg-white dark:bg-[#191919] py-3 text-xs text-neutral-400">
-        <div className="w-full max-w-[1760px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 flex flex-col sm:flex-row items-center justify-between gap-2">
+        <div className="w-full max-w-[1560px] mx-auto px-6 sm:px-10 md:px-12 lg:px-16 xl:px-20 2xl:px-24 flex flex-col sm:flex-row items-center justify-between gap-2">
           <p className="flex items-center gap-1.5 flex-wrap">
             <span>Schedy • Simple Schedule & Announcements</span>
             <span>•</span>

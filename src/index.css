@@ -138,13 +138,16 @@ html.pink .toast-item .toast-progress-bar {
   width: 6px;
   height: 6px;
 }
+
 ::-webkit-scrollbar-track {
   background: transparent;
 }
+
 ::-webkit-scrollbar-thumb {
   background: #d3d1cb;
   border-radius: 4px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background: #b4b2aa;
 }
@@ -152,13 +155,21 @@ html.pink .toast-item .toast-progress-bar {
 html.dark ::-webkit-scrollbar-thumb {
   background: #3f3f3f;
 }
+
 html.dark ::-webkit-scrollbar-thumb:hover {
   background: #555555;
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(2px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .animate-fade-in {
@@ -337,4 +348,3 @@ html.dark .notion-editor hr,
 html.dark .notion-rendered-content hr {
   border-top-color: #27272a;
 }
-

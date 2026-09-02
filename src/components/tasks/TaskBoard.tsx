@@ -1,18 +1,18 @@
 import React, { useState, useMemo } from 'react';
 import type { ScheduleEvent, EventStatus } from '../../types/schedule';
 import type { Note, NoteColor } from '../../types/note';
-import { 
-  Plus, 
-  Search, 
-  Clock, 
-  Calendar as CalendarIcon, 
-  CheckCircle2, 
-  ArrowRight, 
-  ArrowLeft, 
-  RotateCcw, 
-  Pin, 
-  Trash2, 
-  Edit3, 
+import {
+  Plus,
+  Search,
+  Clock,
+  Calendar as CalendarIcon,
+  CheckCircle2,
+  ArrowRight,
+  ArrowLeft,
+  RotateCcw,
+  Pin,
+  Trash2,
+  Edit3,
   FileText,
   Video,
   MapPin,
@@ -225,7 +225,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
 
       {/* 4-COLUMN KANBAN BOARD */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 items-start">
-        
+
         {/* ========================================================================= */}
         {/* COLUMN 1: UPCOMING (Calendar Events with 'pending' status)                */}
         {/* ========================================================================= */}
@@ -618,11 +618,10 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
                         <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
                           <button
                             onClick={() => onTogglePinNote(note)}
-                            className={`p-1 rounded-md transition-colors ${
-                              note.isPinned
+                            className={`p-1 rounded-md transition-colors ${note.isPinned
                                 ? 'text-amber-500 bg-amber-100/60 dark:bg-amber-950/60'
                                 : 'text-neutral-400 opacity-0 group-hover:opacity-100 hover:text-neutral-700 dark:hover:text-neutral-200'
-                            }`}
+                              }`}
                             title={note.isPinned ? 'Unpin note' : 'Pin note to top'}
                           >
                             <Pin className="w-3 h-3" />
