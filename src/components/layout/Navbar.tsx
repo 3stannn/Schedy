@@ -9,12 +9,15 @@ import {
   Moon, 
   Flower2,
   Menu,
-  X
+  X,
+  Timer
 } from 'lucide-react';
 
+import type { PomodoroInfo } from '../tools/PomodoroTimer';
+
 interface NavbarProps {
-  activeTab: 'schedule' | 'announcements' | 'overview' | 'tasks';
-  setActiveTab: (tab: 'schedule' | 'announcements' | 'overview' | 'tasks') => void;
+  activeTab: 'schedule' | 'announcements' | 'overview' | 'tasks' | 'pomodoro';
+  setActiveTab: (tab: 'schedule' | 'announcements' | 'overview' | 'tasks' | 'pomodoro') => void;
   unreadCount: number;
   isCloudConnected: boolean;
   theme: 'light' | 'dark' | 'pink';
@@ -26,6 +29,7 @@ interface NavbarProps {
   onNewEvent: () => void;
   onNewAnnouncement: () => void;
   onNewTask?: () => void;
+  pomodoroInfo?: PomodoroInfo;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -42,6 +46,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onNewEvent,
   onNewAnnouncement,
   onNewTask,
+  pomodoroInfo,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -169,6 +174,38 @@ export const Navbar: React.FC<NavbarProps> = ({
                 }`}
               >
                 <span>Overview</span>
+              </button>
+            </nav>
+          </div>
+
+          {/* 2. Tools Category */}
+          <div className="space-y-1">
+            <span className="px-2 text-[10px] font-bold uppercase tracking-wider text-neutral-400 dark:text-neutral-500">
+              Tools
+            </span>
+
+            <nav className="p-1.5 rounded-[16px] bg-neutral-100/90 dark:bg-neutral-900/90 border border-neutral-200/60 dark:border-neutral-800/60 flex flex-col gap-1 shadow-inner">
+              <button
+                onClick={() => setActiveTab('pomodoro')}
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-[10px] text-xs font-medium transition-all ${
+                  activeTab === 'pomodoro'
+                    ? 'bg-white dark:bg-[#202024] text-[#1c1917] dark:text-white shadow-xs font-semibold'
+                    : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-white/40 dark:hover:bg-white/5'
+                }`}
+              >
+                <span className="flex items-center gap-2">
+                  <Timer className={`w-3.5 h-3.5 ${pomodoroInfo?.isRunning ? 'text-blue-500 animate-pulse' : 'text-slate-400'}`} />
+                  <span>Pomodoro</span>
+                </span>
+                {pomodoroInfo?.isRunning ? (
+                  <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-950/80 text-blue-700 dark:text-blue-300 animate-pulse">
+                    {Math.floor(pomodoroInfo.timeLeft / 60)}:{(pomodoroInfo.timeLeft % 60).toString().padStart(2, '0')}
+                  </span>
+                ) : (
+                  <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400">
+                    Focus
+                  </span>
+                )}
               </button>
             </nav>
           </div>
@@ -358,36 +395,53 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Outer R (24px) = Inner R (12px) + Padding (12px / p-3) */}
           {mobileMenuOpen && (
             <div className="mt-2 p-3 rounded-[24px] bg-white dark:bg-[#18181b] border border-neutral-200/90 dark:border-neutral-800/90 shadow-xl space-y-2 text-xs animate-fade-in">
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-4 gap-1.5">
+                {/* Pomodoro Tool */}
+                <button
+                  onClick={() => handleActionAndClose(() => setActiveTab('pomodoro'))}
+                  className={`flex flex-col items-center justify-center gap-1 p-2 rounded-[12px] border font-semibold transition-all active:scale-95 ${
+                    pomodoroInfo?.isRunning
+                      ? 'border-blue-300 dark:border-blue-800 bg-blue-100/50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300'
+                      : 'border-blue-200 dark:border-blue-900/60 bg-blue-50/50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400'
+                  }`}
+                >
+                  <Timer className={`w-4 h-4 ${pomodoroInfo?.isRunning ? 'animate-pulse' : ''}`} />
+                  <span className="text-[10px] truncate max-w-full font-mono font-bold">
+                    {pomodoroInfo?.isRunning
+                      ? `${Math.floor(pomodoroInfo.timeLeft / 60)}:${(pomodoroInfo.timeLeft % 60).toString().padStart(2, '0')}`
+                      : 'Pomodoro'}
+                  </span>
+                </button>
+
                 {/* Share Code */}
                 <button
                   onClick={() => handleActionAndClose(onOpenShare)}
-                  className="flex items-center justify-center gap-1.5 p-2.5 rounded-[12px] border border-neutral-200 dark:border-neutral-800 text-[#2383e2] hover:bg-blue-50 dark:hover:bg-blue-950/30 font-semibold transition-all"
+                  className="flex flex-col items-center justify-center gap-1 p-2 rounded-[12px] border border-neutral-200 dark:border-neutral-800 text-[#2383e2] hover:bg-blue-50 dark:hover:bg-blue-950/30 font-semibold transition-all active:scale-95"
                 >
                   <Share2 className="w-4 h-4" />
-                  <span>Share</span>
+                  <span className="text-[10px]">Share</span>
                 </button>
 
                 {/* Database Settings */}
                 <button
                   onClick={() => handleActionAndClose(onOpenConfig)}
-                  className={`flex items-center justify-center gap-1.5 p-2.5 rounded-[12px] border font-medium transition-all ${
+                  className={`flex flex-col items-center justify-center gap-1 p-2 rounded-[12px] border font-medium transition-all active:scale-95 ${
                     isCloudConnected
                       ? 'bg-emerald-50/80 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300'
                       : 'border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-400'
                   }`}
                 >
                   <Database className="w-4 h-4" />
-                  <span>{isCloudConnected ? 'Cloud' : 'Local'}</span>
+                  <span className="text-[10px]">{isCloudConnected ? 'Cloud' : 'Local'}</span>
                 </button>
 
                 {/* Export Backup */}
                 <button
                   onClick={() => handleActionAndClose(onOpenExport)}
-                  className="flex items-center justify-center gap-1.5 p-2.5 rounded-[12px] border border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 font-medium transition-all"
+                  className="flex flex-col items-center justify-center gap-1 p-2 rounded-[12px] border border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 font-medium transition-all active:scale-95"
                 >
                   <Download className="w-4 h-4" />
-                  <span>Export</span>
+                  <span className="text-[10px]">Export</span>
                 </button>
               </div>
 

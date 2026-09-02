@@ -18,7 +18,9 @@ import {
   Sparkles,
   HelpCircle,
   X,
-  Check
+  Check,
+  Undo,
+  Redo
 } from 'lucide-react';
 import { convertMarkdownOrTextToHtml } from './noteFormattingUtils';
 
@@ -45,6 +47,53 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   const [isHighlight, setIsHighlight] = useState(false);
   const [activeBlock, setActiveBlock] = useState<string>('p');
 
+  // Undo / Redo History Stack
+  const historyRef = useRef<string[]>([]);
+  const historyIndexRef = useRef<number>(-1);
+  const isUndoRedoRef = useRef<boolean>(false);
+  const debounceTimerRef = useRef<number | null>(null);
+
+  const [canUndo, setCanUndo] = useState(false);
+  const [canRedo, setCanRedo] = useState(false);
+
+  const updateUndoRedoState = useCallback(() => {
+    setCanUndo(historyIndexRef.current > 0);
+    setCanRedo(historyIndexRef.current < historyRef.current.length - 1);
+  }, []);
+
+  const pushHistory = useCallback((html: string, immediate: boolean = false) => {
+    if (isUndoRedoRef.current) return;
+
+    const record = () => {
+      const currentSnapshot = historyRef.current[historyIndexRef.current];
+      if (currentSnapshot === html) return;
+
+      // Slice off redo branch if branched
+      const newHistory = historyRef.current.slice(0, historyIndexRef.current + 1);
+      newHistory.push(html);
+
+      // Limit max history to 60 snapshots
+      if (newHistory.length > 60) {
+        newHistory.shift();
+      }
+
+      historyRef.current = newHistory;
+      historyIndexRef.current = newHistory.length - 1;
+      updateUndoRedoState();
+    };
+
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = null;
+    }
+
+    if (immediate) {
+      record();
+    } else {
+      debounceTimerRef.current = window.setTimeout(record, 200);
+    }
+  }, [updateUndoRedoState]);
+
   // Popups & Dropdowns
   const [showTemplates, setShowTemplates] = useState(false);
   const [showCheatsheet, setShowCheatsheet] = useState(false);
@@ -60,14 +109,18 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   useEffect(() => {
     if (!editorRef.current) return;
 
-    // Only set innerHTML if not initialized yet or if changed from outside while not actively focused/typing
     if (!isInitializedRef.current || (initialHtml !== lastHtmlRef.current && document.activeElement !== editorRef.current)) {
       const formattedHtml = convertMarkdownOrTextToHtml(initialHtml);
       editorRef.current.innerHTML = formattedHtml;
       lastHtmlRef.current = initialHtml;
       isInitializedRef.current = true;
+
+      // Seed undo/redo history stack
+      historyRef.current = [formattedHtml];
+      historyIndexRef.current = 0;
+      updateUndoRedoState();
     }
-  }, [initialHtml]);
+  }, [initialHtml, updateUndoRedoState]);
 
   // Update active state of toolbar based on caret position / selection
   const updateToolbarState = useCallback(() => {
@@ -115,13 +168,82 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     }
   }, []);
 
-  const handleInput = () => {
+  const handleInput = (immediateHistory: boolean = false) => {
     if (!editorRef.current) return;
     const html = editorRef.current.innerHTML;
     lastHtmlRef.current = html;
     onChange(html);
+    pushHistory(html, immediateHistory);
     updateToolbarState();
   };
+
+  const handleUndo = useCallback(() => {
+    if (historyIndexRef.current <= 0 || !editorRef.current) return;
+
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = null;
+    }
+
+    isUndoRedoRef.current = true;
+    historyIndexRef.current -= 1;
+    const targetHtml = historyRef.current[historyIndexRef.current];
+
+    editorRef.current.innerHTML = targetHtml;
+    lastHtmlRef.current = targetHtml;
+    onChange(targetHtml);
+    updateToolbarState();
+    updateUndoRedoState();
+
+    try {
+      const selection = window.getSelection();
+      if (selection) {
+        const range = document.createRange();
+        range.selectNodeContents(editorRef.current);
+        range.collapse(false);
+        selection.removeAllRanges();
+        selection.addRange(range);
+      }
+    } catch {}
+
+    setTimeout(() => {
+      isUndoRedoRef.current = false;
+    }, 50);
+  }, [onChange, updateToolbarState, updateUndoRedoState]);
+
+  const handleRedo = useCallback(() => {
+    if (historyIndexRef.current >= historyRef.current.length - 1 || !editorRef.current) return;
+
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = null;
+    }
+
+    isUndoRedoRef.current = true;
+    historyIndexRef.current += 1;
+    const targetHtml = historyRef.current[historyIndexRef.current];
+
+    editorRef.current.innerHTML = targetHtml;
+    lastHtmlRef.current = targetHtml;
+    onChange(targetHtml);
+    updateToolbarState();
+    updateUndoRedoState();
+
+    try {
+      const selection = window.getSelection();
+      if (selection) {
+        const range = document.createRange();
+        range.selectNodeContents(editorRef.current);
+        range.collapse(false);
+        selection.removeAllRanges();
+        selection.addRange(range);
+      }
+    } catch {}
+
+    setTimeout(() => {
+      isUndoRedoRef.current = false;
+    }, 50);
+  }, [onChange, updateToolbarState, updateUndoRedoState]);
 
   // Execute standard formatting commands
   const execCmd = (command: string, value: string | undefined = undefined) => {
@@ -157,17 +279,68 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     handleInput();
   };
 
+  // Convert a specific task item into a standard paragraph without affecting items above or below it
+  const convertTaskItemToParagraph = (taskItem: HTMLElement): HTMLElement => {
+    const textSpan = taskItem.querySelector('.notion-task-text');
+    const rawText = textSpan?.textContent?.replace(/\u00A0/g, '') || '';
+    const taskList = taskItem.closest('.notion-task-list') as HTMLElement | null;
+
+    const p = document.createElement('p');
+    p.innerHTML = rawText.trim() ? rawText : '<br>';
+
+    if (!taskList) {
+      taskItem.replaceWith(p);
+      return p;
+    }
+
+    const items = Array.from(taskList.children) as HTMLElement[];
+    const itemIndex = items.indexOf(taskItem);
+
+    if (items.length <= 1) {
+      // Only item in list: replace entire list with paragraph
+      taskList.replaceWith(p);
+    } else if (itemIndex === 0) {
+      // First item in list: place paragraph before list
+      taskList.insertAdjacentElement('beforebegin', p);
+      taskItem.remove();
+    } else if (itemIndex === items.length - 1) {
+      // Last item in list: place paragraph after list
+      taskList.insertAdjacentElement('afterend', p);
+      taskItem.remove();
+    } else {
+      // Middle item: split list into two separate lists with paragraph in between
+      const afterItems = items.slice(itemIndex + 1);
+      const newTaskList = document.createElement('ul');
+      newTaskList.className = 'notion-task-list';
+      afterItems.forEach(it => newTaskList.appendChild(it));
+
+      taskItem.remove();
+      taskList.insertAdjacentElement('afterend', p);
+      p.insertAdjacentElement('afterend', newTaskList);
+    }
+
+    return p;
+  };
+
   // Toggle Block Format (H1, H2, H3, Quote, Paragraph)
   const setBlockType = (type: 'h1' | 'h2' | 'h3' | 'blockquote' | 'p' | 'pre') => {
     if (!editorRef.current) return;
     editorRef.current.focus();
+
+    const selection = window.getSelection();
+    const node = selection?.anchorNode;
+    const currentTaskItem = (node?.nodeType === Node.ELEMENT_NODE ? (node as HTMLElement) : node?.parentElement)?.closest('.notion-task-item') as HTMLElement | null;
+
+    if (currentTaskItem) {
+      convertTaskItemToParagraph(currentTaskItem);
+    }
 
     if (activeBlock === type) {
       document.execCommand('formatBlock', false, '<p>');
     } else {
       document.execCommand('formatBlock', false, `<${type}>`);
     }
-    handleInput();
+    handleInput(true);
   };
 
   // Toggle or Insert Notion-style Checklist
@@ -179,11 +352,36 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     if (!selection || selection.rangeCount === 0) return;
 
     const range = selection.getRangeAt(0);
-    const selectedText = range.toString().trim() || 'New task item';
+    const node = selection.anchorNode;
+    const currentTaskItem = (node?.nodeType === Node.ELEMENT_NODE ? (node as HTMLElement) : node?.parentElement)?.closest('.notion-task-item') as HTMLElement | null;
 
-    const taskHtml = `<ul class="notion-task-list"><li class="notion-task-item"><input type="checkbox" class="notion-task-checkbox" /><span class="notion-task-text">${selectedText}</span></li></ul>`;
-    document.execCommand('insertHTML', false, taskHtml);
-    handleInput();
+    if (currentTaskItem) {
+      // Toggle OFF: convert task item back to standard paragraph
+      const p = convertTaskItemToParagraph(currentTaskItem);
+
+      const newRange = document.createRange();
+      newRange.selectNodeContents(p);
+      newRange.collapse(false);
+      selection.removeAllRanges();
+      selection.addRange(newRange);
+      handleInput(true);
+      return;
+    }
+
+    // Toggle ON: Convert current block or selection into a checklist item
+    const parentBlock = (node?.nodeType === Node.ELEMENT_NODE ? (node as HTMLElement) : node?.parentElement)?.closest('p, h1, h2, h3, blockquote, div');
+    const selectedText = range.toString().trim() || (parentBlock && parentBlock !== editorRef.current ? parentBlock.textContent?.trim() : '') || 'New task item';
+
+    const taskHtml = `<ul class="notion-task-list"><li class="notion-task-item"><input type="checkbox" contenteditable="false" class="notion-task-checkbox" /><span class="notion-task-text">${selectedText}</span></li></ul>`;
+
+    if (parentBlock && parentBlock !== editorRef.current && (!range.toString() || range.toString().length === (parentBlock.textContent?.length || 0))) {
+      parentBlock.insertAdjacentHTML('afterend', taskHtml);
+      parentBlock.remove();
+    } else {
+      document.execCommand('insertHTML', false, taskHtml);
+    }
+
+    handleInput(true);
   };
 
   // Toggle Inline Code
@@ -197,7 +395,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     const selectedText = range.toString() || 'code';
     const codeHtml = `<code>${selectedText}</code>`;
     document.execCommand('insertHTML', false, codeHtml);
-    handleInput();
+    handleInput(true);
   };
 
   // Insert Quick Template
@@ -207,15 +405,15 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
 
     let templateHtml = '';
     if (type === 'checklist') {
-      templateHtml = `<h3>📋 To-Do Checklist</h3><ul class="notion-task-list"><li class="notion-task-item"><input type="checkbox" class="notion-task-checkbox" /><span class="notion-task-text">First action item</span></li><li class="notion-task-item"><input type="checkbox" class="notion-task-checkbox" /><span class="notion-task-text">Second action item</span></li><li class="notion-task-item"><input type="checkbox" class="notion-task-checkbox" /><span class="notion-task-text">Third action item</span></li></ul><p></p>`;
+      templateHtml = `<h3>📋 To-Do Checklist</h3><ul class="notion-task-list"><li class="notion-task-item"><input type="checkbox" contenteditable="false" class="notion-task-checkbox" /><span class="notion-task-text">First action item</span></li><li class="notion-task-item"><input type="checkbox" contenteditable="false" class="notion-task-checkbox" /><span class="notion-task-text">Second action item</span></li><li class="notion-task-item"><input type="checkbox" contenteditable="false" class="notion-task-checkbox" /><span class="notion-task-text">Third action item</span></li></ul><p></p>`;
     } else if (type === 'meeting') {
-      templateHtml = `<h2>📝 Meeting Notes</h2><p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p><p><strong>Attendees:</strong> </p><h3>Key Discussion Points</h3><ul><li>Topic 1</li><li>Topic 2</li></ul><h3>Action Items</h3><ul class="notion-task-list"><li class="notion-task-item"><input type="checkbox" class="notion-task-checkbox" /><span class="notion-task-text">Follow up task</span></li></ul><p></p>`;
+      templateHtml = `<h2>📝 Meeting Notes</h2><p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p><p><strong>Attendees:</strong> </p><h3>Key Discussion Points</h3><ul><li>Topic 1</li><li>Topic 2</li></ul><h3>Action Items</h3><ul class="notion-task-list"><li class="notion-task-item"><input type="checkbox" contenteditable="false" class="notion-task-checkbox" /><span class="notion-task-text">Follow up task</span></li></ul><p></p>`;
     } else if (type === 'project') {
-      templateHtml = `<h2>🚀 Project Scratchpad</h2><blockquote><strong>Goal:</strong> High impact outcome</blockquote><h3>Milestones</h3><ul class="notion-task-list"><li class="notion-task-item"><input type="checkbox" class="notion-task-checkbox" /><span class="notion-task-text">Phase 1: Planning</span></li><li class="notion-task-item"><input type="checkbox" class="notion-task-checkbox" /><span class="notion-task-text">Phase 2: Execution</span></li><li class="notion-task-item"><input type="checkbox" class="notion-task-checkbox" /><span class="notion-task-text">Phase 3: Launch</span></li></ul><p></p>`;
+      templateHtml = `<h2>🚀 Project Scratchpad</h2><blockquote><strong>Goal:</strong> High impact outcome</blockquote><h3>Milestones</h3><ul class="notion-task-list"><li class="notion-task-item"><input type="checkbox" contenteditable="false" class="notion-task-checkbox" /><span class="notion-task-text">Phase 1: Planning</span></li><li class="notion-task-item"><input type="checkbox" contenteditable="false" class="notion-task-checkbox" /><span class="notion-task-text">Phase 2: Execution</span></li><li class="notion-task-item"><input type="checkbox" contenteditable="false" class="notion-task-checkbox" /><span class="notion-task-text">Phase 3: Launch</span></li></ul><p></p>`;
     }
 
     document.execCommand('insertHTML', false, templateHtml);
-    handleInput();
+    handleInput(true);
   };
 
   // Open Link Modal
@@ -250,7 +448,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     const linkHtml = `<a href="${url}" target="_blank" rel="noopener noreferrer">${title}</a>`;
     document.execCommand('insertHTML', false, linkHtml);
     setShowLinkModal(false);
-    handleInput();
+    handleInput(true);
   };
 
   // Handle Checklist click directly inside editor
@@ -267,17 +465,31 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
           taskItem.classList.remove('is-done');
           checkbox.removeAttribute('checked');
         }
-        handleInput();
+        handleInput(true);
       }
     }
     updateToolbarState();
   };
 
-  // Keyboard Shortcuts & Smart Enter handling
+  // Keyboard Shortcuts & Smart Enter/Backspace handling
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    // Ctrl+B, Ctrl+I, Ctrl+U, Ctrl+K
+    // Ctrl+Z (Undo) / Ctrl+Y or Ctrl+Shift+Z (Redo)
     if ((e.ctrlKey || e.metaKey) && !e.altKey) {
       const key = e.key.toLowerCase();
+      if (key === 'z') {
+        e.preventDefault();
+        if (e.shiftKey) {
+          handleRedo();
+        } else {
+          handleUndo();
+        }
+        return;
+      }
+      if (key === 'y') {
+        e.preventDefault();
+        handleRedo();
+        return;
+      }
       if (key === 'b') {
         e.preventDefault();
         execCmd('bold');
@@ -308,51 +520,108 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
       return;
     }
 
-    // Enter key in a task item
-    if (e.key === 'Enter') {
-      const selection = window.getSelection();
-      if (!selection || selection.rangeCount === 0) return;
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return;
 
-      const node = selection.anchorNode;
-      const currentTaskItem = node?.parentElement?.closest('.notion-task-item');
+    const range = selection.getRangeAt(0);
+    const node = selection.anchorNode;
+    if (!node) return;
 
-      if (currentTaskItem) {
-        const textSpan = currentTaskItem.querySelector('.notion-task-text');
-        const text = textSpan?.textContent?.trim() || '';
+    const currentTaskItem = (node.nodeType === Node.ELEMENT_NODE ? (node as HTMLElement) : node.parentElement)?.closest('.notion-task-item') as HTMLElement | null;
 
-        // If user pressed enter on an empty task item, convert it to a regular paragraph
-        if (!text) {
-          e.preventDefault();
-          const taskList = currentTaskItem.closest('.notion-task-list');
-          currentTaskItem.remove();
-          if (taskList && taskList.children.length === 0) {
-            taskList.remove();
-          }
-          document.execCommand('insertHTML', false, '<p><br></p>');
-          handleInput();
-          return;
-        }
+    // Backspace key handling in a task item (converts THIS task item to a paragraph without deleting or merging items above)
+    if (e.key === 'Backspace' && currentTaskItem) {
+      const textSpan = currentTaskItem.querySelector('.notion-task-text') as HTMLElement | null;
+      const rawText = textSpan?.textContent || '';
+      const cleanText = rawText.replace(/\u00A0/g, '').trim();
+      const isCollapsed = selection.isCollapsed;
+      const offset = range.startOffset;
 
-        // Create new task item on next line
+      // Caret is at offset 0 of textSpan or text is empty/whitespace
+      const isAtStart = isCollapsed && (
+        !cleanText ||
+        (node === textSpan && offset === 0) ||
+        (node.parentElement === textSpan && offset === 0) ||
+        (node === currentTaskItem && offset <= 1)
+      );
+
+      if (isAtStart) {
         e.preventDefault();
-        const newTaskHtml = `<li class="notion-task-item"><input type="checkbox" class="notion-task-checkbox" /><span class="notion-task-text">&nbsp;</span></li>`;
-        currentTaskItem.insertAdjacentHTML('afterend', newTaskHtml);
+        // Convert ONLY THIS task item into a regular paragraph without touching the checkbox above
+        const p = convertTaskItemToParagraph(currentTaskItem);
 
-        // Move focus/caret to new task item text
-        const nextItem = currentTaskItem.nextElementSibling;
-        if (nextItem) {
-          const nextTextSpan = nextItem.querySelector('.notion-task-text');
-          if (nextTextSpan) {
-            const range = document.createRange();
-            range.selectNodeContents(nextTextSpan);
-            range.collapse(false);
-            selection.removeAllRanges();
-            selection.addRange(range);
-          }
+        const newRange = document.createRange();
+        if (p.firstChild && p.firstChild.nodeType === Node.TEXT_NODE) {
+          newRange.setStart(p.firstChild, 0);
+          newRange.setEnd(p.firstChild, 0);
+        } else {
+          newRange.selectNodeContents(p);
+          newRange.collapse(true);
         }
-        handleInput();
+        selection.removeAllRanges();
+        selection.addRange(newRange);
+
+        handleInput(true);
         return;
       }
+    }
+
+    // Delete key handling in an empty task item
+    if (e.key === 'Delete' && currentTaskItem) {
+      const textSpan = currentTaskItem.querySelector('.notion-task-text') as HTMLElement | null;
+      const cleanText = (textSpan?.textContent || '').replace(/\u00A0/g, '').trim();
+
+      if (!cleanText) {
+        e.preventDefault();
+        const p = convertTaskItemToParagraph(currentTaskItem);
+        const newRange = document.createRange();
+        newRange.selectNodeContents(p);
+        newRange.collapse(true);
+        selection.removeAllRanges();
+        selection.addRange(newRange);
+
+        handleInput(true);
+        return;
+      }
+    }
+
+    // Enter key in a task item
+    if (e.key === 'Enter' && currentTaskItem) {
+      const textSpan = currentTaskItem.querySelector('.notion-task-text');
+      const text = textSpan?.textContent?.replace(/\u00A0/g, '').trim() || '';
+
+      // If user pressed enter on an empty task item, convert it to a regular paragraph (exit checklist)
+      if (!text) {
+        e.preventDefault();
+        const p = convertTaskItemToParagraph(currentTaskItem);
+        const newRange = document.createRange();
+        newRange.selectNodeContents(p);
+        newRange.collapse(true);
+        selection.removeAllRanges();
+        selection.addRange(newRange);
+        handleInput(true);
+        return;
+      }
+
+      // Create new task item directly below current one
+      e.preventDefault();
+      const newTaskHtml = `<li class="notion-task-item"><input type="checkbox" contenteditable="false" class="notion-task-checkbox" /><span class="notion-task-text">&nbsp;</span></li>`;
+      currentTaskItem.insertAdjacentHTML('afterend', newTaskHtml);
+
+      // Move focus/caret to new task item text
+      const nextItem = currentTaskItem.nextElementSibling as HTMLElement | null;
+      if (nextItem) {
+        const nextTextSpan = nextItem.querySelector('.notion-task-text') as HTMLElement | null;
+        if (nextTextSpan) {
+          const newRange = document.createRange();
+          newRange.selectNodeContents(nextTextSpan);
+          newRange.collapse(false);
+          selection.removeAllRanges();
+          selection.addRange(newRange);
+        }
+      }
+      handleInput(true);
+      return;
     }
   };
 
@@ -367,6 +636,38 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
       {/* Notion Style Top Toolbar */}
       <div className="border border-neutral-200/80 dark:border-neutral-800/80 bg-neutral-50/90 dark:bg-neutral-900/80 rounded-xl p-1 mb-2.5 flex items-center justify-between gap-1 flex-wrap text-xs select-none shrink-0 shadow-2xs">
         <div className="flex items-center gap-0.5 flex-wrap">
+          {/* Undo */}
+          <button
+            type="button"
+            onClick={handleUndo}
+            disabled={!canUndo}
+            className={`p-1.5 rounded-lg transition-all text-xs font-medium flex items-center justify-center ${
+              canUndo
+                ? 'text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-200/60 dark:hover:bg-neutral-800 cursor-pointer'
+                : 'text-neutral-300 dark:text-neutral-600 cursor-not-allowed opacity-40'
+            }`}
+            title="Undo (Ctrl+Z)"
+          >
+            <Undo className="w-3.5 h-3.5" />
+          </button>
+
+          {/* Redo */}
+          <button
+            type="button"
+            onClick={handleRedo}
+            disabled={!canRedo}
+            className={`p-1.5 rounded-lg transition-all text-xs font-medium flex items-center justify-center ${
+              canRedo
+                ? 'text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-200/60 dark:hover:bg-neutral-800 cursor-pointer'
+                : 'text-neutral-300 dark:text-neutral-600 cursor-not-allowed opacity-40'
+            }`}
+            title="Redo (Ctrl+Y or Ctrl+Shift+Z)"
+          >
+            <Redo className="w-3.5 h-3.5" />
+          </button>
+
+          <div className="h-4 w-px bg-neutral-200 dark:bg-neutral-800 mx-1" />
+
           {/* Bold */}
           <button
             type="button"
@@ -638,7 +939,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
           ref={editorRef}
           contentEditable={true}
           suppressContentEditableWarning={true}
-          onInput={handleInput}
+          onInput={() => handleInput(false)}
           onClick={handleEditorClick}
           onKeyUp={updateToolbarState}
           onMouseUp={updateToolbarState}

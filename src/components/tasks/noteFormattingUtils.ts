@@ -80,7 +80,7 @@ export function convertMarkdownOrTextToHtml(raw: string): string {
       const isChecked = taskMatch[1].toLowerCase() === 'x';
       const text = formatInlineMarkdown(taskMatch[2]);
       listItems.push(
-        `<li class="notion-task-item ${isChecked ? 'is-done' : ''}"><input type="checkbox" class="notion-task-checkbox" ${isChecked ? 'checked' : ''} /><span class="notion-task-text">${text}</span></li>`
+        `<li class="notion-task-item ${isChecked ? 'is-done' : ''}"><input type="checkbox" contenteditable="false" class="notion-task-checkbox" ${isChecked ? 'checked' : ''} /><span class="notion-task-text">${text}</span></li>`
       );
       continue;
     }

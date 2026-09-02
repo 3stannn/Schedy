@@ -18,7 +18,7 @@ interface OverviewDashboardProps {
   events: ScheduleEvent[];
   announcements: Announcement[];
   isAdmin?: boolean;
-  onNavigateTab: (tab: 'schedule' | 'announcements') => void;
+  onNavigateTab: (tab: 'schedule' | 'announcements' | 'overview' | 'tasks' | 'pomodoro') => void;
   onNewEvent: () => void;
   onNewAnnouncement?: () => void;
   onStatusChange: (event: ScheduleEvent, status: EventStatus) => void;

@@ -15,6 +15,7 @@ import { DatabaseConfigModal } from './components/settings/DatabaseConfigModal';
 import { ExportImportModal } from './components/settings/ExportImportModal';
 import { ShareCodeModal } from './components/settings/ShareCodeModal';
 import { OverviewDashboard } from './components/common/OverviewDashboard';
+import { PomodoroTimer, type PomodoroInfo } from './components/tools/PomodoroTimer';
 import { ToastContainer } from './components/common/Toast';
 import type { ToastMessage } from './components/common/Toast';
 
@@ -75,8 +76,9 @@ export function App() {
   };
 
   // Navigation & Role State
-  const [activeTab, setActiveTab] = useState<'schedule' | 'announcements' | 'overview' | 'tasks'>('schedule');
+  const [activeTab, setActiveTab] = useState<'schedule' | 'announcements' | 'overview' | 'tasks' | 'pomodoro'>('schedule');
   const [scheduleViewType, setScheduleViewType] = useState<'calendar' | 'list'>('calendar');
+  const [pomodoroInfo, setPomodoroInfo] = useState<PomodoroInfo | undefined>();
 
   // Data State
   const [events, setEvents] = useState<ScheduleEvent[]>([]);
@@ -446,6 +448,7 @@ export function App() {
           setInitialTaskStatusForModal('pending');
           setIsEventModalOpen(true);
         }}
+        pomodoroInfo={pomodoroInfo}
       />
 
       {/* Main Content Area (Offset for desktop fixed sidebar) */}
@@ -616,12 +619,21 @@ export function App() {
           </div>
         )}
 
+        {/* TAB 5: POMODORO TIMER VIEW (Persistent across all tabs) */}
+        <PomodoroTimer
+          events={events}
+          onStatusChange={handleStatusChange}
+          isActiveView={activeTab === 'pomodoro'}
+          onNavigateToPomodoro={() => setActiveTab('pomodoro')}
+          onTimerTick={setPomodoroInfo}
+        />
+
       </main>
 
       {/* Minimal Footer */}
-      <footer className="mt-auto border-t border-[#e9e9e7] dark:border-[#2e2e2e] bg-white dark:bg-[#191919] py-3 text-xs text-neutral-400">
-        <div className="w-full max-w-[1560px] mx-auto px-6 sm:px-10 md:px-12 lg:px-16 xl:px-20 2xl:px-24 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <p className="flex items-center gap-1.5 flex-wrap">
+      <footer className="mt-auto border-t border-[#e9e9e7] dark:border-[#2e2e2e] bg-white dark:bg-[#191919] py-3.5 text-xs text-neutral-400">
+        <div className="w-full max-w-[1560px] mx-auto px-6 sm:px-10 md:px-12 lg:px-16 xl:px-20 2xl:px-24 flex flex-col items-center justify-center text-center gap-2">
+          <p className="flex items-center justify-center gap-1.5 flex-wrap">
             <span>Schedy • Simple Schedule & Announcements</span>
             <span>•</span>
             <span>Developer:</span>
@@ -634,7 +646,7 @@ export function App() {
               3stannn
             </a>
           </p>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center justify-center gap-3">
             <button
               onClick={() => setIsDbConfigModalOpen(true)}
               className="hover:text-neutral-800 dark:hover:text-neutral-200 transition-colors"
