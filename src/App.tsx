@@ -564,7 +564,7 @@ export function App() {
             </h1>
 
             <OverviewDashboard
-              events={events}
+              events={expandedEvents}
               announcements={announcements}
               onNavigateTab={setActiveTab}
               onNewEvent={() => {

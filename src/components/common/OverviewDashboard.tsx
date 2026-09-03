@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import type { ScheduleEvent, EventStatus } from '../../types/schedule';
 import type { Announcement } from '../../types/announcement';
 import { StatCard } from './StatCard';
@@ -10,9 +10,9 @@ import {
   ArrowRight, 
   Video, 
   Pin, 
-  Square 
+  Square
 } from './MovingIcon';
-import { isToday, parseISO, format } from 'date-fns';
+import { isToday, parseISO, format, startOfDay, endOfDay } from 'date-fns';
 
 interface OverviewDashboardProps {
   events: ScheduleEvent[];
@@ -37,6 +37,39 @@ const formatEventTime = (isoString?: string, isAllDay?: boolean) => {
   }
 };
 
+const isDateToday = (dateStr?: string): boolean => {
+  if (!dateStr) return false;
+  try {
+    const todayStr = format(new Date(), 'yyyy-MM-dd');
+    if (dateStr.startsWith(todayStr)) return true;
+
+    const d = parseISO(dateStr);
+    if (!isNaN(d.getTime()) && isToday(d)) return true;
+
+    const d2 = new Date(dateStr);
+    if (!isNaN(d2.getTime()) && isToday(d2)) return true;
+  } catch {
+    return false;
+  }
+  return false;
+};
+
+const isSpanningToday = (startStr?: string, endStr?: string): boolean => {
+  if (!startStr || !endStr) return false;
+  try {
+    const start = parseISO(startStr);
+    const end = parseISO(endStr);
+    if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
+      const todayStart = startOfDay(new Date());
+      const todayEnd = endOfDay(new Date());
+      return start <= todayEnd && end >= todayStart;
+    }
+  } catch {
+    return false;
+  }
+  return false;
+};
+
 export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
   events = [],
   announcements = [],
@@ -49,20 +82,51 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
   const safeEvents = Array.isArray(events) ? events : [];
   const safeAnnos = Array.isArray(announcements) ? announcements : [];
 
-  const todayEvents = safeEvents.filter(e => {
-    if (!e || !e.startTime) return false;
-    try {
-      const d = parseISO(e.startTime);
-      return !isNaN(d.getTime()) && isToday(d);
-    } catch {
-      return false;
-    }
-  });
+  // 1. Items scheduled for today (or spanning across today)
+  const todayScheduledItems = useMemo(() => {
+    return safeEvents.filter(e => {
+      if (!e) return false;
+      return isDateToday(e.startTime) || isDateToday(e.endTime) || isSpanningToday(e.startTime, e.endTime);
+    });
+  }, [safeEvents]);
 
-  const completedEvents = safeEvents.filter(e => e && e.status === 'completed');
-  const urgentTasks = safeEvents.filter(e => e && e.priority === 'urgent' && e.status !== 'completed');
-  const unreadAnnouncements = safeAnnos.filter(a => a && !a.isRead);
-  const pinnedAnnouncements = safeAnnos.filter(a => a && a.isPinned);
+  // 2. Tasks currently active in progress on the Taskboard
+  const inProgressTasks = useMemo(() => {
+    return safeEvents.filter(e => e && e.status === 'in_progress');
+  }, [safeEvents]);
+
+  // 3. Tasks completed today (either updated today with status 'completed', or scheduled for today and marked 'completed')
+  const todayCompletedItems = useMemo(() => {
+    return safeEvents.filter(e => {
+      if (!e || e.status !== 'completed') return false;
+      return isDateToday(e.updatedAt) || isDateToday(e.startTime) || isDateToday(e.endTime);
+    });
+  }, [safeEvents]);
+
+  // 4. Combined unique items for Today (scheduled for today + active in progress + completed today + created today)
+  const todayItems = useMemo(() => {
+    const todayItemMap = new Map<string, ScheduleEvent>();
+    todayScheduledItems.forEach(e => todayItemMap.set(e.id, e));
+    inProgressTasks.forEach(e => todayItemMap.set(e.id, e));
+    todayCompletedItems.forEach(e => todayItemMap.set(e.id, e));
+    safeEvents.filter(e => e && isDateToday(e.createdAt)).forEach(e => todayItemMap.set(e.id, e));
+
+    return Array.from(todayItemMap.values()).sort((a, b) => {
+      // In progress at top, then pending by time, completed at bottom
+      if (a.status === 'completed' && b.status !== 'completed') return 1;
+      if (a.status !== 'completed' && b.status === 'completed') return -1;
+      if (a.status === 'in_progress' && b.status !== 'in_progress') return -1;
+      if (a.status !== 'in_progress' && b.status === 'in_progress') return 1;
+      const tA = a.startTime ? new Date(a.startTime).getTime() : 0;
+      const tB = b.startTime ? new Date(b.startTime).getTime() : 0;
+      return tA - tB;
+    });
+  }, [todayScheduledItems, inProgressTasks, todayCompletedItems, safeEvents]);
+
+  const completedEvents = useMemo(() => safeEvents.filter(e => e && e.status === 'completed'), [safeEvents]);
+  const urgentTasks = useMemo(() => safeEvents.filter(e => e && e.priority === 'urgent' && e.status !== 'completed'), [safeEvents]);
+  const unreadAnnouncements = useMemo(() => safeAnnos.filter(a => a && !a.isRead), [safeAnnos]);
+  const pinnedAnnouncements = useMemo(() => safeAnnos.filter(a => a && a.isPinned), [safeAnnos]);
 
   const completionRate = safeEvents.length > 0
     ? Math.round((completedEvents.length / safeEvents.length) * 100)
@@ -75,8 +139,8 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <StatCard
           title="Today"
-          value={todayEvents.length}
-          subtitle={`${todayEvents.filter(e => e.status === 'completed').length} completed`}
+          value={todayItems.length}
+          subtitle={`${todayCompletedItems.length} completed`}
           icon={<Calendar className="w-4 h-4" />}
           onClick={() => onNavigateTab('schedule')}
         />
@@ -84,16 +148,17 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
         <StatCard
           title="Urgent"
           value={urgentTasks.length}
-          subtitle="Priority items pending"
+          subtitle={inProgressTasks.length > 0 ? `${inProgressTasks.length} in progress on board` : 'Priority items pending'}
           icon={<AlertTriangle className="w-4 h-4 text-amber-500" />}
-          onClick={() => onNavigateTab('schedule')}
+          onClick={() => onNavigateTab('tasks')}
         />
 
         <StatCard
           title="Completion"
           value={`${completionRate}%`}
-          subtitle={`${completedEvents.length}/${safeEvents.length} done`}
+          subtitle={`${completedEvents.length}/${safeEvents.length} tasks done`}
           icon={<CheckSquare className="w-4 h-4 text-emerald-500" />}
+          onClick={() => onNavigateTab('tasks')}
         />
 
         <StatCard
@@ -108,7 +173,7 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
       {/* Main Dual Columns */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         
-        {/* Left: Today's Schedule Timeline */}
+        {/* Left: Today's Schedule & Active Tasks */}
         <div className="ios-card rounded-2xl p-4 sm:p-5 space-y-3.5">
           <div className="flex items-center justify-between border-b border-black/[0.06] dark:border-white/[0.08] pb-3">
             <div className="flex items-center gap-2.5">
@@ -117,7 +182,7 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
               </div>
               <div>
                 <h3 className="text-xs font-bold text-neutral-900 dark:text-white">
-                  Today's Schedule
+                  Today's Schedule & Tasks
                 </h3>
                 <p className="text-[11px] text-neutral-400 font-medium">
                   {format(new Date(), 'EEEE, MMMM d, yyyy')}
@@ -125,40 +190,63 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
               </div>
             </div>
 
-            <button
-              onClick={() => onNavigateTab('schedule')}
-              className="text-xs font-semibold text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white flex items-center gap-1 px-2.5 py-1 rounded-[10px] hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer"
-            >
-              <span>Calendar</span>
-              <ArrowRight className="w-3 h-3" />
-            </button>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => onNavigateTab('tasks')}
+                className="text-xs font-semibold text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white flex items-center gap-1 px-2.5 py-1 rounded-[10px] hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer"
+                title="View Task Board"
+              >
+                <span>Task Board</span>
+                <ArrowRight className="w-3 h-3" />
+              </button>
+              <button
+                onClick={() => onNavigateTab('schedule')}
+                className="text-xs font-semibold text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white flex items-center gap-1 px-2.5 py-1 rounded-[10px] hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer"
+                title="View Calendar"
+              >
+                <span>Calendar</span>
+                <ArrowRight className="w-3 h-3" />
+              </button>
+            </div>
           </div>
 
           <div className="space-y-2 max-h-[360px] overflow-y-auto pr-0.5">
-            {todayEvents.length === 0 ? (
+            {todayItems.length === 0 ? (
               <div className="text-center py-12 text-neutral-400 text-xs">
                 <div className="w-10 h-10 rounded-[14px] bg-black/5 dark:bg-white/5 flex items-center justify-center mx-auto mb-2 opacity-50">
                   <Calendar className="w-5 h-5" />
                 </div>
-                <p className="font-medium">No events scheduled for today.</p>
+                <p className="font-medium">No events or active tasks for today.</p>
                 {isAdmin && (
-                  <button
-                    onClick={onNewEvent}
-                    className="mt-2 text-xs font-semibold text-[#007aff] dark:text-[#0a84ff] hover:underline cursor-pointer"
-                  >
-                    + Add an event
-                  </button>
+                  <div className="flex items-center justify-center gap-3 mt-2">
+                    <button
+                      onClick={onNewEvent}
+                      className="text-xs font-semibold text-[#007aff] dark:text-[#0a84ff] hover:underline cursor-pointer"
+                    >
+                      + Add an event
+                    </button>
+                    <span className="text-neutral-300 dark:text-neutral-700">•</span>
+                    <button
+                      onClick={() => onNavigateTab('tasks')}
+                      className="text-xs font-semibold text-[#007aff] dark:text-[#0a84ff] hover:underline cursor-pointer"
+                    >
+                      Open Task Board
+                    </button>
+                  </div>
                 )}
               </div>
             ) : (
-              todayEvents.map(evt => {
+              todayItems.map(evt => {
                 const isCompleted = evt.status === 'completed';
+                const isInProgress = evt.status === 'in_progress';
                 return (
                   <div
                     key={evt.id}
                     className={`p-3 rounded-[14px] border border-black/[0.06] dark:border-white/[0.08] transition-all flex items-start justify-between gap-3 ${
                       isCompleted
                         ? 'bg-black/[0.02] dark:bg-white/[0.02] opacity-60'
+                        : isInProgress
+                        ? 'bg-amber-500/[0.04] border-amber-500/30 shadow-2xs'
                         : 'bg-black/[0.02] dark:bg-white/[0.03] hover:border-[#007aff]/30 shadow-2xs'
                     }`}
                   >
@@ -166,6 +254,7 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
                       <button
                         onClick={() => onStatusChange(evt, isCompleted ? 'pending' : 'completed')}
                         className="mt-0.5 text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 transition-colors active:scale-90 cursor-pointer"
+                        title={isCompleted ? 'Mark as Pending' : 'Mark as Completed'}
                       >
                         {isCompleted ? (
                           <CheckSquare className="w-4 h-4 text-[#007aff] dark:text-[#0a84ff]" />
@@ -175,11 +264,24 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
                       </button>
 
                       <div className="flex-1 min-w-0">
-                        <h4 className={`text-xs font-semibold leading-snug truncate ${isCompleted ? 'line-through text-neutral-400' : 'text-neutral-900 dark:text-neutral-100'}`}>
-                          {evt.title}
-                        </h4>
-                        <div className="flex items-center gap-2 text-[11px] text-neutral-400 mt-1">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <h4 className={`text-xs font-semibold leading-snug truncate ${isCompleted ? 'line-through text-neutral-400' : 'text-neutral-900 dark:text-neutral-100'}`}>
+                            {evt.title}
+                          </h4>
+                          {isInProgress && (
+                            <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                              In Progress
+                            </span>
+                          )}
+                          {evt.priority === 'urgent' && !isCompleted && (
+                            <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-red-500/15 text-red-600 dark:text-red-400 border border-red-500/20">
+                              Urgent
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2 text-[11px] text-neutral-400 mt-1 flex-wrap">
                           <span className="font-medium">{formatEventTime(evt.startTime, evt.isAllDay)}</span>
+                          {evt.category && <span className="capitalize">• {evt.category}</span>}
                           {evt.location && <span className="truncate">• {evt.location}</span>}
                         </div>
                       </div>
@@ -191,6 +293,7 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
                         target="_blank"
                         rel="noreferrer"
                         className="p-1.5 rounded-[8px] text-[#007aff] dark:text-[#0a84ff] hover:bg-[#007aff]/10 text-xs shrink-0 transition-colors"
+                        title="Join Meeting"
                       >
                         <Video className="w-3.5 h-3.5" />
                       </a>
