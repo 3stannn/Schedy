@@ -713,14 +713,14 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
         </div>
 
         {/* Main Glassmorphic Timer Card */}
-        <div className={`ios-card relative overflow-hidden rounded-2xl p-4 sm:p-8 transition-all w-full`}>
+        <div className={`ios-card relative overflow-hidden rounded-2xl p-4 sm:p-8 transition-all w-full flex flex-col items-center`}>
           
           {/* Mode Segmented Switcher */}
-          <div className="w-full max-w-md mx-auto mb-6 sm:mb-8">
-            <div className="ios-segmented-control grid grid-cols-3 p-1">
+          <div className="flex items-center justify-center w-full mb-6 sm:mb-8 px-2">
+            <div className="ios-segmented-control w-full max-w-[340px] sm:max-w-[380px] flex items-center justify-between">
               <button
                 onClick={() => switchMode('focus')}
-                className={`ios-segmented-item flex items-center justify-center gap-1 sm:gap-1.5 py-1.5 ${
+                className={`ios-segmented-item flex-1 flex items-center justify-center gap-1 sm:gap-1.5 text-center ${
                   mode === 'focus' ? 'ios-segmented-item-active' : ''
                 }`}
               >
@@ -730,7 +730,7 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
 
               <button
                 onClick={() => switchMode('shortBreak')}
-                className={`ios-segmented-item flex items-center justify-center gap-1 sm:gap-1.5 py-1.5 ${
+                className={`ios-segmented-item flex-1 flex items-center justify-center gap-1 sm:gap-1.5 text-center ${
                   mode === 'shortBreak' ? 'ios-segmented-item-active text-[#34c759]' : ''
                 }`}
               >
@@ -740,7 +740,7 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
 
               <button
                 onClick={() => switchMode('longBreak')}
-                className={`ios-segmented-item flex items-center justify-center gap-1 sm:gap-1.5 py-1.5 ${
+                className={`ios-segmented-item flex-1 flex items-center justify-center gap-1 sm:gap-1.5 text-center ${
                   mode === 'longBreak' ? 'ios-segmented-item-active text-[#af52de]' : ''
                 }`}
               >
