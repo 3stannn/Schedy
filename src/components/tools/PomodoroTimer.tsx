@@ -543,6 +543,18 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
     localStorage.setItem('schedy_pomodoro_paused_seconds', dur.toString());
   };
 
+  // Reset session round back to 1
+  const handleResetRound = () => {
+    setSessionRound(1);
+    localStorage.setItem('schedy_pomodoro_round', '1');
+  };
+
+  // Set session round to a specific index
+  const handleSetRound = (round: number) => {
+    setSessionRound(round);
+    localStorage.setItem('schedy_pomodoro_round', round.toString());
+  };
+
   // Skip to next mode
   const handleSkip = () => {
     if (mode === 'focus') {
@@ -799,25 +811,40 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
                 </div>
 
                 {/* Cycle / Round indicator */}
-                <div className="flex items-center gap-1.5 mt-1.5 sm:mt-2">
-                  {Array.from({ length: settings.longBreakInterval }, (_, i) => i + 1).map(round => (
-                    <span
-                      key={round}
-                      className={`w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full transition-all ${
-                        round < sessionRound
-                          ? 'bg-blue-600 dark:bg-blue-400'
-                          : round === sessionRound
-                          ? 'bg-blue-600 dark:bg-blue-400 ring-4 ring-blue-500/20 animate-pulse'
-                          : 'bg-slate-200 dark:bg-white/10'
-                      }`}
-                      title={`Session ${round} of ${settings.longBreakInterval}`}
-                    />
-                  ))}
-                </div>
+                <div className="flex flex-col items-center mt-1.5 sm:mt-2">
+                  <div className="flex items-center gap-1.5">
+                    {Array.from({ length: settings.longBreakInterval }, (_, i) => i + 1).map(round => (
+                      <button
+                        key={round}
+                        type="button"
+                        onClick={() => handleSetRound(round)}
+                        className={`w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full transition-all cursor-pointer hover:scale-125 active:scale-90 ${
+                          round < sessionRound
+                            ? 'bg-[#007aff] dark:bg-[#0a84ff]'
+                            : round === sessionRound
+                            ? 'bg-[#007aff] dark:bg-[#0a84ff] ring-4 ring-[#007aff]/25 animate-pulse'
+                            : 'bg-black/15 dark:bg-white/15 hover:bg-black/25 dark:hover:bg-white/25'
+                        }`}
+                        title={`Click to set to Round ${round} of ${settings.longBreakInterval}`}
+                      />
+                    ))}
+                  </div>
 
-                <span className="text-[10px] sm:text-[11px] text-slate-400 font-medium mt-1">
-                  Round {sessionRound} of {settings.longBreakInterval}
-                </span>
+                  <button
+                    type="button"
+                    onClick={handleResetRound}
+                    className="group inline-flex items-center gap-1 text-[10px] sm:text-[11px] text-neutral-400 hover:text-neutral-900 dark:hover:text-white px-2 py-0.5 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-all cursor-pointer active:scale-95 mt-1"
+                    title="Click to reset back to Round 1"
+                  >
+                    <span>Round {sessionRound} of {settings.longBreakInterval}</span>
+                    {sessionRound > 1 && (
+                      <span className="inline-flex items-center gap-0.5 text-[9px] font-semibold text-[#007aff] dark:text-[#0a84ff] opacity-80 group-hover:opacity-100">
+                        <RotateCcw className="w-2.5 h-2.5" />
+                        <span>Reset</span>
+                      </span>
+                    )}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -1129,6 +1156,27 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
                     onChange={(e) => updateSettings({ longBreakInterval: Math.max(1, parseInt(e.target.value) || 4) })}
                     className="w-16 px-2.5 py-1 text-center font-bold text-xs bg-white dark:bg-neutral-800 rounded-xl border border-slate-200 dark:border-white/10"
                   />
+                </div>
+
+                {/* Reset Session Round */}
+                <div className="flex items-center justify-between p-3.5 rounded-2xl bg-slate-100/70 dark:bg-white/[0.04] border border-slate-200/80 dark:border-white/[0.06]">
+                  <div>
+                    <span className="font-bold text-slate-900 dark:text-white block">Current Session Round</span>
+                    <span className="text-[11px] text-slate-400">Currently on Round {sessionRound} of {settings.longBreakInterval}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleResetRound}
+                    disabled={sessionRound === 1}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                      sessionRound === 1
+                        ? 'opacity-40 cursor-not-allowed bg-black/5 dark:bg-white/5 text-neutral-400'
+                        : 'bg-[#007aff]/10 text-[#007aff] dark:text-[#0a84ff] hover:bg-[#007aff]/20 active:scale-95'
+                    }`}
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    <span>Reset to 1</span>
+                  </button>
                 </div>
 
                 {/* Automation Toggles */}
