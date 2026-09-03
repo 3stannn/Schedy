@@ -109,14 +109,14 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         
         {/* Left: Today's Schedule Timeline */}
-        <div className="bg-white/85 dark:bg-[#161619]/85 backdrop-blur-md rounded-2xl border border-neutral-200/80 dark:border-neutral-800/80 p-5 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] dark:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.5)] space-y-3.5">
-          <div className="flex items-center justify-between border-b border-neutral-100 dark:border-neutral-800/80 pb-3">
+        <div className="ios-card rounded-[22px] p-4 sm:p-5 space-y-3.5">
+          <div className="flex items-center justify-between border-b border-black/[0.06] dark:border-white/[0.08] pb-3">
             <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-xl bg-blue-500/10 text-[#2383e2] flex items-center justify-center">
+              <div className="w-8 h-8 rounded-[12px] bg-[#007aff]/10 text-[#007aff] dark:text-[#0a84ff] flex items-center justify-center">
                 <Calendar className="w-4 h-4 shrink-0" />
               </div>
               <div>
-                <h3 className="text-xs font-bold text-[#1c1917] dark:text-white">
+                <h3 className="text-xs font-bold text-neutral-900 dark:text-white">
                   Today's Schedule
                 </h3>
                 <p className="text-[11px] text-neutral-400 font-medium">
@@ -127,7 +127,7 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
 
             <button
               onClick={() => onNavigateTab('schedule')}
-              className="text-xs font-semibold text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white flex items-center gap-1 px-2.5 py-1 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+              className="text-xs font-semibold text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white flex items-center gap-1 px-2.5 py-1 rounded-[10px] hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer"
             >
               <span>Calendar</span>
               <ArrowRight className="w-3 h-3" />
@@ -137,14 +137,14 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
           <div className="space-y-2 max-h-[360px] overflow-y-auto pr-0.5">
             {todayEvents.length === 0 ? (
               <div className="text-center py-12 text-neutral-400 text-xs">
-                <div className="w-10 h-10 rounded-2xl bg-neutral-100 dark:bg-neutral-800/60 flex items-center justify-center mx-auto mb-2 opacity-50">
+                <div className="w-10 h-10 rounded-[14px] bg-black/5 dark:bg-white/5 flex items-center justify-center mx-auto mb-2 opacity-50">
                   <Calendar className="w-5 h-5" />
                 </div>
                 <p className="font-medium">No events scheduled for today.</p>
                 {isAdmin && (
                   <button
                     onClick={onNewEvent}
-                    className="mt-2 text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline"
+                    className="mt-2 text-xs font-semibold text-[#007aff] dark:text-[#0a84ff] hover:underline cursor-pointer"
                   >
                     + Add an event
                   </button>
@@ -156,26 +156,26 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
                 return (
                   <div
                     key={evt.id}
-                    className={`p-3 rounded-xl border border-neutral-200/60 dark:border-neutral-800/60 transition-all flex items-start justify-between gap-3 ${
+                    className={`p-3 rounded-[14px] border border-black/[0.06] dark:border-white/[0.08] transition-all flex items-start justify-between gap-3 ${
                       isCompleted
-                        ? 'bg-neutral-50/40 dark:bg-neutral-900/20 opacity-60'
-                        : 'bg-white dark:bg-[#1f1f23] hover:border-neutral-300 dark:hover:border-neutral-700 shadow-2xs hover:shadow-xs'
+                        ? 'bg-black/[0.02] dark:bg-white/[0.02] opacity-60'
+                        : 'bg-black/[0.02] dark:bg-white/[0.03] hover:border-[#007aff]/30 shadow-2xs'
                     }`}
                   >
                     <div className="flex items-start gap-2.5 flex-1 min-w-0">
                       <button
                         onClick={() => onStatusChange(evt, isCompleted ? 'pending' : 'completed')}
-                        className="mt-0.5 text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 transition-colors active:scale-90"
+                        className="mt-0.5 text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 transition-colors active:scale-90 cursor-pointer"
                       >
                         {isCompleted ? (
-                          <CheckSquare className="w-4 h-4 text-[#2383e2]" />
+                          <CheckSquare className="w-4 h-4 text-[#007aff] dark:text-[#0a84ff]" />
                         ) : (
                           <Square className="w-4 h-4" />
                         )}
                       </button>
 
                       <div className="flex-1 min-w-0">
-                        <h4 className={`text-xs font-semibold leading-snug truncate ${isCompleted ? 'line-through text-neutral-400' : 'text-[#1c1917] dark:text-neutral-100'}`}>
+                        <h4 className={`text-xs font-semibold leading-snug truncate ${isCompleted ? 'line-through text-neutral-400' : 'text-neutral-900 dark:text-neutral-100'}`}>
                           {evt.title}
                         </h4>
                         <div className="flex items-center gap-2 text-[11px] text-neutral-400 mt-1">
@@ -190,7 +190,7 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
                         href={evt.meetingUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="p-1.5 rounded-lg text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/40 text-xs shrink-0 transition-colors"
+                        className="p-1.5 rounded-[8px] text-[#007aff] dark:text-[#0a84ff] hover:bg-[#007aff]/10 text-xs shrink-0 transition-colors"
                       >
                         <Video className="w-3.5 h-3.5" />
                       </a>
@@ -203,14 +203,14 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
         </div>
 
         {/* Right: Broadcast & Announcements Bulletin */}
-        <div className="bg-white/85 dark:bg-[#161619]/85 backdrop-blur-md rounded-2xl border border-neutral-200/80 dark:border-neutral-800/80 p-5 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.03)] dark:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.5)] space-y-3.5">
-          <div className="flex items-center justify-between border-b border-neutral-100 dark:border-neutral-800/80 pb-3">
+        <div className="ios-card rounded-[22px] p-4 sm:p-5 space-y-3.5">
+          <div className="flex items-center justify-between border-b border-black/[0.06] dark:border-white/[0.08] pb-3">
             <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-[12px] bg-amber-500/10 text-amber-500 flex items-center justify-center">
                 <Megaphone className="w-4 h-4 shrink-0" />
               </div>
               <div>
-                <h3 className="text-xs font-bold text-[#1c1917] dark:text-white">
+                <h3 className="text-xs font-bold text-neutral-900 dark:text-white">
                   Notice Bulletin
                 </h3>
                 <p className="text-[11px] text-neutral-400 font-medium">
@@ -221,7 +221,7 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
 
             <button
               onClick={() => onNavigateTab('announcements')}
-              className="text-xs font-semibold text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white flex items-center gap-1 px-2.5 py-1 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+              className="text-xs font-semibold text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white flex items-center gap-1 px-2.5 py-1 rounded-[10px] hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer"
             >
               <span>View All</span>
               <ArrowRight className="w-3 h-3" />
@@ -232,32 +232,32 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
             {safeAnnos.slice(0, 3).map(anno => (
               <div
                 key={anno.id}
-                className={`p-3.5 rounded-xl border transition-all ${
+                className={`p-3.5 rounded-[16px] border transition-all ${
                   anno.isRead
-                    ? 'bg-neutral-50/50 dark:bg-neutral-900/30 border-neutral-200/50 dark:border-neutral-800/50'
-                    : 'bg-white dark:bg-[#1f1f23] border-amber-200/60 dark:border-amber-900/40 shadow-xs'
+                    ? 'bg-black/[0.02] dark:bg-white/[0.02] border-black/[0.04] dark:border-white/[0.06]'
+                    : 'bg-black/[0.02] dark:bg-white/[0.03] border-amber-500/30 shadow-xs'
                 }`}
               >
                 <div className="flex items-center justify-between gap-2 mb-1.5">
                   <div className="flex items-center gap-1.5">
                     {anno.isPinned && <Pin className="w-3 h-3 text-amber-600 dark:text-amber-400" />}
-                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 capitalize tracking-tight">
+                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-[8px] bg-black/5 dark:bg-white/10 text-neutral-600 dark:text-neutral-300 capitalize tracking-tight">
                       {anno.priority || 'General'}
                     </span>
                   </div>
                   <button
                     onClick={() => onAcknowledgeAnnouncement(anno.id)}
-                    className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-lg transition-all active:scale-95 ${
+                    className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-[8px] transition-all active:scale-95 cursor-pointer ${
                       anno.isRead 
                         ? 'text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300' 
-                        : 'bg-[#2383e2] text-white hover:bg-[#1a73e8] shadow-xs'
+                        : 'bg-[#007aff] text-white hover:bg-[#0071e3] shadow-xs'
                     }`}
                   >
                     {anno.isRead ? 'Read' : 'Acknowledge'}
                   </button>
                 </div>
 
-                <h4 className="text-xs font-bold leading-snug text-[#1c1917] dark:text-neutral-100">
+                <h4 className="text-xs font-bold leading-snug text-neutral-900 dark:text-neutral-100">
                   {anno.title}
                 </h4>
                 <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5 line-clamp-2 leading-relaxed">

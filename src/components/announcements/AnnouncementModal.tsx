@@ -102,34 +102,39 @@ export const AnnouncementModal: React.FC<AnnouncementModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/50 backdrop-blur-xs animate-fade-in">
-      <div className="bg-white dark:bg-[#18181b] rounded-2xl max-w-lg w-full max-h-[90vh] flex flex-col border border-neutral-200 dark:border-neutral-800 shadow-xl transition-all text-neutral-900 dark:text-neutral-100 overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/50 backdrop-blur-xs animate-fade-in">
+      <div className="bg-white dark:bg-[#1c1c1e] rounded-t-[28px] sm:rounded-[24px] max-w-lg w-full max-h-[90vh] flex flex-col border border-black/[0.08] dark:border-white/[0.12] shadow-2xl transition-all text-neutral-900 dark:text-neutral-100 overflow-hidden">
         
-        {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-neutral-100 dark:border-neutral-800 text-xs shrink-0">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl flex items-center justify-center bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300">
-              {priority === 'dev' ? (
-                <Sparkles className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-              ) : (
-                <Megaphone className="w-4 h-4 text-neutral-700 dark:text-neutral-300" />
-              )}
-            </div>
-            <div>
-              <h3 className="font-bold text-sm text-neutral-900 dark:text-white">
-                {initialAnnouncement ? 'Edit Announcement' : 'New Announcement'}
-              </h3>
-              <p className="text-[11px] text-neutral-500 dark:text-neutral-400">
-                {priority === 'dev' ? 'Global universal announcement' : 'Workspace announcement'}
-              </p>
-            </div>
-          </div>
+        {/* iOS Sheet Grab Handle for Mobile */}
+        <div className="sm:hidden pt-2.5 pb-1 flex justify-center shrink-0">
+          <div className="ios-sheet-handle" />
+        </div>
+
+        {/* iOS Header */}
+        <div className="flex items-center justify-between px-5 py-3 border-b border-black/[0.06] dark:border-white/[0.08] text-xs shrink-0">
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
+            className="text-xs font-medium text-[#007aff] dark:text-[#0a84ff] hover:opacity-80 transition-opacity cursor-pointer min-h-[32px] flex items-center"
           >
-            <X className="w-4 h-4" />
+            Cancel
+          </button>
+
+          <div className="flex items-center gap-1.5 font-semibold text-xs text-neutral-900 dark:text-white">
+            {priority === 'dev' ? (
+              <Sparkles className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+            ) : (
+              <Megaphone className="w-3.5 h-3.5 text-[#007aff] dark:text-[#0a84ff]" />
+            )}
+            <span>{initialAnnouncement ? 'Edit Notice' : 'New Notice'}</span>
+          </div>
+
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-1.5 rounded-full text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer"
+          >
+            <X className="w-3.5 h-3.5" />
           </button>
         </div>
 
@@ -142,19 +147,17 @@ export const AnnouncementModal: React.FC<AnnouncementModalProps> = ({
             </div>
           )}
 
-          {/* Priority Type */}
+          {/* Priority Type - iOS Segmented Control */}
           <div className="space-y-1.5">
-            <label className="block text-[11px] font-semibold text-neutral-600 dark:text-neutral-400 uppercase tracking-wider">
-              Type
+            <label className="block text-[11px] font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">
+              Notice Type
             </label>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="ios-segmented-control w-full">
               <button
                 type="button"
                 onClick={() => setPriority('important')}
-                className={`py-2 px-3 rounded-xl border text-xs font-semibold text-center transition-all cursor-pointer ${
-                  priority === 'important'
-                    ? 'border-neutral-900 dark:border-white bg-neutral-900 text-white dark:bg-white dark:text-neutral-950'
-                    : 'border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900/60 text-neutral-600 dark:text-neutral-400 hover:border-neutral-300 dark:hover:border-neutral-700'
+                className={`ios-segmented-item flex-1 ${
+                  priority === 'important' ? 'ios-segmented-item-active' : ''
                 }`}
               >
                 Standard Notice
@@ -163,10 +166,8 @@ export const AnnouncementModal: React.FC<AnnouncementModalProps> = ({
               <button
                 type="button"
                 onClick={() => setPriority('dev')}
-                className={`py-2 px-3 rounded-xl border text-xs font-semibold text-center transition-all cursor-pointer ${
-                  priority === 'dev'
-                    ? 'border-purple-600 bg-purple-600 text-white dark:border-purple-500 dark:bg-purple-600'
-                    : 'border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900/60 text-neutral-600 dark:text-neutral-400 hover:border-neutral-300 dark:hover:border-neutral-700'
+                className={`ios-segmented-item flex-1 ${
+                  priority === 'dev' ? 'ios-segmented-item-active text-purple-600 dark:text-purple-400' : ''
                 }`}
               >
                 Dev Announcement
@@ -298,20 +299,20 @@ export const AnnouncementModal: React.FC<AnnouncementModalProps> = ({
           </div>
 
           {/* Footer Actions */}
-          <div className="flex items-center justify-end gap-2 pt-3 border-t border-neutral-100 dark:border-neutral-800">
+          <div className="flex items-center justify-end gap-2 pt-3 border-t border-black/[0.06] dark:border-white/[0.08]">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-xs font-semibold text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-xl transition-colors cursor-pointer min-h-[38px]"
+              className="ios-btn-tinted px-4 py-2 text-xs font-semibold rounded-[12px] transition-colors cursor-pointer min-h-[38px]"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className={`px-5 py-2 text-xs font-semibold text-white rounded-xl transition-colors cursor-pointer min-h-[38px] active:scale-95 ${
+              className={`ios-btn-filled px-5 py-2 text-xs font-semibold text-white rounded-[12px] shadow-xs transition-all active:scale-[0.98] cursor-pointer min-h-[38px] ${
                 priority === 'dev'
                   ? 'bg-purple-600 hover:bg-purple-700'
-                  : 'bg-neutral-900 hover:bg-neutral-800 dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-200'
+                  : 'bg-[#007aff] hover:bg-[#0071e3] dark:bg-[#0a84ff]'
               }`}
             >
               {initialAnnouncement ? 'Save Changes' : (priority === 'dev' ? 'Broadcast' : 'Publish')}

@@ -415,7 +415,7 @@ export function App() {
   const expandedEvents = expandRecurringEvents(events, viewRangeStart, viewRangeEnd);
 
   return (
-    <div className="min-h-screen bg-transparent text-[#1c1917] dark:text-[#f4f4f5] flex flex-col font-sans transition-colors">
+    <div className="min-h-screen bg-[#f2f2f7] dark:bg-[#000000] text-black dark:text-white flex flex-col font-sans transition-colors">
       
       {/* App Navbar / Desktop Left Sidebar */}
       <Navbar
@@ -461,26 +461,24 @@ export function App() {
         />
 
         {/* Main Container with generous responsive padding */}
-        <main className="flex-1 w-full max-w-[1560px] mx-auto px-3 sm:px-6 md:px-10 lg:px-12 xl:px-16 2xl:px-20 py-4 sm:py-7 space-y-4 sm:space-y-5">
+        <main className="flex-1 w-full max-w-[1560px] mx-auto px-3.5 sm:px-6 md:px-10 lg:px-12 xl:px-16 2xl:px-20 py-4 sm:py-6 space-y-4 sm:space-y-6">
         
         {/* TAB 1: SCHEDULE VIEW */}
         {activeTab === 'schedule' && (
           <div className="space-y-4">
-            {/* View sub-switcher (Calendar vs List) */}
-            <div className="flex items-center justify-between">
+            {/* View sub-switcher (Calendar vs List) - iOS Large Title & Segmented Control */}
+            <div className="flex items-center justify-between gap-3">
               <div>
-                <h1 className="text-lg sm:text-xl font-bold text-[#1c1917] dark:text-white tracking-tight">
+                <h1 className="text-2xl sm:text-3xl font-bold text-neutral-900 dark:text-white tracking-tight">
                   Schedule
                 </h1>
               </div>
 
-              <div className="flex items-center rounded-xl bg-white/80 dark:bg-[#161619]/80 backdrop-blur-md border border-neutral-200/80 dark:border-neutral-800 p-1 text-xs shadow-2xs">
+              <div className="ios-segmented-control">
                 <button
                   onClick={() => setScheduleViewType('calendar')}
-                  className={`flex items-center gap-1.5 px-3 py-1 font-semibold rounded-lg transition-all ${
-                    scheduleViewType === 'calendar'
-                      ? 'bg-neutral-100 dark:bg-neutral-800 text-[#1c1917] dark:text-white shadow-xs'
-                      : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+                  className={`ios-segmented-item gap-1.5 ${
+                    scheduleViewType === 'calendar' ? 'ios-segmented-item-active' : ''
                   }`}
                 >
                   <Calendar className="w-3.5 h-3.5" />
@@ -489,10 +487,8 @@ export function App() {
 
                 <button
                   onClick={() => setScheduleViewType('list')}
-                  className={`flex items-center gap-1.5 px-3 py-1 font-semibold rounded-lg transition-all ${
-                    scheduleViewType === 'list'
-                      ? 'bg-neutral-100 dark:bg-neutral-800 text-[#1c1917] dark:text-white shadow-xs'
-                      : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+                  className={`ios-segmented-item gap-1.5 ${
+                    scheduleViewType === 'list' ? 'ios-segmented-item-active' : ''
                   }`}
                 >
                   <List className="w-3.5 h-3.5" />
@@ -539,7 +535,7 @@ export function App() {
         {activeTab === 'announcements' && (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h1 className="text-xl font-bold text-[#37352f] dark:text-white tracking-tight">
+              <h1 className="text-2xl sm:text-3xl font-bold text-neutral-900 dark:text-white tracking-tight">
                 Announcements
               </h1>
             </div>
@@ -563,7 +559,7 @@ export function App() {
         {/* TAB 3: OVERVIEW DASHBOARD */}
         {activeTab === 'overview' && (
           <div className="space-y-4">
-            <h1 className="text-xl font-bold text-[#37352f] dark:text-white tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-bold text-neutral-900 dark:text-white tracking-tight">
               Overview
             </h1>
 
@@ -591,7 +587,7 @@ export function App() {
         {activeTab === 'tasks' && (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h1 className="text-xl font-bold text-[#37352f] dark:text-white tracking-tight">
+              <h1 className="text-2xl sm:text-3xl font-bold text-neutral-900 dark:text-white tracking-tight">
                 Task Board
               </h1>
             </div>

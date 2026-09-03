@@ -154,7 +154,7 @@ export const AnnouncementFeed: React.FC<AnnouncementFeedProps> = ({
       <div className="space-y-4 text-[#1c1917] dark:text-[#f4f4f5]">
         
         {/* Controls Bar */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3.5 bg-white/85 dark:bg-[#161619]/85 backdrop-blur-md rounded-2xl border border-neutral-200/80 dark:border-neutral-800/80 shadow-xs">
+        <div className="ios-card flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3.5 rounded-[20px]">
           {/* Search */}
           <div className="relative flex-1 max-w-sm">
             <Search className="w-3.5 h-3.5 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -163,20 +163,18 @@ export const AnnouncementFeed: React.FC<AnnouncementFeedProps> = ({
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Search bulletins..."
-              className="w-full pl-9 pr-3 py-1.5 text-xs rounded-xl bg-neutral-100/70 dark:bg-neutral-900/70 border border-neutral-200/60 dark:border-neutral-800/60 text-[#1c1917] dark:text-[#f4f4f5] placeholder-neutral-400 outline-none focus:ring-1 focus:ring-[#2383e2] transition-all"
+              className="w-full pl-9 pr-3 py-1.5 text-xs rounded-[12px] bg-black/[0.04] dark:bg-white/[0.06] border border-black/[0.06] dark:border-white/[0.08] text-neutral-900 dark:text-neutral-100 placeholder-neutral-400 outline-none focus:ring-2 focus:ring-[#007aff] transition-all"
             />
           </div>
 
           {/* Filter Pills & Actions */}
           <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
             {/* Filter Pills */}
-            <div className="flex items-center rounded-xl border border-neutral-200/60 dark:border-neutral-800 bg-neutral-100/60 dark:bg-neutral-900/60 p-0.5 text-xs overflow-x-auto shrink-0 shadow-2xs">
+            <div className="ios-segmented-control">
               <button
                 onClick={() => setFilter('all')}
-                className={`px-3 py-1 font-semibold rounded-lg transition-all whitespace-nowrap ${
-                  filter === 'all'
-                    ? 'bg-white dark:bg-[#202024] text-[#1c1917] dark:text-white shadow-xs'
-                    : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+                className={`ios-segmented-item whitespace-nowrap ${
+                  filter === 'all' ? 'ios-segmented-item-active' : ''
                 }`}
               >
                 All ({safeList.length})
@@ -185,10 +183,8 @@ export const AnnouncementFeed: React.FC<AnnouncementFeedProps> = ({
               {devCount > 0 && (
                 <button
                   onClick={() => setFilter('dev')}
-                  className={`flex items-center gap-1 px-3 py-1 font-semibold rounded-lg transition-all whitespace-nowrap ${
-                    filter === 'dev'
-                      ? 'bg-purple-600 text-white shadow-xs'
-                      : 'text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-200'
+                  className={`ios-segmented-item flex items-center gap-1 whitespace-nowrap ${
+                    filter === 'dev' ? 'ios-segmented-item-active text-[#af52de]' : ''
                   }`}
                 >
                   <Sparkles className="w-3 h-3" />
@@ -198,10 +194,8 @@ export const AnnouncementFeed: React.FC<AnnouncementFeedProps> = ({
 
               <button
                 onClick={() => setFilter('unread')}
-                className={`px-3 py-1 font-semibold rounded-lg transition-all whitespace-nowrap ${
-                  filter === 'unread'
-                    ? 'bg-white dark:bg-[#202024] text-[#1c1917] dark:text-white shadow-xs'
-                    : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+                className={`ios-segmented-item whitespace-nowrap ${
+                  filter === 'unread' ? 'ios-segmented-item-active' : ''
                 }`}
               >
                 Unread {unreadCount > 0 && `(${unreadCount})`}
@@ -209,34 +203,21 @@ export const AnnouncementFeed: React.FC<AnnouncementFeedProps> = ({
 
               <button
                 onClick={() => setFilter('pinned')}
-                className={`px-3 py-1 font-semibold rounded-lg transition-all whitespace-nowrap ${
-                  filter === 'pinned'
-                    ? 'bg-white dark:bg-[#202024] text-[#1c1917] dark:text-white shadow-xs'
-                    : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+                className={`ios-segmented-item whitespace-nowrap ${
+                  filter === 'pinned' ? 'ios-segmented-item-active' : ''
                 }`}
               >
                 Pinned
-              </button>
-
-              <button
-                onClick={() => setFilter('important')}
-                className={`px-3 py-1 font-semibold rounded-lg transition-all whitespace-nowrap ${
-                  filter === 'important'
-                    ? 'bg-white dark:bg-[#202024] text-[#1c1917] dark:text-white shadow-xs'
-                    : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
-                }`}
-              >
-                Important
               </button>
             </div>
 
             {isAdmin && (
               <button
                 onClick={onAddNew}
-                className="flex items-center justify-center gap-1 px-3 py-1.5 text-xs font-semibold text-white bg-[#2383e2] hover:bg-[#1a73e8] rounded-xl shadow-xs hover:shadow-md transition-all active:scale-95 shrink-0"
+                className="ios-btn-filled flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-white bg-[#007aff] hover:bg-[#0071e3] rounded-[12px] shadow-xs active:scale-95 whitespace-nowrap cursor-pointer min-h-[34px]"
               >
                 <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
-                <span>Broadcast</span>
+                <span>Post Notice</span>
               </button>
             )}
           </div>
@@ -244,7 +225,7 @@ export const AnnouncementFeed: React.FC<AnnouncementFeedProps> = ({
 
         {/* Feed List */}
         {filteredAnnouncements.length === 0 ? (
-          <div className="bg-white/85 dark:bg-[#161619]/85 backdrop-blur-md rounded-2xl border border-neutral-200/80 dark:border-neutral-800/80 p-12 text-center shadow-xs">
+          <div className="ios-card rounded-[20px] p-12 text-center">
             <Megaphone className="w-8 h-8 text-neutral-300 dark:text-neutral-600 mx-auto mb-2 opacity-50" />
             <h4 className="text-xs font-bold text-neutral-700 dark:text-neutral-300">
               No announcements found
@@ -263,9 +244,9 @@ export const AnnouncementFeed: React.FC<AnnouncementFeedProps> = ({
               return (
                 <div
                   key={anno.id}
-                  className={`rounded-2xl border p-4.5 transition-all hover:-translate-y-0.5 shadow-2xs hover:shadow-xs relative group text-[#1c1917] dark:text-[#f4f4f5] ${
-                    style.border
-                  } ${style.bg} ${anno.isRead ? 'opacity-85' : ''}`}
+                  className={`ios-card rounded-[20px] p-4.5 transition-all relative group text-neutral-900 dark:text-neutral-100 ${
+                    anno.isRead ? 'opacity-80' : ''
+                  }`}
                 >
                   <div className="flex items-start gap-3">
                     {/* Priority Icon */}

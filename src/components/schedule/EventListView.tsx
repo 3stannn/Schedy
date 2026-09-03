@@ -106,7 +106,7 @@ export const EventListView: React.FC<EventListViewProps> = ({
     <div className="space-y-4 text-[#1c1917] dark:text-[#f4f4f5]">
 
       {/* Search & Filter Toolbar */}
-      <div className="bg-white/85 dark:bg-[#161619]/85 backdrop-blur-md p-4 rounded-2xl border border-neutral-200/80 dark:border-neutral-800/80 shadow-xs space-y-3">
+      <div className="ios-card p-4 rounded-[20px] space-y-3">
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
 
           {/* Search Input */}
@@ -117,20 +117,19 @@ export const EventListView: React.FC<EventListViewProps> = ({
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Filter by keyword, title, notes..."
-              className="w-full pl-9 pr-3 py-1.5 text-xs rounded-xl bg-neutral-100/70 dark:bg-neutral-900/70 border border-neutral-200/60 dark:border-neutral-800/60 text-[#1c1917] dark:text-[#f4f4f5] placeholder-neutral-400 outline-none focus:ring-1 focus:ring-[#2383e2] transition-all"
+              className="w-full pl-9 pr-3 py-1.5 text-xs rounded-[12px] bg-black/[0.04] dark:bg-white/[0.06] border border-black/[0.06] dark:border-white/[0.08] text-neutral-900 dark:text-neutral-100 placeholder-neutral-400 outline-none focus:ring-2 focus:ring-[#007aff] transition-all"
             />
           </div>
 
           {/* Time Filter Tabs */}
-          <div className="flex items-center rounded-xl border border-neutral-200/60 dark:border-neutral-800 bg-neutral-100/60 dark:bg-neutral-900/60 p-0.5 text-xs overflow-x-auto shrink-0 shadow-2xs">
+          <div className="ios-segmented-control shrink-0">
             {(['all', 'today', 'upcoming', 'past'] as const).map(tf => (
               <button
                 key={tf}
                 onClick={() => setTimeFilter(tf)}
-                className={`px-3 py-1 font-semibold capitalize rounded-lg transition-all whitespace-nowrap ${timeFilter === tf
-                    ? 'bg-white dark:bg-[#202024] text-[#1c1917] dark:text-white shadow-xs'
-                    : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
-                  }`}
+                className={`ios-segmented-item capitalize whitespace-nowrap ${
+                  timeFilter === tf ? 'ios-segmented-item-active' : ''
+                }`}
               >
                 {tf}
               </button>
@@ -140,7 +139,7 @@ export const EventListView: React.FC<EventListViewProps> = ({
           {isAdmin && (
             <button
               onClick={onAddNew}
-              className="flex items-center justify-center gap-1 px-3 py-1.5 text-xs font-semibold text-white bg-[#2383e2] hover:bg-[#1a73e8] rounded-xl shadow-xs hover:shadow-md transition-all active:scale-95 shrink-0"
+              className="ios-btn-filled flex items-center justify-center gap-1 px-3 py-1.5 text-xs font-semibold text-white bg-[#007aff] hover:bg-[#0071e3] rounded-[12px] shadow-xs active:scale-95 shrink-0 cursor-pointer min-h-[34px]"
             >
               <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
               <span>New</span>
@@ -149,7 +148,7 @@ export const EventListView: React.FC<EventListViewProps> = ({
         </div>
 
         {/* Dropdown Filters */}
-        <div className="flex items-center gap-2 flex-wrap pt-2.5 border-t border-neutral-100 dark:border-neutral-800/80 text-xs">
+        <div className="flex items-center gap-2 flex-wrap pt-2.5 border-t border-black/[0.06] dark:border-white/[0.08] text-xs">
           <span className="text-neutral-400 flex items-center gap-1 font-semibold mr-1 text-[10px] uppercase tracking-wider">
             <SlidersHorizontal className="w-3 h-3" /> Filter:
           </span>
@@ -157,7 +156,7 @@ export const EventListView: React.FC<EventListViewProps> = ({
           <select
             value={categoryFilter}
             onChange={e => setCategoryFilter(e.target.value)}
-            className="px-2.5 py-1 rounded-lg bg-neutral-100/80 dark:bg-neutral-800/80 text-neutral-700 dark:text-neutral-300 text-xs border border-neutral-200/50 dark:border-neutral-700/50 outline-none focus:ring-1 focus:ring-[#2383e2] cursor-pointer font-medium"
+            className="px-2.5 py-1 rounded-[10px] bg-black/[0.04] dark:bg-white/[0.06] text-neutral-700 dark:text-neutral-300 text-xs border border-black/[0.06] dark:border-white/[0.08] outline-none focus:ring-2 focus:ring-[#007aff] cursor-pointer font-medium"
           >
             <option value="all">Category: All</option>
             <option value="work">Work</option>
@@ -171,7 +170,7 @@ export const EventListView: React.FC<EventListViewProps> = ({
           <select
             value={priorityFilter}
             onChange={e => setPriorityFilter(e.target.value)}
-            className="px-2.5 py-1 rounded-lg bg-neutral-100/80 dark:bg-neutral-800/80 text-neutral-700 dark:text-neutral-300 text-xs border border-neutral-200/50 dark:border-neutral-700/50 outline-none focus:ring-1 focus:ring-[#2383e2] cursor-pointer font-medium"
+            className="px-2.5 py-1 rounded-[10px] bg-black/[0.04] dark:bg-white/[0.06] text-neutral-700 dark:text-neutral-300 text-xs border border-black/[0.06] dark:border-white/[0.08] outline-none focus:ring-2 focus:ring-[#007aff] cursor-pointer font-medium"
           >
             <option value="all">Priority: All</option>
             <option value="urgent">Urgent</option>
@@ -183,7 +182,7 @@ export const EventListView: React.FC<EventListViewProps> = ({
           <select
             value={statusFilter}
             onChange={e => setStatusFilter(e.target.value)}
-            className="px-2.5 py-1 rounded-lg bg-neutral-100/80 dark:bg-neutral-800/80 text-neutral-700 dark:text-neutral-300 text-xs border border-neutral-200/50 dark:border-neutral-700/50 outline-none focus:ring-1 focus:ring-[#2383e2] cursor-pointer font-medium"
+            className="px-2.5 py-1 rounded-[10px] bg-black/[0.04] dark:bg-white/[0.06] text-neutral-700 dark:text-neutral-300 text-xs border border-black/[0.06] dark:border-white/[0.08] outline-none focus:ring-2 focus:ring-[#007aff] cursor-pointer font-medium"
           >
             <option value="all">Status: All</option>
             <option value="pending">Pending</option>
@@ -201,7 +200,7 @@ export const EventListView: React.FC<EventListViewProps> = ({
                 setStatusFilter('all');
                 setTimeFilter('all');
               }}
-              className="text-[11px] font-semibold text-rose-600 dark:text-rose-400 hover:underline px-2 py-0.5"
+              className="text-[11px] font-semibold text-[#ff3b30] hover:underline ml-auto cursor-pointer"
             >
               Reset Filters
             </button>
@@ -209,8 +208,8 @@ export const EventListView: React.FC<EventListViewProps> = ({
         </div>
       </div>
 
-      {/* Results Count / Grouping Status */}
-      <div className="flex items-center justify-between text-xs text-neutral-400 font-medium px-1">
+      {/* Counter */}
+      <div className="flex items-center justify-between text-xs text-neutral-400 px-1">
         <span>
           Showing {filteredEvents.length} {filteredEvents.length === 1 ? 'event' : 'events'}
         </span>
@@ -218,7 +217,7 @@ export const EventListView: React.FC<EventListViewProps> = ({
 
       {/* Events List Cards */}
       {filteredEvents.length === 0 ? (
-        <div className="bg-white/85 dark:bg-[#161619]/85 backdrop-blur-md rounded-2xl border border-neutral-200/80 dark:border-neutral-800/80 p-12 text-center shadow-xs">
+        <div className="ios-card rounded-[20px] p-12 text-center">
           <Calendar className="w-8 h-8 text-neutral-300 dark:text-neutral-600 mx-auto mb-2 opacity-50" />
           <h4 className="text-xs font-bold text-neutral-700 dark:text-neutral-300">
             No events found
@@ -231,8 +230,8 @@ export const EventListView: React.FC<EventListViewProps> = ({
         <div className="space-y-6">
           {groups.map(group => (
             <div key={group.title} className="space-y-2">
-              <div className="flex items-center gap-1.5 pb-1 border-b border-neutral-100 dark:border-neutral-800">
-                <span className="text-xs font-semibold text-[#37352f] dark:text-[#e6e6e6]">
+              <div className="flex items-center gap-1.5 pb-1 border-b border-black/[0.06] dark:border-white/[0.08]">
+                <span className="text-xs font-bold text-neutral-800 dark:text-neutral-200">
                   {group.title}
                 </span>
                 <span className="text-[10px] font-mono text-neutral-400">

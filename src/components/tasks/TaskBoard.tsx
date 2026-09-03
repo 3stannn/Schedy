@@ -167,7 +167,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
   return (
     <div className="space-y-4">
       {/* Top Filter & Search Bar */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 p-2 sm:p-2.5 rounded-2xl bg-white/90 dark:bg-[#161619]/90 backdrop-blur-md border border-neutral-200/80 dark:border-neutral-800 shadow-2xs">
+      <div className="ios-card flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 p-2 sm:p-2.5 rounded-[18px]">
         {/* Search */}
         <div className="relative flex-1 min-w-[200px]">
           <Search className="w-4 h-4 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -176,7 +176,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search tasks, events, and notes..."
-            className="w-full pl-9 pr-3 py-1.5 text-xs bg-neutral-100/80 dark:bg-neutral-900/80 border border-neutral-200/60 dark:border-neutral-800/60 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2383e2] text-[#1c1917] dark:text-white placeholder:text-neutral-400"
+            className="w-full pl-9 pr-3 py-1.5 text-xs bg-black/[0.04] dark:bg-white/[0.06] border border-black/[0.06] dark:border-white/[0.08] rounded-[12px] focus:outline-none focus:ring-2 focus:ring-[#007aff] text-neutral-900 dark:text-white placeholder:text-neutral-400 transition-all"
           />
         </div>
 
@@ -185,7 +185,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
           <select
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
-            className="px-2.5 py-1.5 text-xs bg-neutral-100/80 dark:bg-neutral-900/80 border border-neutral-200/60 dark:border-neutral-800/60 rounded-xl text-neutral-700 dark:text-neutral-300 focus:outline-none focus:ring-2 focus:ring-[#2383e2]"
+            className="px-2.5 py-1.5 text-xs bg-black/[0.04] dark:bg-white/[0.06] border border-black/[0.06] dark:border-white/[0.08] rounded-[12px] text-neutral-700 dark:text-neutral-300 focus:outline-none focus:ring-2 focus:ring-[#007aff] cursor-pointer"
           >
             <option value="all">All Categories</option>
             <option value="work">Work</option>
@@ -199,7 +199,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
           <select
             value={priorityFilter}
             onChange={(e) => setPriorityFilter(e.target.value)}
-            className="px-2.5 py-1.5 text-xs bg-neutral-100/80 dark:bg-neutral-900/80 border border-neutral-200/60 dark:border-neutral-800/60 rounded-xl text-neutral-700 dark:text-neutral-300 focus:outline-none focus:ring-2 focus:ring-[#2383e2]"
+            className="px-2.5 py-1.5 text-xs bg-black/[0.04] dark:bg-white/[0.06] border border-black/[0.06] dark:border-white/[0.08] rounded-[12px] text-neutral-700 dark:text-neutral-300 focus:outline-none focus:ring-2 focus:ring-[#007aff] cursor-pointer"
           >
             <option value="all">All Priorities</option>
             <option value="urgent">Urgent</option>
@@ -215,7 +215,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
                 setCategoryFilter('all');
                 setPriorityFilter('all');
               }}
-              className="px-2.5 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-xl transition-colors"
+              className="px-2.5 py-1.5 text-xs font-semibold text-[#ff3b30] hover:bg-[#ff3b30]/10 rounded-[10px] transition-colors cursor-pointer"
             >
               Reset
             </button>
@@ -229,7 +229,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
         {/* ========================================================================= */}
         {/* COLUMN 1: UPCOMING (Calendar Events with 'pending' status)                */}
         {/* ========================================================================= */}
-        <div className="p-3 rounded-2xl bg-neutral-50/70 dark:bg-[#141416]/70 border border-neutral-200/80 dark:border-neutral-800/80 flex flex-col gap-3 min-h-[480px] shadow-2xs">
+        <div className="ios-card p-3.5 rounded-[22px] flex flex-col gap-3 min-h-[480px]">
           {/* Column Header */}
           <div className="flex items-center justify-between px-1">
             <div className="flex items-center gap-2">
@@ -352,7 +352,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
         {/* ========================================================================= */}
         {/* COLUMN 2: IN PROGRESS (Calendar Events with 'in_progress' status)         */}
         {/* ========================================================================= */}
-        <div className="p-3 rounded-2xl bg-neutral-50/70 dark:bg-[#141416]/70 border border-neutral-200/80 dark:border-neutral-800/80 flex flex-col gap-3 min-h-[480px] shadow-2xs">
+        <div className="ios-card p-3.5 rounded-[22px] flex flex-col gap-3 min-h-[480px]">
           {/* Column Header */}
           <div className="flex items-center justify-between px-1">
             <div className="flex items-center gap-2">
@@ -462,7 +462,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
         {/* ========================================================================= */}
         {/* COLUMN 3: DONE (Calendar Events with 'completed' status)                  */}
         {/* ========================================================================= */}
-        <div className="p-3 rounded-2xl bg-neutral-50/70 dark:bg-[#141416]/70 border border-neutral-200/80 dark:border-neutral-800/80 flex flex-col gap-3 min-h-[480px] shadow-2xs">
+        <div className="ios-card p-3.5 rounded-[22px] flex flex-col gap-3 min-h-[480px]">
           {/* Column Header */}
           <div className="flex items-center justify-between px-1">
             <div className="flex items-center gap-2">
@@ -564,7 +564,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
         {/* ========================================================================= */}
         {/* COLUMN 4: NOTES (Independent Notepad / Scratchpad Database)              */}
         {/* ========================================================================= */}
-        <div className="p-3 rounded-2xl bg-neutral-50/70 dark:bg-[#141416]/70 border border-neutral-200/80 dark:border-neutral-800/80 flex flex-col gap-3 min-h-[480px] shadow-2xs">
+        <div className="ios-card p-3.5 rounded-[22px] flex flex-col gap-3 min-h-[480px]">
           {/* Column Header */}
           <div className="flex items-center justify-between px-1">
             <div className="flex items-center gap-2">

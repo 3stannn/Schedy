@@ -374,47 +374,45 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
       <div className="space-y-4 text-[#37352f] dark:text-[#e6e6e6]">
         
         {/* Top Header & Navigation Bar */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-3.5 bg-white/85 dark:bg-[#161619]/85 backdrop-blur-md rounded-2xl border border-neutral-200/80 dark:border-neutral-800/80 shadow-xs">
+        <div className="ios-card flex flex-col sm:flex-row items-center justify-between gap-3 p-3 sm:p-4 rounded-[20px]">
           <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-start">
-            <div className="flex items-center rounded-xl border border-neutral-200/80 dark:border-neutral-800 bg-neutral-100/60 dark:bg-neutral-900/60 p-1 text-xs overflow-hidden shadow-2xs">
+            <div className="ios-segmented-control">
               <button
                 onClick={handlePrev}
-                className="p-1.5 rounded-lg text-neutral-500 hover:text-neutral-900 dark:hover:text-white hover:bg-white dark:hover:bg-neutral-800 transition-all"
+                className="ios-segmented-item p-1"
                 title="Previous"
               >
                 <ChevronLeft className="w-3.5 h-3.5" />
               </button>
               <button
                 onClick={handleToday}
-                className="px-2.5 py-1 font-semibold text-neutral-700 dark:text-neutral-200 hover:bg-white dark:hover:bg-neutral-800 rounded-lg transition-all"
+                className="ios-segmented-item px-2.5 py-1 font-semibold"
               >
                 Today
               </button>
               <button
                 onClick={handleNext}
-                className="p-1.5 rounded-lg text-neutral-500 hover:text-neutral-900 dark:hover:text-white hover:bg-white dark:hover:bg-neutral-800 transition-all"
+                className="ios-segmented-item p-1"
                 title="Next"
               >
                 <ChevronRight className="w-3.5 h-3.5" />
               </button>
             </div>
 
-            <h2 className="text-sm font-bold text-[#1c1917] dark:text-white tracking-tight">
+            <h2 className="text-sm sm:text-base font-bold text-neutral-900 dark:text-white tracking-tight">
               {format(currentDate, viewMode === 'day' ? 'EEEE, MMMM d, yyyy' : 'MMMM yyyy')}
             </h2>
           </div>
 
           {/* View Mode Switcher */}
-          <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end text-xs">
-            <div className="flex items-center rounded-xl border border-neutral-200/80 dark:border-neutral-800 bg-neutral-100/60 dark:bg-neutral-900/60 p-1 shadow-2xs">
+          <div className="flex items-center gap-2.5 w-full sm:w-auto justify-between sm:justify-end text-xs">
+            <div className="ios-segmented-control">
               {(['month', 'week', 'day'] as const).map(mode => (
                 <button
                   key={mode}
                   onClick={() => setViewMode(mode)}
-                  className={`px-3 py-1 font-semibold capitalize rounded-lg transition-all ${
-                    viewMode === mode
-                      ? 'bg-white dark:bg-[#202024] text-[#1c1917] dark:text-white shadow-xs'
-                      : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+                  className={`ios-segmented-item capitalize ${
+                    viewMode === mode ? 'ios-segmented-item-active' : ''
                   }`}
                 >
                   {mode}
@@ -425,7 +423,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
             {isAdmin && (
               <button
                 onClick={() => onAddEventForDate(selectedDate)}
-                className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-white bg-[#2383e2] hover:bg-[#1a73e8] rounded-xl shadow-xs hover:shadow-md transition-all active:scale-95"
+                className="ios-btn-filled flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-white bg-[#007aff] hover:bg-[#0071e3] dark:bg-[#0a84ff] rounded-[12px] shadow-xs active:scale-[0.98] cursor-pointer min-h-[34px]"
               >
                 <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
                 <span>New</span>
@@ -440,9 +438,9 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
         {viewMode === 'month' && (
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
             {/* Month Calendar Grid */}
-            <div className="lg:col-span-3 bg-white/85 dark:bg-[#161619]/85 backdrop-blur-md rounded-2xl border border-neutral-200/80 dark:border-neutral-800/80 p-3.5 overflow-hidden shadow-xs">
+            <div className="ios-card lg:col-span-3 p-3.5 rounded-[20px] overflow-hidden">
               {/* Weekday headers */}
-              <div className="grid grid-cols-7 gap-px text-center mb-2 pb-2 border-b border-neutral-100 dark:border-neutral-800">
+              <div className="grid grid-cols-7 gap-px text-center mb-2 pb-2 border-b border-black/[0.06] dark:border-white/[0.08]">
                 {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
                   <div key={day} className="text-[11px] font-bold uppercase tracking-wider text-neutral-400 py-0.5">
                     <span className="hidden sm:inline">{day}</span>
@@ -451,36 +449,41 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                 ))}
               </div>
 
-              {/* Days grid */}
-              <div className="grid grid-cols-7 gap-1.5">
+              {/* 7x6 Calendar Grid Days */}
+              <div className="grid grid-cols-7 gap-1 sm:gap-1.5 auto-rows-fr">
                 {monthDays.map((day, idx) => {
-                  const dayEvents = getEventsForDay(day);
-                  const isSelected = isSameDay(day, selectedDate);
                   const isCurrentMonth = isSameMonth(day, monthStart);
                   const isCurrentDay = isToday(day);
+                  const isSelected = isSameDay(day, selectedDate);
+                  const dayEvents = getEventsForDay(day);
 
                   return (
                     <div
                       key={idx}
                       onClick={() => setSelectedDate(day)}
-                      className={`min-h-[58px] xs:min-h-[70px] sm:min-h-[96px] p-1 sm:p-2 rounded-xl border transition-all cursor-pointer flex flex-col justify-between ${
+                      onDoubleClick={() => onAddEventForDate(day)}
+                      className={`min-h-[64px] sm:min-h-[82px] p-1 sm:p-1.5 rounded-[12px] border transition-all cursor-pointer flex flex-col justify-between ${
                         isSelected
-                          ? 'border-[#2383e2] bg-[#e7f3f8]/40 dark:bg-[#182937]/40 ring-1 ring-[#2383e2]/40 shadow-xs'
-                          : 'border-neutral-200/60 dark:border-neutral-800/60 bg-white/60 dark:bg-neutral-900/30 hover:border-neutral-300 dark:hover:border-neutral-700'
-                      } ${!isCurrentMonth ? 'opacity-35' : ''}`}
+                          ? 'border-[#007aff] bg-[#007aff]/5 dark:bg-[#007aff]/10 ring-1 ring-[#007aff]/30 shadow-xs'
+                          : isCurrentDay
+                          ? 'border-[#ff3b30]/30 bg-[#ff3b30]/5 dark:bg-[#ff3b30]/10'
+                          : isCurrentMonth
+                          ? 'border-black/[0.04] dark:border-white/[0.06] bg-black/[0.01] dark:bg-white/[0.02] hover:bg-black/[0.03] dark:hover:bg-white/[0.05]'
+                          : 'border-transparent bg-transparent opacity-35 hover:opacity-60'
+                      }`}
                     >
                       <div className="flex items-center justify-between">
                         <span
-                          className={`text-[11px] sm:text-xs font-bold w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center rounded-md sm:rounded-lg ${
+                          className={`text-[11px] sm:text-xs font-bold w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center rounded-full ${
                             isCurrentDay
-                              ? 'bg-rose-500 text-white shadow-xs'
+                              ? 'bg-[#ff3b30] text-white shadow-xs'
                               : 'text-neutral-700 dark:text-neutral-300'
                           }`}
                         >
                           {format(day, 'd')}
                         </span>
                         {dayEvents.length > 0 && (
-                          <span className="text-[8px] sm:text-[9px] font-mono px-1 rounded bg-neutral-100 dark:bg-neutral-800 text-neutral-500 hidden xs:inline">
+                          <span className="text-[8px] sm:text-[9px] font-mono px-1 rounded-full bg-black/5 dark:bg-white/10 text-neutral-500 hidden xs:inline">
                             {dayEvents.length}
                           </span>
                         )}
@@ -532,90 +535,92 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
             </div>
 
             {/* Selected Date Detail Sidebar */}
-            <div className="bg-white/85 dark:bg-[#161619]/85 backdrop-blur-md rounded-2xl border border-neutral-200/80 dark:border-neutral-800/80 p-4 shadow-xs space-y-3.5">
-              <div className="flex items-center justify-between border-b border-neutral-100 dark:border-neutral-800 pb-2.5">
-                <div>
-                  <h3 className="font-bold text-sm text-[#1c1917] dark:text-white">
-                    {format(selectedDate, 'EEEE')}
-                  </h3>
-                  <p className="text-[11px] text-neutral-400 font-medium">
-                    {format(selectedDate, 'MMMM d, yyyy')}
-                  </p>
-                </div>
-                {isAdmin && (
-                  <button
-                    onClick={() => onAddEventForDate(selectedDate)}
-                    className="p-1.5 text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-xl transition-all active:scale-90"
-                    title="Add event for this day"
-                  >
-                    <Plus className="w-4 h-4 stroke-[2.5]" />
-                  </button>
-                )}
-              </div>
-
-              {/* List of events on this day */}
-              <div className="space-y-2 max-h-[460px] overflow-y-auto pr-0.5 text-xs">
-                {selectedDayEvents.length === 0 ? (
-                  <div className="text-center py-10 text-neutral-400 text-xs">
-                    <CalendarIcon className="w-6 h-6 mx-auto mb-1.5 opacity-30" />
-                    No events on this day.
+            <div className="ios-card lg:col-span-1 p-4 rounded-[20px] space-y-3.5 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between border-b border-black/[0.06] dark:border-white/[0.08] pb-2.5">
+                  <div>
+                    <h3 className="font-bold text-sm text-neutral-900 dark:text-white">
+                      {format(selectedDate, 'EEEE')}
+                    </h3>
+                    <p className="text-[11px] text-neutral-400 font-medium">
+                      {format(selectedDate, 'MMMM d, yyyy')}
+                    </p>
                   </div>
-                ) : (
-                  selectedDayEvents.map(evt => (
-                    <div
-                      key={evt.id}
-                      className="p-3 rounded-xl border border-neutral-200/60 dark:border-neutral-800/60 bg-white/70 dark:bg-neutral-900/40 hover:border-neutral-300 dark:hover:border-neutral-700 transition-all group shadow-2xs hover:shadow-xs"
+                  {isAdmin && (
+                    <button
+                      onClick={() => onAddEventForDate(selectedDate)}
+                      className="p-1.5 text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 rounded-full transition-all active:scale-90 cursor-pointer"
+                      title="Add event for this day"
                     >
-                      <div className="flex items-start justify-between gap-2">
-                        <h4
-                          onClick={() => onSelectEvent(evt)}
-                          className={`text-xs font-semibold cursor-pointer hover:underline text-[#1c1917] dark:text-[#f4f4f5] leading-snug flex-1 ${
-                            evt.status === 'completed' ? 'line-through text-neutral-400' : ''
-                          }`}
-                        >
-                          {evt.title}
-                        </h4>
-                        
-                        {isAdmin && (
-                          <div className="flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity shrink-0">
-                            <button
-                              onClick={() => onSelectEvent(evt)}
-                              className="p-1.5 text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 cursor-pointer"
-                              title="Edit"
-                            >
-                              <Edit3 className="w-3.5 h-3.5" />
-                            </button>
-                            {onDeleteEvent && (
-                              <button
-                                onClick={() => setEventToDelete(evt)}
-                                className="p-1.5 text-neutral-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40 cursor-pointer"
-                                title="Delete event"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                            )}
-                          </div>
-                        )}
-                      </div>
+                      <Plus className="w-4 h-4 stroke-[2.5]" />
+                    </button>
+                  )}
+                </div>
 
-                      <div className="mt-2 flex items-center gap-2 text-[10px] text-neutral-400 flex-wrap font-medium">
-                        <span className={`px-1.5 py-0.5 rounded-md font-semibold ${getPriorityChipStyle(evt.priority)}`}>
-                          {evt.priority}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Clock className="w-3 h-3" />
-                          {evt.isAllDay ? 'All Day' : format(parseISO(evt.startTime), 'h:mm a')}
-                        </span>
-                        {evt.location && (
-                          <span className="flex items-center gap-1 truncate max-w-[100px]">
-                            <MapPin className="w-3 h-3" />
-                            <span className="truncate">{evt.location}</span>
-                          </span>
-                        )}
-                      </div>
+                {/* List of events on this day */}
+                <div className="mt-3 space-y-2 max-h-[460px] overflow-y-auto pr-0.5 text-xs">
+                  {selectedDayEvents.length === 0 ? (
+                    <div className="text-center py-10 text-neutral-400 text-xs">
+                      <CalendarIcon className="w-6 h-6 mx-auto mb-1.5 opacity-30" />
+                      No events on this day.
                     </div>
-                  ))
-                )}
+                  ) : (
+                    selectedDayEvents.map(evt => (
+                      <div
+                        key={evt.id}
+                        className="p-3 rounded-[14px] border border-black/[0.06] dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.03] hover:border-[#007aff]/30 transition-all group"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <h4
+                            onClick={() => onSelectEvent(evt)}
+                            className={`text-xs font-semibold cursor-pointer hover:underline text-neutral-900 dark:text-neutral-100 leading-snug flex-1 ${
+                              evt.status === 'completed' ? 'line-through text-neutral-400' : ''
+                            }`}
+                          >
+                            {evt.title}
+                          </h4>
+                          
+                          {isAdmin && (
+                            <div className="flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity shrink-0">
+                              <button
+                                onClick={() => onSelectEvent(evt)}
+                                className="p-1.5 text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 cursor-pointer"
+                                title="Edit"
+                              >
+                                <Edit3 className="w-3.5 h-3.5" />
+                              </button>
+                              {onDeleteEvent && (
+                                <button
+                                  onClick={() => setEventToDelete(evt)}
+                                  className="p-1.5 text-neutral-400 hover:text-[#ff3b30] rounded-lg hover:bg-[#ff3b30]/10 cursor-pointer"
+                                  title="Delete event"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              )}
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="mt-2 flex items-center gap-2 text-[10px] text-neutral-400 flex-wrap font-medium">
+                          <span className={`px-1.5 py-0.5 rounded-md font-semibold ${getPriorityChipStyle(evt.priority)}`}>
+                            {evt.priority}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            {evt.isAllDay ? 'All Day' : format(parseISO(evt.startTime), 'h:mm a')}
+                          </span>
+                          {evt.location && (
+                            <span className="flex items-center gap-1 truncate max-w-[100px]">
+                              <MapPin className="w-3 h-3" />
+                              <span className="truncate">{evt.location}</span>
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -625,7 +630,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
         {/* 2. WEEK TIMETABLE VIEW (Occupying Exact Event Times)                      */}
         {/* ========================================================================= */}
         {viewMode === 'week' && (
-          <div className="bg-white/90 dark:bg-[#161619]/90 backdrop-blur-md rounded-2xl border border-neutral-200/80 dark:border-neutral-800/80 overflow-hidden shadow-sm">
+          <div className="ios-card rounded-[20px] overflow-hidden">
             
             {/* Scrollable timetable container with touch-friendly scrolling */}
             <div
@@ -871,7 +876,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
           const timedEvents = calculateTimedLayout(dayViewEvents, currentDate);
 
           return (
-          <div className="bg-white/90 dark:bg-[#161619]/90 backdrop-blur-md rounded-2xl border border-neutral-200/80 dark:border-neutral-800/80 overflow-hidden shadow-sm w-full">
+          <div className="ios-card rounded-[20px] overflow-hidden w-full">
             
             {/* Scrollable timetable container */}
             <div
@@ -881,13 +886,13 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
               <div className="w-full min-w-0">
                 
                 {/* Sticky Header with Day Title */}
-                <div className="sticky top-0 z-20 flex items-center justify-between bg-white/95 dark:bg-[#161619]/95 backdrop-blur-md border-b border-neutral-200/80 dark:border-neutral-800 p-2.5 sm:p-3 shadow-2xs">
+                <div className="sticky top-0 z-20 flex items-center justify-between bg-white/95 dark:bg-[#1c1c1e]/95 backdrop-blur-md border-b border-black/[0.06] dark:border-white/[0.08] p-2.5 sm:p-3 shadow-2xs">
                   <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
                     <span
-                      className={`inline-flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-xl text-xs sm:text-sm font-bold shrink-0 ${
+                      className={`inline-flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full text-xs sm:text-sm font-bold shrink-0 ${
                         isToday(currentDate)
-                          ? 'bg-[#2383e2] text-white shadow-xs'
-                          : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200'
+                          ? 'bg-[#ff3b30] text-white shadow-xs'
+                          : 'bg-black/5 dark:bg-white/10 text-neutral-800 dark:text-neutral-200'
                       }`}
                     >
                       {format(currentDate, 'd')}

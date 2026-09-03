@@ -72,8 +72,8 @@ export const EventCard: React.FC<EventCardProps> = ({
       )}
 
       <div
-        className={`group relative rounded-2xl border border-neutral-200/80 dark:border-neutral-800/80 bg-white/80 dark:bg-[#161619]/80 backdrop-blur-sm hover:border-neutral-300 dark:hover:border-neutral-700 hover:-translate-y-0.5 shadow-2xs hover:shadow-xs transition-all p-4 text-[#1c1917] dark:text-[#f4f4f5] ${
-          isCompleted ? 'opacity-60 bg-neutral-50/50 dark:bg-neutral-900/30' : ''
+        className={`group relative ios-card rounded-[18px] p-4 transition-all text-neutral-900 dark:text-neutral-100 ${
+          isCompleted ? 'opacity-60 bg-black/[0.02] dark:bg-white/[0.02]' : ''
         }`}
       >
         <div className="flex items-start justify-between gap-3">
@@ -81,11 +81,11 @@ export const EventCard: React.FC<EventCardProps> = ({
           <div className="flex items-start gap-3 flex-1 min-w-0">
             <button
               onClick={() => onStatusChange(event, isCompleted ? 'pending' : 'completed')}
-              className="mt-0.5 text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 transition-colors shrink-0 active:scale-90"
+              className="mt-0.5 text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 transition-colors shrink-0 active:scale-90 cursor-pointer"
               title={isCompleted ? 'Mark incomplete' : 'Mark complete'}
             >
               {isCompleted ? (
-                <CheckSquare className="w-4 h-4 text-[#2383e2]" />
+                <CheckSquare className="w-4 h-4 text-[#007aff] dark:text-[#0a84ff]" />
               ) : (
                 <Square className="w-4 h-4" />
               )}

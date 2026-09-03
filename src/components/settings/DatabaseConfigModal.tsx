@@ -182,63 +182,67 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.notes;`;
         />
       )}
 
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
-        <div className="bg-white/95 dark:bg-[#161619]/95 backdrop-blur-2xl rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-neutral-200/80 dark:border-neutral-800/80 shadow-2xl transition-all text-[#1c1917] dark:text-[#f4f4f5]">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
+        <div className="bg-white dark:bg-[#1c1c1e] rounded-t-[28px] sm:rounded-[24px] max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-black/[0.08] dark:border-white/[0.12] shadow-2xl transition-all text-neutral-900 dark:text-neutral-100">
 
-          {/* Header */}
-          <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 border-b border-neutral-100 dark:border-neutral-800/80 text-xs">
-            <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-xl bg-blue-500/10 text-[#2383e2] flex items-center justify-center shrink-0">
-                <Server className="w-4 h-4 shrink-0" />
-              </div>
-              <span className="font-bold text-sm text-[#1c1917] dark:text-white">
-                Team Calendar Database & Cloud Sync
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] px-1.5 py-0.2 rounded bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 font-mono">
-                Free
-              </span>
-              <button
-                onClick={onClose}
-                className="p-1 rounded text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
+          {/* iOS Sheet Grab Handle for Mobile */}
+          <div className="sm:hidden pt-2.5 pb-1 flex justify-center shrink-0">
+            <div className="ios-sheet-handle" />
           </div>
 
-          {/* Tab Selector */}
-          <div className="flex border-b border-neutral-100 dark:border-neutral-800 px-4 sm:px-5 pt-2 text-xs overflow-x-auto">
+          {/* Header */}
+          <div className="flex items-center justify-between px-4 sm:px-6 py-3 border-b border-black/[0.06] dark:border-white/[0.08] text-xs shrink-0">
             <button
-              onClick={() => setActiveTab('config')}
-              className={`px-3 py-1.5 font-medium border-b-2 transition-colors whitespace-nowrap ${activeTab === 'config'
-                ? 'border-[#2383e2] text-[#2383e2] font-semibold'
-                : 'border-transparent text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200'
-                }`}
+              type="button"
+              onClick={onClose}
+              className="text-xs font-medium text-[#007aff] dark:text-[#0a84ff] hover:opacity-80 transition-opacity cursor-pointer min-h-[32px] flex items-center"
             >
-              Connection
+              Done
             </button>
+
+            <div className="flex items-center gap-1.5 font-semibold text-xs text-neutral-900 dark:text-white">
+              <Server className="w-3.5 h-3.5 text-[#007aff] dark:text-[#0a84ff]" />
+              <span>Cloud Database Sync</span>
+            </div>
+
             <button
-              onClick={() => setActiveTab('guide')}
-              className={`flex items-center gap-1 px-3 py-1.5 font-medium border-b-2 transition-colors whitespace-nowrap ${activeTab === 'guide'
-                ? 'border-[#2383e2] text-[#2383e2] font-semibold'
-                : 'border-transparent text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200'
-                }`}
+              onClick={onClose}
+              className="p-1.5 rounded-full text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer"
             >
-              <BookOpen className="w-3 h-3" />
-              <span>Setup Guide</span>
+              <X className="w-3.5 h-3.5" />
             </button>
-            <button
-              onClick={() => setActiveTab('sql')}
-              className={`flex items-center gap-1 px-3 py-1.5 font-medium border-b-2 transition-colors whitespace-nowrap ${activeTab === 'sql'
-                ? 'border-[#2383e2] text-[#2383e2] font-semibold'
-                : 'border-transparent text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200'
+          </div>
+
+          {/* iOS Segmented Control Tabs */}
+          <div className="px-4 sm:px-6 pt-3.5 pb-1">
+            <div className="ios-segmented-control w-full">
+              <button
+                onClick={() => setActiveTab('config')}
+                className={`ios-segmented-item flex-1 ${
+                  activeTab === 'config' ? 'ios-segmented-item-active' : ''
                 }`}
-            >
-              <Server className="w-3 h-3" />
-              <span>SQL Schema</span>
-            </button>
+              >
+                Connection
+              </button>
+              <button
+                onClick={() => setActiveTab('guide')}
+                className={`ios-segmented-item flex-1 gap-1 ${
+                  activeTab === 'guide' ? 'ios-segmented-item-active' : ''
+                }`}
+              >
+                <BookOpen className="w-3 h-3" />
+                <span>Guide</span>
+              </button>
+              <button
+                onClick={() => setActiveTab('sql')}
+                className={`ios-segmented-item flex-1 gap-1 ${
+                  activeTab === 'sql' ? 'ios-segmented-item-active' : ''
+                }`}
+              >
+                <Server className="w-3 h-3" />
+                <span>SQL</span>
+              </button>
+            </div>
           </div>
 
           {/* Content Body */}
@@ -309,13 +313,13 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.notes;`;
                   </div>
                 )}
 
-                <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800">
+                <div className="flex items-center justify-between pt-3 border-t border-black/[0.06] dark:border-white/[0.08]">
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
                       onClick={handleTest}
                       disabled={isTesting || !url || !anonKey}
-                      className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold border border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-50 transition-colors"
+                      className="ios-btn-tinted flex items-center gap-1.5 px-3.5 py-2 rounded-[12px] text-xs font-semibold disabled:opacity-50 transition-colors cursor-pointer min-h-[38px]"
                     >
                       <RefreshCw className={`w-3.5 h-3.5 ${isTesting ? 'animate-spin' : ''}`} />
                       <span>{isTesting ? 'Testing...' : 'Test Connection'}</span>
@@ -325,7 +329,7 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.notes;`;
                       <button
                         type="button"
                         onClick={() => setShowDisconnectConfirm(true)}
-                        className="px-2.5 py-1 text-xs text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded transition-colors"
+                        className="px-2.5 py-1.5 text-xs font-medium text-[#ff3b30] hover:bg-[#ff3b30]/10 rounded-[10px] transition-colors cursor-pointer"
                       >
                         Use Local Mode
                       </button>
@@ -336,7 +340,7 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.notes;`;
                     <button
                       type="button"
                       onClick={onClose}
-                      className="px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors"
+                      className="ios-btn-tinted px-4 py-2 text-xs font-semibold rounded-[12px] transition-colors cursor-pointer min-h-[38px]"
                     >
                       Cancel
                     </button>
@@ -344,7 +348,7 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.notes;`;
                       type="button"
                       onClick={handleSave}
                       disabled={!url || !anonKey}
-                      className="px-5 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 rounded-xl shadow-md shadow-emerald-600/20 disabled:opacity-50 transition-all"
+                      className="ios-btn-filled px-5 py-2 text-xs font-semibold text-white bg-[#34c759] hover:bg-[#30d158] rounded-[12px] shadow-xs disabled:opacity-50 transition-all active:scale-[0.98] cursor-pointer min-h-[38px]"
                     >
                       Save & Connect
                     </button>

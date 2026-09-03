@@ -78,16 +78,27 @@ export const NoteModal: React.FC<NoteModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-black/60 backdrop-blur-sm animate-fade-in">
       <div 
-        className="bg-white/95 dark:bg-[#161619]/95 backdrop-blur-2xl rounded-2xl w-full max-w-3xl lg:max-w-4xl h-[88vh] max-h-[820px] min-h-[520px] flex flex-col overflow-hidden border border-neutral-200/90 dark:border-neutral-800/90 shadow-2xl transition-all"
+        className="bg-white dark:bg-[#1c1c1e] rounded-t-[28px] sm:rounded-[24px] w-full max-w-3xl lg:max-w-4xl h-[88vh] max-h-[820px] min-h-[520px] flex flex-col overflow-hidden border border-black/[0.08] dark:border-white/[0.12] shadow-2xl transition-all text-neutral-900 dark:text-neutral-100"
         onClick={(e) => e.stopPropagation()}
       >
+        {/* iOS Sheet Grab Handle for Mobile */}
+        <div className="sm:hidden pt-2.5 pb-1 flex justify-center shrink-0">
+          <div className="ios-sheet-handle" />
+        </div>
+
         {/* Header */}
-        <div className="flex items-center justify-between px-4 sm:px-6 py-3 border-b border-neutral-200/80 dark:border-neutral-800/80 shrink-0">
-          <div className="flex items-center gap-2">
-            <FileText className="w-4 h-4 text-[#2383e2]" />
-            <h3 className="font-bold text-sm sm:text-base text-[#1c1917] dark:text-white">
-              {initialNote ? 'Edit Note' : 'New Note'}
-            </h3>
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3 border-b border-black/[0.06] dark:border-white/[0.08] shrink-0">
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-xs font-medium text-[#007aff] dark:text-[#0a84ff] hover:opacity-80 transition-opacity cursor-pointer min-h-[32px] flex items-center"
+          >
+            Cancel
+          </button>
+
+          <div className="flex items-center gap-1.5 font-semibold text-xs text-neutral-900 dark:text-white">
+            <FileText className="w-3.5 h-3.5 text-[#007aff] dark:text-[#0a84ff]" />
+            <span>{initialNote ? 'Edit Note' : 'New Note'}</span>
           </div>
 
           <div className="flex items-center gap-1.5">
@@ -95,22 +106,22 @@ export const NoteModal: React.FC<NoteModalProps> = ({
             <button
               type="button"
               onClick={() => setIsPinned(!isPinned)}
-              className={`p-1.5 rounded-lg border transition-all ${
+              className={`p-1.5 rounded-full transition-all cursor-pointer ${
                 isPinned
-                  ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border-amber-300 dark:border-amber-700'
-                  : 'text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 border-transparent hover:bg-neutral-100 dark:hover:bg-neutral-800'
+                  ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300'
+                  : 'text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-black/5 dark:hover:bg-white/10'
               }`}
               title={isPinned ? 'Unpin note' : 'Pin note to top'}
             >
-              <Pin className="w-4 h-4" />
+              <Pin className="w-3.5 h-3.5" />
             </button>
 
             {/* Close */}
             <button
               onClick={onClose}
-              className="p-1.5 text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg transition-colors"
+              className="p-1.5 rounded-full text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer"
             >
-              <X className="w-4 h-4" />
+              <X className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
@@ -131,7 +142,7 @@ export const NoteModal: React.FC<NoteModalProps> = ({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Note Title..."
-              className="w-full px-3.5 py-2 text-base sm:text-lg font-bold bg-neutral-50/70 dark:bg-neutral-900/60 border border-neutral-200/80 dark:border-neutral-800/80 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2383e2] text-[#1c1917] dark:text-white placeholder:text-neutral-400 shadow-2xs transition-all"
+              className="w-full px-3.5 py-2 text-base sm:text-lg font-bold bg-black/[0.03] dark:bg-white/[0.05] border border-black/[0.08] dark:border-white/[0.1] rounded-[14px] focus:outline-none focus:ring-2 focus:ring-[#007aff] text-neutral-900 dark:text-white placeholder:text-neutral-400 transition-all"
               autoFocus
             />
           </div>
@@ -187,7 +198,7 @@ export const NoteModal: React.FC<NoteModalProps> = ({
                     onDelete(initialNote.id);
                     onClose();
                   }}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-xl transition-colors active:scale-95 cursor-pointer"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#ff3b30] hover:bg-[#ff3b30]/10 rounded-[10px] transition-colors active:scale-95 cursor-pointer"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                   <span>Delete</span>
@@ -198,13 +209,13 @@ export const NoteModal: React.FC<NoteModalProps> = ({
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-4 py-1.5 text-xs font-semibold text-neutral-600 dark:text-neutral-300 hover:bg-neutral-200/60 dark:hover:bg-neutral-800 rounded-xl transition-colors active:scale-95 cursor-pointer"
+                  className="ios-btn-tinted px-4 py-1.5 text-xs font-semibold rounded-[12px] transition-colors active:scale-95 cursor-pointer min-h-[36px]"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4.5 py-1.5 text-xs font-semibold text-white bg-[#2383e2] hover:bg-[#1a73e8] rounded-xl shadow-xs hover:shadow-md transition-all active:scale-95 cursor-pointer"
+                  className="ios-btn-filled px-4.5 py-1.5 text-xs font-semibold text-white bg-[#007aff] hover:bg-[#0071e3] dark:bg-[#0a84ff] rounded-[12px] shadow-xs transition-all active:scale-[0.98] cursor-pointer min-h-[36px]"
                 >
                   {initialNote ? 'Save Changes' : 'Create Note'}
                 </button>

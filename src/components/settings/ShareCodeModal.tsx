@@ -97,46 +97,52 @@ export const ShareCodeModal: React.FC<ShareCodeModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
-      <div className="bg-white/95 dark:bg-[#161619]/95 backdrop-blur-2xl rounded-2xl max-w-2xl w-full max-h-[92vh] overflow-y-auto border border-neutral-200/80 dark:border-neutral-800/80 shadow-2xl transition-all text-[#1c1917] dark:text-[#f4f4f5]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
+      <div className="bg-white dark:bg-[#1c1c1e] rounded-t-[28px] sm:rounded-[24px] max-w-2xl w-full max-h-[92vh] overflow-y-auto border border-black/[0.08] dark:border-white/[0.12] shadow-2xl transition-all text-neutral-900 dark:text-neutral-100">
         
+        {/* iOS Sheet Grab Handle for Mobile */}
+        <div className="sm:hidden pt-2.5 pb-1 flex justify-center shrink-0">
+          <div className="ios-sheet-handle" />
+        </div>
+
         {/* Top Header */}
-        <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 border-b border-neutral-100 dark:border-neutral-800/80 text-xs">
-          <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-xl bg-blue-500/10 text-[#2383e2] flex items-center justify-center">
-              <Share2 className="w-4 h-4 shrink-0" />
-            </div>
-            <span className="font-bold text-sm text-[#1c1917] dark:text-white">
-              Calendar Sync & Share Code
-            </span>
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3 border-b border-black/[0.06] dark:border-white/[0.08] text-xs shrink-0">
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-xs font-medium text-[#007aff] dark:text-[#0a84ff] hover:opacity-80 transition-opacity cursor-pointer min-h-[32px] flex items-center"
+          >
+            Done
+          </button>
+
+          <div className="flex items-center gap-1.5 font-semibold text-xs text-neutral-900 dark:text-white">
+            <Share2 className="w-3.5 h-3.5 text-[#007aff] dark:text-[#0a84ff]" />
+            <span>Calendar Sync & Share</span>
           </div>
+
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+            className="p-1.5 rounded-full text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer"
           >
-            <X className="w-4 h-4" />
+            <X className="w-3.5 h-3.5" />
           </button>
         </div>
 
-        {/* Tab Switcher */}
+        {/* Tab Switcher - iOS Segmented Control */}
         <div className="px-4 sm:px-6 pt-4 pb-2">
-          <div className="flex items-center p-1 rounded-xl bg-neutral-100/70 dark:bg-neutral-900/70 border border-neutral-200/60 dark:border-neutral-800/60 text-xs shadow-inner">
+          <div className="ios-segmented-control w-full">
             <button
               onClick={() => setActiveTab('generate')}
-              className={`flex-1 py-1.5 font-semibold text-center rounded-lg transition-all ${
-                activeTab === 'generate'
-                  ? 'bg-white dark:bg-[#202024] text-[#1c1917] dark:text-white shadow-xs'
-                  : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+              className={`ios-segmented-item flex-1 ${
+                activeTab === 'generate' ? 'ios-segmented-item-active' : ''
               }`}
             >
               Share My Calendar
             </button>
             <button
               onClick={() => setActiveTab('join')}
-              className={`flex-1 py-1.5 font-semibold text-center rounded-lg transition-all ${
-                activeTab === 'join'
-                  ? 'bg-white dark:bg-[#202024] text-[#1c1917] dark:text-white shadow-xs'
-                  : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+              className={`ios-segmented-item flex-1 ${
+                activeTab === 'join' ? 'ios-segmented-item-active' : ''
               }`}
             >
               Join / Enter Code

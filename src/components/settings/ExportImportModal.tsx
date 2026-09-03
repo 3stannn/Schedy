@@ -171,24 +171,34 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
   const lineCount = previewData.content ? previewData.content.split('\n').length : 0;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
-      <div className="bg-white/95 dark:bg-[#161619]/95 backdrop-blur-2xl rounded-2xl max-w-2xl w-full max-h-[92vh] flex flex-col border border-neutral-200/80 dark:border-neutral-800/80 shadow-2xl transition-all text-[#1c1917] dark:text-[#f4f4f5]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
+      <div className="bg-white dark:bg-[#1c1c1e] rounded-t-[28px] sm:rounded-[24px] max-w-2xl w-full max-h-[92vh] flex flex-col border border-black/[0.08] dark:border-white/[0.12] shadow-2xl transition-all text-neutral-900 dark:text-neutral-100 overflow-hidden">
         
+        {/* iOS Sheet Grab Handle for Mobile */}
+        <div className="sm:hidden pt-2.5 pb-1 flex justify-center shrink-0">
+          <div className="ios-sheet-handle" />
+        </div>
+
         {/* Header */}
-        <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 border-b border-neutral-100 dark:border-neutral-800/80 text-xs shrink-0">
-          <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-xl bg-blue-500/10 text-[#2383e2] flex items-center justify-center">
-              <Download className="w-4 h-4 shrink-0" />
-            </div>
-            <span className="font-bold text-sm text-[#1c1917] dark:text-white">
-              Export & Backup
-            </span>
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3 border-b border-black/[0.06] dark:border-white/[0.08] text-xs shrink-0">
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-xs font-medium text-[#007aff] dark:text-[#0a84ff] hover:opacity-80 transition-opacity cursor-pointer min-h-[32px] flex items-center"
+          >
+            Done
+          </button>
+
+          <div className="flex items-center gap-1.5 font-semibold text-xs text-neutral-900 dark:text-white">
+            <Download className="w-3.5 h-3.5 text-[#007aff] dark:text-[#0a84ff]" />
+            <span>Export & Backup</span>
           </div>
+
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+            className="p-1.5 rounded-full text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer"
           >
-            <X className="w-4 h-4" />
+            <X className="w-3.5 h-3.5" />
           </button>
         </div>
 
@@ -197,31 +207,31 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
           
           {/* Format Selection Buttons */}
           <div>
-            <span className="font-semibold text-neutral-400 mb-2 block text-[10px] uppercase tracking-wider">
+            <span className="font-semibold text-neutral-500 dark:text-neutral-400 mb-2 block text-[10px] uppercase tracking-wider">
               Choose Export Format
             </span>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               <button
                 type="button"
                 onClick={() => setSelectedFormat('txt')}
-                className={`flex flex-col items-center p-2.5 sm:p-3 rounded-xl border transition-all text-center ${
+                className={`flex flex-col items-center p-2.5 sm:p-3 rounded-[14px] border transition-all text-center cursor-pointer ${
                   selectedFormat === 'txt'
-                    ? 'border-[#2383e2] bg-blue-50/60 dark:bg-blue-950/30 text-[#2383e2] shadow-xs'
-                    : 'border-neutral-200/80 dark:border-neutral-800/80 hover:border-neutral-300 dark:hover:border-neutral-700 bg-neutral-50/50 dark:bg-neutral-900/40 text-neutral-700 dark:text-neutral-300'
+                    ? 'border-[#007aff] bg-[#007aff]/10 text-[#007aff] dark:text-[#0a84ff] shadow-xs'
+                    : 'border-black/[0.06] dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.04] text-neutral-700 dark:text-neutral-300 hover:bg-black/5 dark:hover:bg-white/5'
                 }`}
               >
                 <FileText className="w-4 h-4 mb-1" />
-                <span className="text-xs font-bold">Plain Text</span>
-                <span className="text-[10px] opacity-70">.txt Agenda</span>
+                <span className="text-xs font-bold">Text</span>
+                <span className="text-[10px] opacity-70">.txt file</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setSelectedFormat('ics')}
-                className={`flex flex-col items-center p-2.5 sm:p-3 rounded-xl border transition-all text-center ${
+                className={`flex flex-col items-center p-2.5 sm:p-3 rounded-[14px] border transition-all text-center cursor-pointer ${
                   selectedFormat === 'ics'
-                    ? 'border-[#2383e2] bg-blue-50/60 dark:bg-blue-950/30 text-[#2383e2] shadow-xs'
-                    : 'border-neutral-200/80 dark:border-neutral-800/80 hover:border-neutral-300 dark:hover:border-neutral-700 bg-neutral-50/50 dark:bg-neutral-900/40 text-neutral-700 dark:text-neutral-300'
+                    ? 'border-[#007aff] bg-[#007aff]/10 text-[#007aff] dark:text-[#0a84ff] shadow-xs'
+                    : 'border-black/[0.06] dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.04] text-neutral-700 dark:text-neutral-300 hover:bg-black/5 dark:hover:bg-white/5'
                 }`}
               >
                 <Calendar className="w-4 h-4 mb-1" />
@@ -232,10 +242,10 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
               <button
                 type="button"
                 onClick={() => setSelectedFormat('csv')}
-                className={`flex flex-col items-center p-2.5 sm:p-3 rounded-xl border transition-all text-center ${
+                className={`flex flex-col items-center p-2.5 sm:p-3 rounded-[14px] border transition-all text-center cursor-pointer ${
                   selectedFormat === 'csv'
-                    ? 'border-[#2383e2] bg-blue-50/60 dark:bg-blue-950/30 text-[#2383e2] shadow-xs'
-                    : 'border-neutral-200/80 dark:border-neutral-800/80 hover:border-neutral-300 dark:hover:border-neutral-700 bg-neutral-50/50 dark:bg-neutral-900/40 text-neutral-700 dark:text-neutral-300'
+                    ? 'border-[#007aff] bg-[#007aff]/10 text-[#007aff] dark:text-[#0a84ff] shadow-xs'
+                    : 'border-black/[0.06] dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.04] text-neutral-700 dark:text-neutral-300 hover:bg-black/5 dark:hover:bg-white/5'
                 }`}
               >
                 <FileSpreadsheet className="w-4 h-4 mb-1" />
@@ -246,10 +256,10 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
               <button
                 type="button"
                 onClick={() => setSelectedFormat('json')}
-                className={`flex flex-col items-center p-2.5 sm:p-3 rounded-xl border transition-all text-center ${
+                className={`flex flex-col items-center p-2.5 sm:p-3 rounded-[14px] border transition-all text-center cursor-pointer ${
                   selectedFormat === 'json'
-                    ? 'border-[#2383e2] bg-blue-50/60 dark:bg-blue-950/30 text-[#2383e2] shadow-xs'
-                    : 'border-neutral-200/80 dark:border-neutral-800/80 hover:border-neutral-300 dark:hover:border-neutral-700 bg-neutral-50/50 dark:bg-neutral-900/40 text-neutral-700 dark:text-neutral-300'
+                    ? 'border-[#007aff] bg-[#007aff]/10 text-[#007aff] dark:text-[#0a84ff] shadow-xs'
+                    : 'border-black/[0.06] dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.04] text-neutral-700 dark:text-neutral-300 hover:bg-black/5 dark:hover:bg-white/5'
                 }`}
               >
                 <FileJson className="w-4 h-4 mb-1" />
@@ -263,7 +273,7 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
           <div className="space-y-2">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
               <div className="flex items-center gap-1.5 text-neutral-600 dark:text-neutral-300">
-                <Eye className="w-3.5 h-3.5 text-[#2383e2]" />
+                <Eye className="w-3.5 h-3.5 text-[#007aff] dark:text-[#0a84ff]" />
                 <span className="font-semibold text-xs">Preview: {previewData.label}</span>
                 <span className="text-[10px] text-neutral-400 font-mono ml-1">
                   ({lineCount} {lineCount === 1 ? 'line' : 'lines'})
@@ -273,18 +283,17 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
                 <button
                   type="button"
                   onClick={handleCopy}
-                  className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-200 transition-colors shadow-2xs cursor-pointer min-h-[38px]"
+                  className="ios-btn-tinted flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-[12px] transition-colors cursor-pointer min-h-[38px]"
                 >
-                  {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                  {copied ? <Check className="w-3.5 h-3.5 text-[#34c759]" /> : <Copy className="w-3.5 h-3.5" />}
                   <span>{copied ? 'Copied' : 'Copy'}</span>
                 </button>
                 <button
                   type="button"
                   onClick={handleDownload}
-                  className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-xl bg-[#2383e2] hover:bg-[#1a73e8] text-white transition-colors shadow-xs active:scale-95 cursor-pointer min-h-[38px]"
+                  className="ios-btn-filled flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-[12px] bg-[#007aff] hover:bg-[#0071e3] dark:bg-[#0a84ff] text-white transition-all active:scale-[0.98] cursor-pointer min-h-[38px]"
                 >
                   <Download className="w-3.5 h-3.5" />
-                  <span>Download {selectedFormat.toUpperCase()}</span>
                 </button>
               </div>
             </div>
