@@ -37,36 +37,48 @@ const formatEventTime = (isoString?: string, isAllDay?: boolean) => {
   }
 };
 
-const isDateToday = (dateStr?: string): boolean => {
-  if (!dateStr) return false;
+const parseEventDate = (dateStr?: string): Date | null => {
+  if (!dateStr) return null;
   try {
-    const todayStr = format(new Date(), 'yyyy-MM-dd');
-    if (dateStr.startsWith(todayStr)) return true;
-
-    const d = parseISO(dateStr);
-    if (!isNaN(d.getTime()) && isToday(d)) return true;
-
-    const d2 = new Date(dateStr);
-    if (!isNaN(d2.getTime()) && isToday(d2)) return true;
+    // If date-only string YYYY-MM-DD
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+      const [y, m, d] = dateStr.split('-').map(Number);
+      return new Date(y, m - 1, d, 12, 0, 0);
+    }
+    const parsed = parseISO(dateStr);
+    if (!isNaN(parsed.getTime())) return parsed;
+    const fallback = new Date(dateStr);
+    if (!isNaN(fallback.getTime())) return fallback;
   } catch {
-    return false;
+    return null;
   }
-  return false;
+  return null;
 };
 
-const isSpanningToday = (startStr?: string, endStr?: string): boolean => {
-  if (!startStr || !endStr) return false;
-  try {
-    const start = parseISO(startStr);
-    const end = parseISO(endStr);
-    if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
-      const todayStart = startOfDay(new Date());
-      const todayEnd = endOfDay(new Date());
-      return start <= todayEnd && end >= todayStart;
+const isEventToday = (event: ScheduleEvent): boolean => {
+  if (!event || !event.startTime) return false;
+  const start = parseEventDate(event.startTime);
+  if (!start) return false;
+
+  // 1. Starts today (in local timezone)
+  if (isToday(start)) return true;
+
+  // 2. Ends today (in local timezone)
+  if (event.endTime) {
+    const end = parseEventDate(event.endTime);
+    if (end) {
+      if (isToday(end)) return true;
+
+      // 3. Multi-day event spanning across today
+      const now = new Date();
+      const todayStart = startOfDay(now);
+      const todayEnd = endOfDay(now);
+      if (start <= todayEnd && end >= todayStart) {
+        return true;
+      }
     }
-  } catch {
-    return false;
   }
+
   return false;
 };
 
@@ -82,46 +94,29 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
   const safeEvents = Array.isArray(events) ? events : [];
   const safeAnnos = Array.isArray(announcements) ? announcements : [];
 
-  // 1. Items scheduled for today (or spanning across today)
-  const todayScheduledItems = useMemo(() => {
-    return safeEvents.filter(e => {
-      if (!e) return false;
-      return isDateToday(e.startTime) || isDateToday(e.endTime) || isSpanningToday(e.startTime, e.endTime);
-    });
+  // Strictly events and tasks scheduled for today (starts today, ends today, or spans today)
+  const todayEvents = useMemo(() => {
+    return safeEvents
+      .filter(e => isEventToday(e))
+      .sort((a, b) => {
+        // In progress at top, then pending by time, completed at bottom
+        if (a.status === 'completed' && b.status !== 'completed') return 1;
+        if (a.status !== 'completed' && b.status === 'completed') return -1;
+        if (a.status === 'in_progress' && b.status !== 'in_progress') return -1;
+        if (a.status !== 'in_progress' && b.status === 'in_progress') return 1;
+        const tA = a.startTime ? new Date(a.startTime).getTime() : 0;
+        const tB = b.startTime ? new Date(b.startTime).getTime() : 0;
+        return tA - tB;
+      });
   }, [safeEvents]);
 
-  // 2. Tasks currently active in progress on the Taskboard
+  const todayCompletedCount = useMemo(() => {
+    return todayEvents.filter(e => e.status === 'completed').length;
+  }, [todayEvents]);
+
   const inProgressTasks = useMemo(() => {
     return safeEvents.filter(e => e && e.status === 'in_progress');
   }, [safeEvents]);
-
-  // 3. Tasks completed today (either updated today with status 'completed', or scheduled for today and marked 'completed')
-  const todayCompletedItems = useMemo(() => {
-    return safeEvents.filter(e => {
-      if (!e || e.status !== 'completed') return false;
-      return isDateToday(e.updatedAt) || isDateToday(e.startTime) || isDateToday(e.endTime);
-    });
-  }, [safeEvents]);
-
-  // 4. Combined unique items for Today (scheduled for today + active in progress + completed today + created today)
-  const todayItems = useMemo(() => {
-    const todayItemMap = new Map<string, ScheduleEvent>();
-    todayScheduledItems.forEach(e => todayItemMap.set(e.id, e));
-    inProgressTasks.forEach(e => todayItemMap.set(e.id, e));
-    todayCompletedItems.forEach(e => todayItemMap.set(e.id, e));
-    safeEvents.filter(e => e && isDateToday(e.createdAt)).forEach(e => todayItemMap.set(e.id, e));
-
-    return Array.from(todayItemMap.values()).sort((a, b) => {
-      // In progress at top, then pending by time, completed at bottom
-      if (a.status === 'completed' && b.status !== 'completed') return 1;
-      if (a.status !== 'completed' && b.status === 'completed') return -1;
-      if (a.status === 'in_progress' && b.status !== 'in_progress') return -1;
-      if (a.status !== 'in_progress' && b.status === 'in_progress') return 1;
-      const tA = a.startTime ? new Date(a.startTime).getTime() : 0;
-      const tB = b.startTime ? new Date(b.startTime).getTime() : 0;
-      return tA - tB;
-    });
-  }, [todayScheduledItems, inProgressTasks, todayCompletedItems, safeEvents]);
 
   const completedEvents = useMemo(() => safeEvents.filter(e => e && e.status === 'completed'), [safeEvents]);
   const urgentTasks = useMemo(() => safeEvents.filter(e => e && e.priority === 'urgent' && e.status !== 'completed'), [safeEvents]);
@@ -139,8 +134,8 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <StatCard
           title="Today"
-          value={todayItems.length}
-          subtitle={`${todayCompletedItems.length} completed`}
+          value={todayEvents.length}
+          subtitle={`${todayCompletedCount} completed`}
           icon={<Calendar className="w-4 h-4" />}
           onClick={() => onNavigateTab('schedule')}
         />
@@ -211,7 +206,7 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
           </div>
 
           <div className="space-y-2 max-h-[360px] overflow-y-auto pr-0.5">
-            {todayItems.length === 0 ? (
+            {todayEvents.length === 0 ? (
               <div className="text-center py-12 text-neutral-400 text-xs">
                 <div className="w-10 h-10 rounded-[14px] bg-black/5 dark:bg-white/5 flex items-center justify-center mx-auto mb-2 opacity-50">
                   <Calendar className="w-5 h-5" />
@@ -236,7 +231,7 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
                 )}
               </div>
             ) : (
-              todayItems.map(evt => {
+              todayEvents.map(evt => {
                 const isCompleted = evt.status === 'completed';
                 const isInProgress = evt.status === 'in_progress';
                 return (
