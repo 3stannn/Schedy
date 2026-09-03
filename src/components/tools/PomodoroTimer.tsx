@@ -682,7 +682,7 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
             {/* Sound Mute Toggle */}
             <button
               onClick={() => updateSettings({ soundEnabled: !settings.soundEnabled })}
-              className={`p-2 rounded-[12px] border text-xs font-semibold transition-all cursor-pointer min-h-[36px] min-w-[36px] flex items-center justify-center ${
+              className={`w-9 h-9 rounded-xl border text-xs font-semibold transition-all cursor-pointer flex items-center justify-center box-border ${
                 settings.soundEnabled
                   ? 'bg-black/[0.04] dark:bg-white/[0.08] border-black/[0.06] dark:border-white/[0.08] text-neutral-700 dark:text-neutral-200 hover:bg-black/[0.08]'
                   : 'bg-[#ff3b30]/10 border-[#ff3b30]/30 text-[#ff3b30]'
@@ -695,7 +695,7 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
             {/* Fullscreen Toggle */}
             <button
               onClick={() => setIsFullscreen(!isFullscreen)}
-              className="p-2 rounded-[12px] bg-black/[0.04] dark:bg-white/[0.08] border border-black/[0.06] dark:border-white/[0.08] text-neutral-700 dark:text-neutral-200 hover:bg-black/[0.08] dark:hover:bg-white/[0.12] transition-all cursor-pointer min-h-[36px] min-w-[36px] flex items-center justify-center"
+              className="w-9 h-9 rounded-xl bg-black/[0.04] dark:bg-white/[0.08] border border-black/[0.06] dark:border-white/[0.08] text-neutral-700 dark:text-neutral-200 hover:bg-black/[0.08] dark:hover:bg-white/[0.12] transition-all cursor-pointer flex items-center justify-center box-border"
               title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen Focus'}
             >
               {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
@@ -704,7 +704,7 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
             {/* Settings Button */}
             <button
               onClick={() => setIsSettingsOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-[12px] bg-black/[0.04] dark:bg-white/[0.08] border border-black/[0.06] dark:border-white/[0.08] text-neutral-700 dark:text-neutral-200 text-xs font-semibold hover:bg-black/[0.08] dark:hover:bg-white/[0.12] transition-all cursor-pointer min-h-[36px]"
+              className="h-9 px-3 flex items-center gap-1.5 rounded-xl bg-black/[0.04] dark:bg-white/[0.08] border border-black/[0.06] dark:border-white/[0.08] text-neutral-700 dark:text-neutral-200 text-xs font-semibold hover:bg-black/[0.08] dark:hover:bg-white/[0.12] transition-all cursor-pointer box-border"
             >
               <Settings className="w-4 h-4 text-neutral-500" />
               <span>Settings</span>
@@ -713,7 +713,7 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
         </div>
 
         {/* Main Glassmorphic Timer Card */}
-        <div className={`ios-card relative overflow-hidden rounded-[28px] p-4 sm:p-8 transition-all w-full`}>
+        <div className={`ios-card relative overflow-hidden rounded-2xl p-4 sm:p-8 transition-all w-full`}>
           
           {/* Mode Segmented Switcher */}
           <div className="w-full max-w-md mx-auto mb-6 sm:mb-8">

@@ -374,7 +374,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
       <div className="space-y-4 text-[#37352f] dark:text-[#e6e6e6]">
         
         {/* Top Header & Navigation Bar */}
-        <div className="ios-card flex flex-col sm:flex-row items-center justify-between gap-3 p-3 sm:p-4 rounded-[20px]">
+        <div className="ios-card flex flex-col sm:flex-row items-center justify-between gap-2.5 p-2 sm:p-2.5 rounded-2xl">
           <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-start">
             <div className="ios-segmented-control">
               <button
@@ -386,7 +386,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
               </button>
               <button
                 onClick={handleToday}
-                className="ios-segmented-item px-2.5 py-1 font-semibold"
+                className="ios-segmented-item px-2.5 font-semibold"
               >
                 Today
               </button>
@@ -399,13 +399,13 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
               </button>
             </div>
 
-            <h2 className="text-sm sm:text-base font-bold text-neutral-900 dark:text-white tracking-tight">
+            <h2 className="text-xs sm:text-sm font-bold text-neutral-900 dark:text-white tracking-tight">
               {format(currentDate, viewMode === 'day' ? 'EEEE, MMMM d, yyyy' : 'MMMM yyyy')}
             </h2>
           </div>
 
           {/* View Mode Switcher */}
-          <div className="flex items-center gap-2.5 w-full sm:w-auto justify-between sm:justify-end text-xs">
+          <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end text-xs">
             <div className="ios-segmented-control">
               {(['month', 'week', 'day'] as const).map(mode => (
                 <button
@@ -423,7 +423,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
             {isAdmin && (
               <button
                 onClick={() => onAddEventForDate(selectedDate)}
-                className="ios-btn-filled flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-white bg-[#007aff] hover:bg-[#0071e3] dark:bg-[#0a84ff] rounded-[12px] shadow-xs active:scale-[0.98] cursor-pointer min-h-[34px]"
+                className="h-9 px-3.5 text-xs font-semibold text-white bg-[#007aff] hover:bg-[#0071e3] dark:bg-[#0a84ff] rounded-xl shadow-xs active:scale-[0.98] cursor-pointer flex items-center gap-1.5 box-border"
               >
                 <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
                 <span>New</span>
@@ -438,7 +438,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
         {viewMode === 'month' && (
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
             {/* Month Calendar Grid */}
-            <div className="ios-card lg:col-span-3 p-3.5 rounded-[20px] overflow-hidden">
+            <div className="ios-card lg:col-span-3 p-3.5 rounded-2xl overflow-hidden">
               {/* Weekday headers */}
               <div className="grid grid-cols-7 gap-px text-center mb-2 pb-2 border-b border-black/[0.06] dark:border-white/[0.08]">
                 {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
@@ -535,7 +535,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
             </div>
 
             {/* Selected Date Detail Sidebar */}
-            <div className="ios-card lg:col-span-1 p-4 rounded-[20px] space-y-3.5 flex flex-col justify-between">
+            <div className="ios-card lg:col-span-1 p-4 rounded-2xl space-y-3.5 flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between border-b border-black/[0.06] dark:border-white/[0.08] pb-2.5">
                   <div>
@@ -630,7 +630,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
         {/* 2. WEEK TIMETABLE VIEW (Occupying Exact Event Times)                      */}
         {/* ========================================================================= */}
         {viewMode === 'week' && (
-          <div className="ios-card rounded-[20px] overflow-hidden">
+          <div className="ios-card rounded-2xl overflow-hidden">
             
             {/* Scrollable timetable container with touch-friendly scrolling */}
             <div
@@ -876,7 +876,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
           const timedEvents = calculateTimedLayout(dayViewEvents, currentDate);
 
           return (
-          <div className="ios-card rounded-[20px] overflow-hidden w-full">
+          <div className="ios-card rounded-2xl overflow-hidden w-full">
             
             {/* Scrollable timetable container */}
             <div

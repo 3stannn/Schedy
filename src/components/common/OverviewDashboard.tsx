@@ -109,7 +109,7 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         
         {/* Left: Today's Schedule Timeline */}
-        <div className="ios-card rounded-[22px] p-4 sm:p-5 space-y-3.5">
+        <div className="ios-card rounded-2xl p-4 sm:p-5 space-y-3.5">
           <div className="flex items-center justify-between border-b border-black/[0.06] dark:border-white/[0.08] pb-3">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-[12px] bg-[#007aff]/10 text-[#007aff] dark:text-[#0a84ff] flex items-center justify-center">
@@ -203,7 +203,7 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
         </div>
 
         {/* Right: Broadcast & Announcements Bulletin */}
-        <div className="ios-card rounded-[22px] p-4 sm:p-5 space-y-3.5">
+        <div className="ios-card rounded-2xl p-4 sm:p-5 space-y-3.5">
           <div className="flex items-center justify-between border-b border-black/[0.06] dark:border-white/[0.08] pb-3">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-[12px] bg-amber-500/10 text-amber-500 flex items-center justify-center">

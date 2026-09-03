@@ -167,7 +167,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
   return (
     <div className="space-y-4">
       {/* Top Filter & Search Bar */}
-      <div className="ios-card flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 p-2 sm:p-2.5 rounded-[18px]">
+      <div className="ios-card flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 p-2 sm:p-2.5 rounded-2xl">
         {/* Search */}
         <div className="relative flex-1 min-w-[200px]">
           <Search className="w-4 h-4 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -176,7 +176,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search tasks, events, and notes..."
-            className="w-full pl-9 pr-3 py-1.5 text-xs bg-black/[0.04] dark:bg-white/[0.06] border border-black/[0.06] dark:border-white/[0.08] rounded-[12px] focus:outline-none focus:ring-2 focus:ring-[#007aff] text-neutral-900 dark:text-white placeholder:text-neutral-400 transition-all"
+            className="w-full h-9 pl-9 pr-3 text-xs bg-black/[0.04] dark:bg-white/[0.06] border border-black/[0.06] dark:border-white/[0.08] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#007aff] text-neutral-900 dark:text-white placeholder:text-neutral-400 transition-all box-border"
           />
         </div>
 
@@ -185,7 +185,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
           <select
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
-            className="px-2.5 py-1.5 text-xs bg-black/[0.04] dark:bg-white/[0.06] border border-black/[0.06] dark:border-white/[0.08] rounded-[12px] text-neutral-700 dark:text-neutral-300 focus:outline-none focus:ring-2 focus:ring-[#007aff] cursor-pointer"
+            className="h-9 px-3 text-xs bg-black/[0.04] dark:bg-white/[0.06] border border-black/[0.06] dark:border-white/[0.08] rounded-xl text-neutral-700 dark:text-neutral-300 focus:outline-none focus:ring-2 focus:ring-[#007aff] cursor-pointer box-border"
           >
             <option value="all">All Categories</option>
             <option value="work">Work</option>
@@ -199,7 +199,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
           <select
             value={priorityFilter}
             onChange={(e) => setPriorityFilter(e.target.value)}
-            className="px-2.5 py-1.5 text-xs bg-black/[0.04] dark:bg-white/[0.06] border border-black/[0.06] dark:border-white/[0.08] rounded-[12px] text-neutral-700 dark:text-neutral-300 focus:outline-none focus:ring-2 focus:ring-[#007aff] cursor-pointer"
+            className="h-9 px-3 text-xs bg-black/[0.04] dark:bg-white/[0.06] border border-black/[0.06] dark:border-white/[0.08] rounded-xl text-neutral-700 dark:text-neutral-300 focus:outline-none focus:ring-2 focus:ring-[#007aff] cursor-pointer box-border"
           >
             <option value="all">All Priorities</option>
             <option value="urgent">Urgent</option>
@@ -215,7 +215,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
                 setCategoryFilter('all');
                 setPriorityFilter('all');
               }}
-              className="px-2.5 py-1.5 text-xs font-semibold text-[#ff3b30] hover:bg-[#ff3b30]/10 rounded-[10px] transition-colors cursor-pointer"
+              className="h-9 px-3 text-xs font-semibold text-[#ff3b30] hover:bg-[#ff3b30]/10 rounded-xl transition-colors cursor-pointer flex items-center justify-center box-border"
             >
               Reset
             </button>
@@ -229,7 +229,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
         {/* ========================================================================= */}
         {/* COLUMN 1: UPCOMING (Calendar Events with 'pending' status)                */}
         {/* ========================================================================= */}
-        <div className="ios-card p-3.5 rounded-[22px] flex flex-col gap-3 min-h-[480px]">
+        <div className="ios-card p-3.5 rounded-2xl flex flex-col gap-3 min-h-[480px]">
           {/* Column Header */}
           <div className="flex items-center justify-between px-1">
             <div className="flex items-center gap-2">
@@ -352,7 +352,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
         {/* ========================================================================= */}
         {/* COLUMN 2: IN PROGRESS (Calendar Events with 'in_progress' status)         */}
         {/* ========================================================================= */}
-        <div className="ios-card p-3.5 rounded-[22px] flex flex-col gap-3 min-h-[480px]">
+        <div className="ios-card p-3.5 rounded-2xl flex flex-col gap-3 min-h-[480px]">
           {/* Column Header */}
           <div className="flex items-center justify-between px-1">
             <div className="flex items-center gap-2">
@@ -462,7 +462,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
         {/* ========================================================================= */}
         {/* COLUMN 3: DONE (Calendar Events with 'completed' status)                  */}
         {/* ========================================================================= */}
-        <div className="ios-card p-3.5 rounded-[22px] flex flex-col gap-3 min-h-[480px]">
+        <div className="ios-card p-3.5 rounded-2xl flex flex-col gap-3 min-h-[480px]">
           {/* Column Header */}
           <div className="flex items-center justify-between px-1">
             <div className="flex items-center gap-2">
@@ -564,7 +564,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
         {/* ========================================================================= */}
         {/* COLUMN 4: NOTES (Independent Notepad / Scratchpad Database)              */}
         {/* ========================================================================= */}
-        <div className="ios-card p-3.5 rounded-[22px] flex flex-col gap-3 min-h-[480px]">
+        <div className="ios-card p-3.5 rounded-2xl flex flex-col gap-3 min-h-[480px]">
           {/* Column Header */}
           <div className="flex items-center justify-between px-1">
             <div className="flex items-center gap-2">

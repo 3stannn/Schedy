@@ -20,7 +20,7 @@ export const StatCard: React.FC<StatCardProps> = ({
   return (
     <div
       onClick={onClick}
-      className={`ios-card p-4 rounded-[20px] transition-all text-neutral-900 dark:text-neutral-100 ${
+      className={`ios-card p-4 rounded-2xl transition-all text-neutral-900 dark:text-neutral-100 ${
         onClick ? 'cursor-pointer hover:border-[#007aff]/30 active:scale-[0.98]' : ''
       }`}
     >

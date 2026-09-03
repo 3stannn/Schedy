@@ -106,8 +106,8 @@ export const EventListView: React.FC<EventListViewProps> = ({
     <div className="space-y-4 text-[#1c1917] dark:text-[#f4f4f5]">
 
       {/* Search & Filter Toolbar */}
-      <div className="ios-card p-4 rounded-[20px] space-y-3">
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+      <div className="ios-card p-2 sm:p-2.5 rounded-2xl space-y-2">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
 
           {/* Search Input */}
           <div className="relative flex-1">
@@ -117,7 +117,7 @@ export const EventListView: React.FC<EventListViewProps> = ({
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Filter by keyword, title, notes..."
-              className="w-full pl-9 pr-3 py-1.5 text-xs rounded-[12px] bg-black/[0.04] dark:bg-white/[0.06] border border-black/[0.06] dark:border-white/[0.08] text-neutral-900 dark:text-neutral-100 placeholder-neutral-400 outline-none focus:ring-2 focus:ring-[#007aff] transition-all"
+              className="w-full h-9 pl-9 pr-3 text-xs rounded-xl bg-black/[0.04] dark:bg-white/[0.06] border border-black/[0.06] dark:border-white/[0.08] text-neutral-900 dark:text-neutral-100 placeholder-neutral-400 outline-none focus:ring-2 focus:ring-[#007aff] transition-all box-border"
             />
           </div>
 
@@ -139,7 +139,7 @@ export const EventListView: React.FC<EventListViewProps> = ({
           {isAdmin && (
             <button
               onClick={onAddNew}
-              className="ios-btn-filled flex items-center justify-center gap-1 px-3 py-1.5 text-xs font-semibold text-white bg-[#007aff] hover:bg-[#0071e3] rounded-[12px] shadow-xs active:scale-95 shrink-0 cursor-pointer min-h-[34px]"
+              className="h-9 px-3.5 text-xs font-semibold text-white bg-[#007aff] hover:bg-[#0071e3] rounded-xl shadow-xs active:scale-[0.98] shrink-0 cursor-pointer flex items-center justify-center gap-1.5 box-border"
             >
               <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
               <span>New</span>
@@ -148,7 +148,7 @@ export const EventListView: React.FC<EventListViewProps> = ({
         </div>
 
         {/* Dropdown Filters */}
-        <div className="flex items-center gap-2 flex-wrap pt-2.5 border-t border-black/[0.06] dark:border-white/[0.08] text-xs">
+        <div className="flex items-center gap-2 flex-wrap pt-2 border-t border-black/[0.06] dark:border-white/[0.08] text-xs">
           <span className="text-neutral-400 flex items-center gap-1 font-semibold mr-1 text-[10px] uppercase tracking-wider">
             <SlidersHorizontal className="w-3 h-3" /> Filter:
           </span>
@@ -156,7 +156,7 @@ export const EventListView: React.FC<EventListViewProps> = ({
           <select
             value={categoryFilter}
             onChange={e => setCategoryFilter(e.target.value)}
-            className="px-2.5 py-1 rounded-[10px] bg-black/[0.04] dark:bg-white/[0.06] text-neutral-700 dark:text-neutral-300 text-xs border border-black/[0.06] dark:border-white/[0.08] outline-none focus:ring-2 focus:ring-[#007aff] cursor-pointer font-medium"
+            className="h-9 px-3 rounded-xl bg-black/[0.04] dark:bg-white/[0.06] text-neutral-700 dark:text-neutral-300 text-xs border border-black/[0.06] dark:border-white/[0.08] outline-none focus:ring-2 focus:ring-[#007aff] cursor-pointer font-medium box-border"
           >
             <option value="all">Category: All</option>
             <option value="work">Work</option>
@@ -170,7 +170,7 @@ export const EventListView: React.FC<EventListViewProps> = ({
           <select
             value={priorityFilter}
             onChange={e => setPriorityFilter(e.target.value)}
-            className="px-2.5 py-1 rounded-[10px] bg-black/[0.04] dark:bg-white/[0.06] text-neutral-700 dark:text-neutral-300 text-xs border border-black/[0.06] dark:border-white/[0.08] outline-none focus:ring-2 focus:ring-[#007aff] cursor-pointer font-medium"
+            className="h-9 px-3 rounded-xl bg-black/[0.04] dark:bg-white/[0.06] text-neutral-700 dark:text-neutral-300 text-xs border border-black/[0.06] dark:border-white/[0.08] outline-none focus:ring-2 focus:ring-[#007aff] cursor-pointer font-medium box-border"
           >
             <option value="all">Priority: All</option>
             <option value="urgent">Urgent</option>
@@ -182,7 +182,7 @@ export const EventListView: React.FC<EventListViewProps> = ({
           <select
             value={statusFilter}
             onChange={e => setStatusFilter(e.target.value)}
-            className="px-2.5 py-1 rounded-[10px] bg-black/[0.04] dark:bg-white/[0.06] text-neutral-700 dark:text-neutral-300 text-xs border border-black/[0.06] dark:border-white/[0.08] outline-none focus:ring-2 focus:ring-[#007aff] cursor-pointer font-medium"
+            className="h-9 px-3 rounded-xl bg-black/[0.04] dark:bg-white/[0.06] text-neutral-700 dark:text-neutral-300 text-xs border border-black/[0.06] dark:border-white/[0.08] outline-none focus:ring-2 focus:ring-[#007aff] cursor-pointer font-medium box-border"
           >
             <option value="all">Status: All</option>
             <option value="pending">Pending</option>
@@ -200,7 +200,7 @@ export const EventListView: React.FC<EventListViewProps> = ({
                 setStatusFilter('all');
                 setTimeFilter('all');
               }}
-              className="text-[11px] font-semibold text-[#ff3b30] hover:underline ml-auto cursor-pointer"
+              className="h-9 px-3 rounded-xl text-xs font-semibold text-[#ff3b30] hover:bg-[#ff3b30]/10 flex items-center justify-center cursor-pointer ml-auto box-border"
             >
               Reset Filters
             </button>
@@ -217,7 +217,7 @@ export const EventListView: React.FC<EventListViewProps> = ({
 
       {/* Events List Cards */}
       {filteredEvents.length === 0 ? (
-        <div className="ios-card rounded-[20px] p-12 text-center">
+        <div className="ios-card rounded-2xl p-12 text-center">
           <Calendar className="w-8 h-8 text-neutral-300 dark:text-neutral-600 mx-auto mb-2 opacity-50" />
           <h4 className="text-xs font-bold text-neutral-700 dark:text-neutral-300">
             No events found

@@ -72,7 +72,7 @@ export const EventCard: React.FC<EventCardProps> = ({
       )}
 
       <div
-        className={`group relative ios-card rounded-[18px] p-4 transition-all text-neutral-900 dark:text-neutral-100 ${
+        className={`group relative ios-card rounded-2xl p-4 transition-all text-neutral-900 dark:text-neutral-100 ${
           isCompleted ? 'opacity-60 bg-black/[0.02] dark:bg-white/[0.02]' : ''
         }`}
       >

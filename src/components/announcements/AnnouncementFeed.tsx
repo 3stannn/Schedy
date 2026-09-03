@@ -154,7 +154,7 @@ export const AnnouncementFeed: React.FC<AnnouncementFeedProps> = ({
       <div className="space-y-4 text-[#1c1917] dark:text-[#f4f4f5]">
         
         {/* Controls Bar */}
-        <div className="ios-card flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3.5 rounded-[20px]">
+        <div className="ios-card flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 p-2 sm:p-2.5 rounded-2xl">
           {/* Search */}
           <div className="relative flex-1 max-w-sm">
             <Search className="w-3.5 h-3.5 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -163,7 +163,7 @@ export const AnnouncementFeed: React.FC<AnnouncementFeedProps> = ({
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Search bulletins..."
-              className="w-full pl-9 pr-3 py-1.5 text-xs rounded-[12px] bg-black/[0.04] dark:bg-white/[0.06] border border-black/[0.06] dark:border-white/[0.08] text-neutral-900 dark:text-neutral-100 placeholder-neutral-400 outline-none focus:ring-2 focus:ring-[#007aff] transition-all"
+              className="w-full h-9 pl-9 pr-3 text-xs rounded-xl bg-black/[0.04] dark:bg-white/[0.06] border border-black/[0.06] dark:border-white/[0.08] text-neutral-900 dark:text-neutral-100 placeholder-neutral-400 outline-none focus:ring-2 focus:ring-[#007aff] transition-all box-border"
             />
           </div>
 
@@ -214,7 +214,7 @@ export const AnnouncementFeed: React.FC<AnnouncementFeedProps> = ({
             {isAdmin && (
               <button
                 onClick={onAddNew}
-                className="ios-btn-filled flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-white bg-[#007aff] hover:bg-[#0071e3] rounded-[12px] shadow-xs active:scale-95 whitespace-nowrap cursor-pointer min-h-[34px]"
+                className="h-9 px-3.5 text-xs font-semibold text-white bg-[#007aff] hover:bg-[#0071e3] rounded-xl shadow-xs active:scale-[0.98] whitespace-nowrap cursor-pointer flex items-center gap-1.5 box-border"
               >
                 <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
                 <span>Post Notice</span>
@@ -225,13 +225,13 @@ export const AnnouncementFeed: React.FC<AnnouncementFeedProps> = ({
 
         {/* Feed List */}
         {filteredAnnouncements.length === 0 ? (
-          <div className="ios-card rounded-[20px] p-12 text-center">
+          <div className="ios-card rounded-2xl p-12 text-center">
             <Megaphone className="w-8 h-8 text-neutral-300 dark:text-neutral-600 mx-auto mb-2 opacity-50" />
             <h4 className="text-xs font-bold text-neutral-700 dark:text-neutral-300">
-              No announcements found
+              No notices found
             </h4>
-            <p className="text-[11px] text-neutral-400 mt-1 max-w-sm mx-auto font-medium">
-              There are no announcements matching your current filters.
+            <p className="text-[11px] text-neutral-400 mt-0.5">
+              {search ? 'Try adjusting your search criteria' : 'Check back later for updates'}
             </p>
           </div>
         ) : (
@@ -244,7 +244,7 @@ export const AnnouncementFeed: React.FC<AnnouncementFeedProps> = ({
               return (
                 <div
                   key={anno.id}
-                  className={`ios-card rounded-[20px] p-4.5 transition-all relative group text-neutral-900 dark:text-neutral-100 ${
+                  className={`ios-card rounded-2xl p-4 transition-all relative group text-neutral-900 dark:text-neutral-100 ${
                     anno.isRead ? 'opacity-80' : ''
                   }`}
                 >
