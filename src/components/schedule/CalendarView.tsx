@@ -36,7 +36,8 @@ import {
   isBefore,
   isAfter,
   getHours,
-  getMinutes
+  getMinutes,
+  differenceInCalendarDays
 } from 'date-fns';
 
 interface CalendarViewProps {
@@ -72,6 +73,119 @@ interface PositionedEvent {
   startTimeLabel: string;
   endTimeLabel: string;
 }
+
+const parseEventDate = (dateStr?: string): Date | null => {
+  if (!dateStr) return null;
+  try {
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+      const [y, m, d] = dateStr.split('-').map(Number);
+      return new Date(y, m - 1, d, 12, 0, 0);
+    }
+    const parsed = parseISO(dateStr);
+    if (!isNaN(parsed.getTime())) return parsed;
+    const fallback = new Date(dateStr);
+    if (!isNaN(fallback.getTime())) return fallback;
+  } catch {
+    return null;
+  }
+  return null;
+};
+
+const isMultiDayEvent = (event: ScheduleEvent): boolean => {
+  if (!event.startTime || !event.endTime) return false;
+  const s = parseEventDate(event.startTime);
+  const e = parseEventDate(event.endTime);
+  if (!s || !e) return false;
+  return !isSameDay(s, e) && isAfter(e, s);
+};
+
+interface MultiDaySegment {
+  event: ScheduleEvent;
+  startIndex: number; // 0 to 6
+  span: number;       // 1 to 7
+  isStart: boolean;   // starts this week
+  isEnd: boolean;     // ends this week
+  eventStart: Date;
+  eventEnd: Date;
+}
+
+interface PositionedMultiDaySegment extends MultiDaySegment {
+  row: number;
+}
+
+const getMultiDaySegmentsForWeek = (weekDays: Date[], allEvents: ScheduleEvent[]): MultiDaySegment[] => {
+  if (weekDays.length !== 7) return [];
+  const wStart = startOfDay(weekDays[0]);
+  const wEnd = endOfDay(weekDays[6]);
+
+  const segments: MultiDaySegment[] = [];
+
+  for (const evt of allEvents) {
+    if (!evt.startTime) continue;
+    const s = parseEventDate(evt.startTime);
+    if (!s) continue;
+    const e = parseEventDate(evt.endTime) || s;
+
+    // Must span across multiple calendar days
+    if (isSameDay(s, e) || isBefore(e, s)) continue;
+
+    // Check intersection with this week
+    if (isAfter(s, wEnd) || isBefore(e, wStart)) continue;
+
+    const isStart = !isBefore(s, wStart);
+    const isEnd = !isAfter(e, wEnd);
+
+    const startIndex = isStart ? Math.max(0, Math.min(6, differenceInCalendarDays(s, wStart))) : 0;
+    const endIndex = isEnd ? Math.max(0, Math.min(6, differenceInCalendarDays(e, wStart))) : 6;
+    const span = Math.max(1, endIndex - startIndex + 1);
+
+    segments.push({
+      event: evt,
+      startIndex,
+      span,
+      isStart,
+      isEnd,
+      eventStart: s,
+      eventEnd: e,
+    });
+  }
+
+  // Sort by startIndex, then longest span first, then title
+  segments.sort((a, b) => {
+    if (a.startIndex !== b.startIndex) return a.startIndex - b.startIndex;
+    if (b.span !== a.span) return b.span - a.span;
+    return a.event.title.localeCompare(b.event.title);
+  });
+
+  return segments;
+};
+
+const layoutMultiDaySegments = (segments: MultiDaySegment[]): PositionedMultiDaySegment[] => {
+  const rowEnds: number[] = [];
+  const positioned: PositionedMultiDaySegment[] = [];
+
+  for (const seg of segments) {
+    let placedRow = -1;
+    for (let r = 0; r < rowEnds.length; r++) {
+      if (rowEnds[r] < seg.startIndex) {
+        placedRow = r;
+        rowEnds[r] = seg.startIndex + seg.span - 1;
+        break;
+      }
+    }
+    if (placedRow === -1) {
+      rowEnds.push(seg.startIndex + seg.span - 1);
+      placedRow = rowEnds.length - 1;
+    }
+
+    positioned.push({
+      ...seg,
+      row: placedRow,
+    });
+  }
+
+  return positioned;
+};
 
 export const CalendarView: React.FC<CalendarViewProps> = ({
   events,
@@ -170,14 +284,18 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
     return events.filter(e => {
       if (!e.startTime) return false;
       try {
-        const s = parseISO(e.startTime);
-        const end = e.endTime ? parseISO(e.endTime) : s;
-        if (isNaN(s.getTime())) return false;
+        const s = parseEventDate(e.startTime);
+        if (!s) return false;
+        const end = e.endTime ? parseEventDate(e.endTime) || s : s;
         return !isAfter(s, dayEnd) && !isBefore(end, dayStart);
       } catch {
         return false;
       }
     });
+  };
+
+  const getSingleDayEventsForDay = (date: Date) => {
+    return getEventsForDay(date).filter(e => !isMultiDayEvent(e));
   };
 
   const selectedDayEvents = getEventsForDay(selectedDate);
@@ -188,6 +306,14 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   const startDate = startOfWeek(monthStart);
   const endDate = endOfWeek(monthEnd);
   const monthDays = eachDayOfInterval({ start: startDate, end: endDate });
+
+  const weeks = React.useMemo(() => {
+    const result: Date[][] = [];
+    for (let i = 0; i < monthDays.length; i += 7) {
+      result.push(monthDays.slice(i, i + 7));
+    }
+    return result;
+  }, [monthDays]);
 
   // Notion-style pastel chip tags for Month list
   const getPriorityChipStyle = (priority: string) => {
@@ -247,7 +373,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
    * Layout algorithm: Calculate exact top, height, and side-by-side columns for timed events on a day
    */
   const calculateTimedLayout = (dayEvents: ScheduleEvent[], dayDate: Date): PositionedEvent[] => {
-    const timed = dayEvents.filter(e => !e.isAllDay);
+    const timed = dayEvents.filter(e => !e.isAllDay && !isMultiDayEvent(e));
     if (timed.length === 0) return [];
 
     interface EventWithInterval {
@@ -439,8 +565,8 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
             {/* Month Calendar Grid */}
             <div className="ios-card lg:col-span-3 p-3.5 rounded-2xl overflow-hidden">
-              {/* Weekday headers */}
-              <div className="grid grid-cols-7 gap-px text-center mb-2 pb-2 border-b border-black/[0.06] dark:border-white/[0.08]">
+              {/* Weekday headers with vertical dividers */}
+              <div className="grid grid-cols-7 divide-x divide-neutral-200/80 dark:divide-neutral-800 text-center mb-2 pb-2 border-b border-neutral-200/80 dark:border-neutral-800">
                 {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
                   <div key={day} className="text-[11px] font-bold uppercase tracking-wider text-neutral-400 py-0.5">
                     <span className="hidden sm:inline">{day}</span>
@@ -449,84 +575,175 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                 ))}
               </div>
 
-              {/* 7x6 Calendar Grid Days */}
-              <div className="grid grid-cols-7 gap-1 sm:gap-1.5 auto-rows-fr">
-                {monthDays.map((day, idx) => {
-                  const isCurrentMonth = isSameMonth(day, monthStart);
-                  const isCurrentDay = isToday(day);
-                  const isSelected = isSameDay(day, selectedDate);
-                  const dayEvents = getEventsForDay(day);
+              {/* Weeks Rows with Multi-Day Event Boxing and Continuous Vertical Dividers */}
+              <div className="rounded-xl border border-neutral-200/80 dark:border-neutral-800 overflow-hidden divide-y divide-neutral-200/80 dark:divide-neutral-800 bg-black/[0.005] dark:bg-white/[0.01]">
+                {weeks.map((week, wIdx) => {
+                  const weekSegments = layoutMultiDaySegments(getMultiDaySegmentsForWeek(week, events));
+                  const multiDayRowCount = weekSegments.length > 0 ? Math.max(...weekSegments.map(s => s.row)) + 1 : 0;
+                  const multiDayRows = Array.from({ length: multiDayRowCount }, (_, r) =>
+                    weekSegments.filter(s => s.row === r)
+                  );
 
                   return (
                     <div
-                      key={idx}
-                      onClick={() => setSelectedDate(day)}
-                      onDoubleClick={() => onAddEventForDate(day)}
-                      className={`min-h-[64px] sm:min-h-[82px] p-1 sm:p-1.5 rounded-[12px] border transition-all cursor-pointer flex flex-col justify-between ${
-                        isSelected
-                          ? 'border-[#007aff] bg-[#007aff]/5 dark:bg-[#007aff]/10 ring-1 ring-[#007aff]/30 shadow-xs'
-                          : isCurrentDay
-                          ? 'border-[#ff3b30]/30 bg-[#ff3b30]/5 dark:bg-[#ff3b30]/10'
-                          : isCurrentMonth
-                          ? 'border-black/[0.04] dark:border-white/[0.06] bg-black/[0.01] dark:bg-white/[0.02] hover:bg-black/[0.03] dark:hover:bg-white/[0.05]'
-                          : 'border-transparent bg-transparent opacity-35 hover:opacity-60'
-                      }`}
+                      key={wIdx}
+                      className="relative"
                     >
-                      <div className="flex items-center justify-between">
-                        <span
-                          className={`text-[11px] sm:text-xs font-bold w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center rounded-full ${
-                            isCurrentDay
-                              ? 'bg-[#ff3b30] text-white shadow-xs'
-                              : 'text-neutral-700 dark:text-neutral-300'
-                          }`}
-                        >
-                          {format(day, 'd')}
-                        </span>
-                        {dayEvents.length > 0 && (
-                          <span className="text-[8px] sm:text-[9px] font-mono px-1 rounded-full bg-black/5 dark:bg-white/10 text-neutral-500 hidden xs:inline">
-                            {dayEvents.length}
-                          </span>
-                        )}
+                      {/* Continuous vertical grid divider lines between all 7 date columns */}
+                      <div className="absolute inset-0 grid grid-cols-7 pointer-events-none divide-x divide-neutral-200/80 dark:divide-neutral-800">
+                        <div />
+                        <div />
+                        <div />
+                        <div />
+                        <div />
+                        <div />
+                        <div />
                       </div>
 
-                      {/* Mobile indicator dots */}
-                      <div className="flex sm:hidden items-center justify-center gap-0.5 mt-1 overflow-hidden">
-                        {dayEvents.slice(0, 3).map((evt, eIdx) => (
-                          <span
-                            key={eIdx}
-                            className={`w-1.5 h-1.5 rounded-full shrink-0 ${
-                              evt.priority === 'urgent'
-                                ? 'bg-rose-500'
-                                : evt.priority === 'high'
-                                ? 'bg-amber-500'
-                                : 'bg-blue-500'
-                            }`}
-                          />
-                        ))}
-                      </div>
+                      {/* Content sitting above vertical grid lines */}
+                      <div className="relative z-10 p-1 sm:p-1.5 space-y-1">
+                        {/* Day Header Row with Numbers */}
+                        <div className="grid grid-cols-7 gap-1 sm:gap-1.5">
+                          {week.map((day, dIdx) => {
+                            const isCurrentMonth = isSameMonth(day, monthStart);
+                            const isCurrentDay = isToday(day);
+                            const isSelected = isSameDay(day, selectedDate);
+                            const dayEvents = getEventsForDay(day);
 
-                      {/* Desktop Events pills in cell */}
-                      <div className="hidden sm:block space-y-0.5 mt-1 overflow-hidden">
-                        {dayEvents.slice(0, 2).map(evt => (
-                          <div
-                            key={evt.id}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onSelectEvent(evt);
-                            }}
-                            className={`text-[10px] font-medium px-1.5 py-0.5 rounded truncate cursor-pointer ${getPriorityChipStyle(evt.priority)} ${
-                              evt.status === 'completed' ? 'line-through opacity-50' : ''
-                            }`}
-                            title={`${evt.title} (${evt.isAllDay ? 'All Day' : format(parseISO(evt.startTime), 'p')})`}
-                          >
-                            {evt.title}
+                            return (
+                              <div
+                                key={dIdx}
+                                onClick={() => setSelectedDate(day)}
+                                onDoubleClick={() => onAddEventForDate(day)}
+                                className={`py-0.5 px-1 sm:px-1.5 rounded-lg flex items-center justify-between cursor-pointer transition-colors ${
+                                  isSelected
+                                    ? 'bg-[#007aff]/15 text-[#007aff] font-bold'
+                                    : isCurrentDay
+                                    ? 'bg-[#ff3b30]/15'
+                                    : isCurrentMonth
+                                    ? 'hover:bg-black/5 dark:hover:bg-white/5'
+                                    : 'opacity-30 hover:opacity-60'
+                                }`}
+                                title={format(day, 'PPPP')}
+                              >
+                                <span
+                                  className={`text-[11px] sm:text-xs font-bold w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center rounded-full ${
+                                    isCurrentDay
+                                      ? 'bg-[#ff3b30] text-white shadow-xs'
+                                      : isSelected
+                                      ? 'text-[#007aff]'
+                                      : 'text-neutral-700 dark:text-neutral-300'
+                                  }`}
+                                >
+                                  {format(day, 'd')}
+                                </span>
+
+                                {dayEvents.length > 0 && (
+                                  <span className="text-[8px] sm:text-[9px] font-mono px-1 rounded-full bg-black/5 dark:bg-white/10 text-neutral-500 hidden xs:inline">
+                                    {dayEvents.length}
+                                  </span>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+
+                        {/* Multi-Day Spanning Event Boxes */}
+                        {multiDayRows.map((rowSegments, rIdx) => (
+                          <div key={rIdx} className="grid grid-cols-7 gap-x-1 sm:gap-x-1.5">
+                            {rowSegments.map((seg, sIdx) => {
+                              const theme = getEventCardTheme(seg.event);
+                              return (
+                                <div
+                                  key={seg.event.id + '-' + sIdx}
+                                  style={{ gridColumn: `${seg.startIndex + 1} / span ${seg.span}` }}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    onSelectEvent(seg.event);
+                                  }}
+                                  className={`h-5 sm:h-6 px-1.5 sm:px-2 rounded-lg border text-[10px] sm:text-[11px] font-semibold flex items-center justify-between gap-1 shadow-2xs truncate cursor-pointer transition-all hover:scale-[1.01] active:scale-[0.99] ${
+                                    seg.isStart ? 'rounded-l-lg' : 'rounded-l-none border-l-0 pl-1'
+                                  } ${
+                                    seg.isEnd ? 'rounded-r-lg' : 'rounded-r-none border-r-0 pr-1'
+                                  } ${theme.card} ${seg.event.status === 'completed' ? 'line-through opacity-50' : ''}`}
+                                  title={`${seg.event.title} (${format(seg.eventStart, 'MMM d')} → ${format(seg.eventEnd, 'MMM d')})`}
+                                >
+                                  <div className="flex items-center gap-1 min-w-0 truncate">
+                                    {!seg.isStart && <span className="text-[9px] font-bold opacity-70">‹</span>}
+                                    <span className="truncate font-bold">{seg.event.title}</span>
+                                    {seg.isStart && (
+                                      <span className="text-[9px] opacity-75 font-mono hidden md:inline">
+                                        ({format(seg.eventStart, 'M/d')} → {format(seg.eventEnd, 'M/d')})
+                                      </span>
+                                    )}
+                                  </div>
+                                  {!seg.isEnd && <span className="text-[9px] font-bold opacity-70">›</span>}
+                                </div>
+                              );
+                            })}
                           </div>
                         ))}
-                        {dayEvents.length > 2 && (
-                          <div className="text-[9px] text-neutral-400 font-medium px-1">
-                            +{dayEvents.length - 2} more
-                          </div>
-                        )}
+
+                        {/* Single-Day Events Row */}
+                        <div className="grid grid-cols-7 gap-1 sm:gap-1.5 min-h-[36px] sm:min-h-[46px]">
+                          {week.map((day, dIdx) => {
+                            const singleEvents = getSingleDayEventsForDay(day);
+                            const isCurrentMonth = isSameMonth(day, monthStart);
+                            const isSelected = isSameDay(day, selectedDate);
+                            return (
+                              <div
+                                key={dIdx}
+                                onClick={() => setSelectedDate(day)}
+                                onDoubleClick={() => onAddEventForDate(day)}
+                                className={`p-0.5 sm:p-1 rounded-lg flex flex-col justify-start space-y-0.5 transition-colors cursor-pointer ${
+                                  isSelected
+                                    ? 'bg-[#007aff]/5 dark:bg-[#007aff]/10 ring-1 ring-[#007aff]/20'
+                                    : 'hover:bg-black/[0.02] dark:hover:bg-white/[0.04]'
+                                } ${!isCurrentMonth ? 'opacity-30' : ''}`}
+                              >
+                                {/* Mobile dots for singles */}
+                                <div className="flex sm:hidden items-center justify-center gap-0.5 overflow-hidden">
+                                  {singleEvents.slice(0, 3).map((evt, eIdx) => (
+                                    <span
+                                      key={eIdx}
+                                      className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                                        evt.priority === 'urgent'
+                                          ? 'bg-rose-500'
+                                          : evt.priority === 'high'
+                                          ? 'bg-amber-500'
+                                          : 'bg-blue-500'
+                                      }`}
+                                    />
+                                  ))}
+                                </div>
+
+                                {/* Desktop single event pills */}
+                                <div className="hidden sm:block space-y-0.5 overflow-hidden">
+                                  {singleEvents.slice(0, 2).map(evt => (
+                                    <div
+                                      key={evt.id}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        onSelectEvent(evt);
+                                      }}
+                                      className={`text-[10px] font-medium px-1.5 py-0.5 rounded truncate cursor-pointer ${getPriorityChipStyle(evt.priority)} ${
+                                        evt.status === 'completed' ? 'line-through opacity-50' : ''
+                                      }`}
+                                      title={`${evt.title} (${evt.isAllDay ? 'All Day' : format(parseISO(evt.startTime), 'p')})`}
+                                    >
+                                      {evt.title}
+                                    </div>
+                                  ))}
+                                  {singleEvents.length > 2 && (
+                                    <div className="text-[9px] text-neutral-400 font-medium px-1">
+                                      +{singleEvents.length - 2} more
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
                     </div>
                   );
@@ -606,10 +823,17 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                           <span className={`px-1.5 py-0.5 rounded-md font-semibold ${getPriorityChipStyle(evt.priority)}`}>
                             {evt.priority}
                           </span>
-                          <span className="flex items-center gap-1">
-                            <Clock className="w-3 h-3" />
-                            {evt.isAllDay ? 'All Day' : format(parseISO(evt.startTime), 'h:mm a')}
-                          </span>
+                          {isMultiDayEvent(evt) ? (
+                            <span className="flex items-center gap-1 font-semibold text-[#007aff] dark:text-[#0a84ff]">
+                              <Clock className="w-3 h-3" />
+                              <span>Multi-day</span>
+                            </span>
+                          ) : (
+                            <span className="flex items-center gap-1">
+                              <Clock className="w-3 h-3" />
+                              {evt.isAllDay ? 'All Day' : format(parseISO(evt.startTime), 'h:mm a')}
+                            </span>
+                          )}
                           {evt.location && (
                             <span className="flex items-center gap-1 truncate max-w-[100px]">
                               <MapPin className="w-3 h-3" />
@@ -691,40 +915,86 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                   </div>
                 </div>
 
-                {/* All-Day Events Strip (if any) */}
+                {/* Multi-Day & All-Day Spanning Strip */}
                 {(() => {
-                  const allDayEventsInWeek = weekDays.map(day => ({
+                  const weekMultiDaySegments = layoutMultiDaySegments(getMultiDaySegmentsForWeek(weekDays, events));
+                  const allDaySingleEvents = weekDays.map(day => ({
                     day,
-                    events: getEventsForDay(day).filter(e => e.isAllDay),
+                    events: getEventsForDay(day).filter(e => e.isAllDay && !isMultiDayEvent(e)),
                   }));
-                  const hasAllDay = allDayEventsInWeek.some(d => d.events.length > 0);
-                  if (!hasAllDay) return null;
+                  const hasMultiDay = weekMultiDaySegments.length > 0;
+                  const hasAllDaySingle = allDaySingleEvents.some(d => d.events.length > 0);
+
+                  if (!hasMultiDay && !hasAllDaySingle) return null;
+
+                  const multiDayRowCount = weekMultiDaySegments.length > 0 ? Math.max(...weekMultiDaySegments.map(s => s.row)) + 1 : 0;
+                  const multiDayRows = Array.from({ length: multiDayRowCount }, (_, r) => 
+                    weekMultiDaySegments.filter(s => s.row === r)
+                  );
 
                   return (
                     <div className="flex border-b border-neutral-200/80 dark:border-neutral-800 bg-neutral-50/70 dark:bg-neutral-900/50 text-xs">
-                      <div className="sticky left-0 z-30 w-12 sm:w-16 shrink-0 border-r border-neutral-200/60 dark:border-neutral-800/60 p-1.5 sm:p-2 text-[9px] sm:text-[10px] font-bold text-neutral-400 uppercase tracking-wider flex items-center justify-center bg-neutral-100/90 dark:bg-neutral-900/90 backdrop-blur-md shadow-2xs">
-                        All Day
+                      <div className="sticky left-0 z-30 w-12 sm:w-16 shrink-0 border-r border-neutral-200/60 dark:border-neutral-800/60 p-1 sm:p-1.5 text-[9px] sm:text-[10px] font-bold text-neutral-400 uppercase tracking-wider flex flex-col items-center justify-center bg-neutral-100/90 dark:bg-neutral-900/90 backdrop-blur-md shadow-2xs leading-tight text-center">
+                        <span>Multi-Day</span>
+                        <span className="text-[8px] font-normal opacity-70">/ All-Day</span>
                       </div>
-                      <div className="flex-1 grid grid-cols-7 divide-x divide-neutral-200/60 dark:divide-neutral-800/60 p-1">
-                        {allDayEventsInWeek.map(({ events: dayAllDayEvents }, idx) => (
-                          <div key={idx} className="space-y-1 px-0.5 sm:px-1">
-                            {dayAllDayEvents.map(evt => {
-                              const theme = getEventCardTheme(evt);
+
+                      <div className="flex-1 p-1 sm:p-1.5 space-y-1 overflow-x-hidden">
+                        {/* Multi-Day Spanning Rows */}
+                        {multiDayRows.map((rowSegments, rIdx) => (
+                          <div key={rIdx} className="grid grid-cols-7 gap-x-1 sm:gap-x-1.5">
+                            {rowSegments.map((seg, sIdx) => {
+                              const theme = getEventCardTheme(seg.event);
                               return (
                                 <div
-                                  key={evt.id}
-                                  onClick={() => onSelectEvent(evt)}
-                                  className={`p-1 sm:p-1.5 rounded-lg border text-[10px] sm:text-[11px] font-semibold truncate cursor-pointer transition-all hover:scale-[1.02] shadow-2xs ${theme.card} ${
-                                    evt.status === 'completed' ? 'line-through opacity-50' : ''
-                                  }`}
-                                  title={evt.title}
+                                  key={seg.event.id + '-' + sIdx}
+                                  style={{ gridColumn: `${seg.startIndex + 1} / span ${seg.span}` }}
+                                  onClick={() => onSelectEvent(seg.event)}
+                                  className={`h-6 sm:h-7 px-2 rounded-xl border text-[10px] sm:text-[11px] font-semibold flex items-center justify-between gap-1 shadow-2xs truncate cursor-pointer transition-all hover:scale-[1.01] active:scale-[0.99] ${
+                                    seg.isStart ? 'rounded-l-xl' : 'rounded-l-none border-l-0 pl-1'
+                                  } ${
+                                    seg.isEnd ? 'rounded-r-xl' : 'rounded-r-none border-r-0 pr-1'
+                                  } ${theme.card} ${seg.event.status === 'completed' ? 'line-through opacity-50' : ''}`}
+                                  title={`${seg.event.title} (${format(seg.eventStart, 'MMM d')} → ${format(seg.eventEnd, 'MMM d')})`}
                                 >
-                                  {evt.title}
+                                  <div className="flex items-center gap-1.5 min-w-0 truncate">
+                                    {!seg.isStart && <span className="text-[10px] font-bold opacity-70">‹</span>}
+                                    <span className="truncate font-bold">{seg.event.title}</span>
+                                    <span className="text-[9px] opacity-75 font-mono hidden sm:inline">
+                                      ({format(seg.eventStart, 'MMM d')} → {format(seg.eventEnd, 'MMM d')})
+                                    </span>
+                                  </div>
+                                  {!seg.isEnd && <span className="text-[10px] font-bold opacity-70">›</span>}
                                 </div>
                               );
                             })}
                           </div>
                         ))}
+
+                        {/* Single-Day All-Day Events */}
+                        {hasAllDaySingle && (
+                          <div className="grid grid-cols-7 gap-x-1 sm:gap-x-1.5 gap-y-1">
+                            {allDaySingleEvents.map(({ events: dayEvents }, idx) => (
+                              <div key={idx} className="space-y-1" style={{ gridColumn: `${idx + 1} / span 1` }}>
+                                {dayEvents.map(evt => {
+                                  const theme = getEventCardTheme(evt);
+                                  return (
+                                    <div
+                                      key={evt.id}
+                                      onClick={() => onSelectEvent(evt)}
+                                      className={`p-1 sm:p-1.5 rounded-lg border text-[10px] sm:text-[11px] font-semibold truncate cursor-pointer transition-all hover:scale-[1.02] shadow-2xs ${theme.card} ${
+                                        evt.status === 'completed' ? 'line-through opacity-50' : ''
+                                      }`}
+                                      title={evt.title}
+                                    >
+                                      {evt.title}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     </div>
                   );
@@ -872,7 +1142,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
         {/* ========================================================================= */}
         {viewMode === 'day' && (() => {
           const dayViewEvents = getEventsForDay(currentDate);
-          const dayAllDay = dayViewEvents.filter(e => e.isAllDay);
+          const dayAllDay = dayViewEvents.filter(e => e.isAllDay || isMultiDayEvent(e));
           const timedEvents = calculateTimedLayout(dayViewEvents, currentDate);
 
           return (
@@ -928,25 +1198,33 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                   )}
                 </div>
 
-                {/* All-Day Events Strip for Day View */}
+                {/* All-Day & Multi-Day Events Strip for Day View */}
                 {dayAllDay.length > 0 && (
                   <div className="flex border-b border-neutral-200/80 dark:border-neutral-800 bg-neutral-50/60 dark:bg-neutral-900/40 text-xs">
-                    <div className="w-12 sm:w-16 shrink-0 border-r border-neutral-200/60 dark:border-neutral-800/60 p-1.5 sm:p-2 text-[9px] sm:text-[10px] font-bold text-neutral-400 uppercase tracking-wider flex items-center justify-center">
-                      All Day
+                    <div className="w-12 sm:w-16 shrink-0 border-r border-neutral-200/60 dark:border-neutral-800/60 p-1.5 sm:p-2 text-[9px] sm:text-[10px] font-bold text-neutral-400 uppercase tracking-wider flex items-center justify-center text-center">
+                      Multi-Day
                     </div>
                     <div className="flex-1 p-1.5 sm:p-2 flex flex-wrap gap-1.5 sm:gap-2">
                       {dayAllDay.map(evt => {
                         const theme = getEventCardTheme(evt);
+                        const isMulti = isMultiDayEvent(evt);
+                        const s = parseEventDate(evt.startTime);
+                        const e = parseEventDate(evt.endTime);
                         return (
                           <div
                             key={evt.id}
                             onClick={() => onSelectEvent(evt)}
-                            className={`px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-lg sm:rounded-xl border text-[11px] sm:text-xs font-semibold cursor-pointer transition-all hover:scale-[1.02] shadow-2xs ${theme.card} ${
+                            className={`px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-lg sm:rounded-xl border text-[11px] sm:text-xs font-semibold cursor-pointer transition-all hover:scale-[1.02] shadow-2xs flex items-center gap-2 ${theme.card} ${
                               evt.status === 'completed' ? 'line-through opacity-50' : ''
                             }`}
                             title={evt.title}
                           >
-                            {evt.title}
+                            <span className="truncate">{evt.title}</span>
+                            {isMulti && s && e && (
+                              <span className="text-[10px] opacity-75 font-mono">
+                                ({format(s, 'MMM d')} → {format(e, 'MMM d')})
+                              </span>
+                            )}
                           </div>
                         );
                       })}
