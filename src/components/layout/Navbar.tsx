@@ -133,7 +133,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 onClick={() => setActiveTab('schedule')}
                 className={`w-full flex items-center justify-between px-3 py-2 rounded-[10px] text-xs font-medium transition-all cursor-pointer ${
                   activeTab === 'schedule'
-                    ? 'bg-white dark:bg-[#636366] text-black dark:text-white shadow-xs font-semibold'
+                    ? 'ios-nav-item-active bg-white dark:bg-[#636366] text-black dark:text-white shadow-xs font-semibold'
                     : 'text-neutral-600 dark:text-neutral-300 hover:text-black dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5'
                 }`}
               >
@@ -144,7 +144,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 onClick={() => setActiveTab('tasks')}
                 className={`w-full flex items-center justify-between px-3 py-2 rounded-[10px] text-xs font-medium transition-all cursor-pointer ${
                   activeTab === 'tasks'
-                    ? 'bg-white dark:bg-[#636366] text-black dark:text-white shadow-xs font-semibold'
+                    ? 'ios-nav-item-active bg-white dark:bg-[#636366] text-black dark:text-white shadow-xs font-semibold'
                     : 'text-neutral-600 dark:text-neutral-300 hover:text-black dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5'
                 }`}
               >
@@ -155,7 +155,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 onClick={() => setActiveTab('announcements')}
                 className={`w-full relative flex items-center justify-between px-3 py-2 rounded-[10px] text-xs font-medium transition-all cursor-pointer ${
                   activeTab === 'announcements'
-                    ? 'bg-white dark:bg-[#636366] text-black dark:text-white shadow-xs font-semibold'
+                    ? 'ios-nav-item-active bg-white dark:bg-[#636366] text-black dark:text-white shadow-xs font-semibold'
                     : 'text-neutral-600 dark:text-neutral-300 hover:text-black dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5'
                 }`}
               >
@@ -171,7 +171,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 onClick={() => setActiveTab('overview')}
                 className={`w-full flex items-center justify-between px-3 py-2 rounded-[10px] text-xs font-medium transition-all cursor-pointer ${
                   activeTab === 'overview'
-                    ? 'bg-white dark:bg-[#636366] text-black dark:text-white shadow-xs font-semibold'
+                    ? 'ios-nav-item-active bg-white dark:bg-[#636366] text-black dark:text-white shadow-xs font-semibold'
                     : 'text-neutral-600 dark:text-neutral-300 hover:text-black dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5'
                 }`}
               >
@@ -191,7 +191,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 onClick={() => setActiveTab('pomodoro')}
                 className={`w-full flex items-center justify-between px-3 py-2 rounded-[10px] text-xs font-medium transition-all cursor-pointer ${
                   activeTab === 'pomodoro'
-                    ? 'bg-white dark:bg-[#636366] text-black dark:text-white shadow-xs font-semibold'
+                    ? 'ios-nav-item-active bg-white dark:bg-[#636366] text-black dark:text-white shadow-xs font-semibold'
                     : 'text-neutral-600 dark:text-neutral-300 hover:text-black dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5'
                 }`}
               >
@@ -345,7 +345,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               onClick={() => setActiveTab('schedule')}
               className={`flex items-center justify-center py-1.5 rounded-[9px] text-[11px] font-medium transition-all cursor-pointer ${
                 activeTab === 'schedule'
-                  ? 'bg-white dark:bg-[#636366] text-black dark:text-white shadow-xs font-semibold'
+                  ? 'ios-nav-item-active bg-white dark:bg-[#636366] text-black dark:text-white shadow-xs font-semibold'
                   : 'text-neutral-600 dark:text-neutral-300'
               }`}
             >
@@ -356,7 +356,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               onClick={() => setActiveTab('tasks')}
               className={`flex items-center justify-center py-1.5 rounded-[9px] text-[11px] font-medium transition-all cursor-pointer ${
                 activeTab === 'tasks'
-                  ? 'bg-white dark:bg-[#636366] text-black dark:text-white shadow-xs font-semibold'
+                  ? 'ios-nav-item-active bg-white dark:bg-[#636366] text-black dark:text-white shadow-xs font-semibold'
                   : 'text-neutral-600 dark:text-neutral-300'
               }`}
             >
@@ -367,7 +367,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               onClick={() => setActiveTab('announcements')}
               className={`relative flex items-center justify-center py-1.5 rounded-[9px] text-[11px] font-medium transition-all cursor-pointer ${
                 activeTab === 'announcements'
-                  ? 'bg-white dark:bg-[#636366] text-black dark:text-white shadow-xs font-semibold'
+                  ? 'ios-nav-item-active bg-white dark:bg-[#636366] text-black dark:text-white shadow-xs font-semibold'
                   : 'text-neutral-600 dark:text-neutral-300'
               }`}
             >
@@ -383,7 +383,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               onClick={() => setActiveTab('overview')}
               className={`flex items-center justify-center py-1.5 rounded-[9px] text-[11px] font-medium transition-all cursor-pointer ${
                 activeTab === 'overview'
-                  ? 'bg-white dark:bg-[#636366] text-black dark:text-white shadow-xs font-semibold'
+                  ? 'ios-nav-item-active bg-white dark:bg-[#636366] text-black dark:text-white shadow-xs font-semibold'
                   : 'text-neutral-600 dark:text-neutral-300'
               }`}
             >
@@ -394,7 +394,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               onClick={() => setActiveTab('pomodoro')}
               className={`flex items-center justify-center gap-1 py-1.5 rounded-[9px] text-[11px] font-medium transition-all cursor-pointer ${
                 activeTab === 'pomodoro'
-                  ? 'bg-white dark:bg-[#636366] text-black dark:text-white shadow-xs font-semibold'
+                  ? 'ios-nav-item-active bg-white dark:bg-[#636366] text-black dark:text-white shadow-xs font-semibold'
                   : 'text-neutral-600 dark:text-neutral-300'
               }`}
             >

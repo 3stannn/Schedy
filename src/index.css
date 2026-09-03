@@ -41,83 +41,271 @@ body.pink {
   color: #1a1a1a;
 }
 
-/* Pink Theme (#FF8DA1 touch with white background & black text) */
-html.pink .text-\[\#2383e2\] {
-  color: #FF8DA1 !important;
+/* ==========================================================================
+   Pink Theme (#FF8DA1 / Soft Rose Palette with Apple HIG Aesthetics)
+   ========================================================================== */
+
+html.pink,
+html.pink body,
+body.pink {
+  background-color: #fff5f7 !important;
+  color: #1c1917 !important;
 }
 
-html.pink .bg-\[\#2383e2\] {
+html.pink ::selection {
+  background-color: #fbcfe8 !important;
+  color: #831843 !important;
+}
+
+/* Pink Scrollbars */
+html.pink ::-webkit-scrollbar-thumb {
+  background: #f4b8c5 !important;
+}
+
+html.pink ::-webkit-scrollbar-thumb:hover {
+  background: #e590a2 !important;
+}
+
+/* 1. iOS Cards, Grouped Lists, & Containers */
+html.pink .ios-card {
+  background-color: rgba(255, 255, 255, 0.94) !important;
+  border: 0.5px solid rgba(255, 141, 161, 0.28) !important;
+  box-shadow: 0 4px 20px -2px rgba(255, 141, 161, 0.1), 0 1px 3px rgba(0, 0, 0, 0.02) !important;
+}
+
+html.pink .ios-card:hover {
+  border-color: rgba(255, 141, 161, 0.45) !important;
+}
+
+html.pink .ios-nav-bar {
+  background-color: rgba(255, 245, 247, 0.88) !important;
+  border-bottom: 0.5px solid rgba(255, 141, 161, 0.25) !important;
+}
+
+html.pink .ios-grouped-list {
+  background-color: #ffffff !important;
+  border: 0.5px solid rgba(255, 141, 161, 0.25) !important;
+}
+
+/* 2. iOS Inputs */
+html.pink .ios-input {
+  background-color: rgba(255, 141, 161, 0.06) !important;
+  border-color: rgba(255, 141, 161, 0.22) !important;
+  color: #1c1917 !important;
+}
+
+html.pink .ios-input:focus {
+  background-color: #ffffff !important;
+  border-color: #FF8DA1 !important;
+  outline-color: #FF8DA1 !important;
+  box-shadow: 0 0 0 1px #FF8DA1, 0 0 0 4px rgba(255, 141, 161, 0.15) !important;
+}
+
+/* Strictly protect seamless Notion title & body inputs from having pink borders */
+html.pink input.border-none,
+html.pink input.outline-none,
+html.pink input[class*="border-none"],
+html.pink input[class*="focus:ring-0"],
+html.pink textarea.border-none,
+html.pink textarea.outline-none,
+html.pink textarea[class*="border-none"],
+html.pink textarea[class*="focus:ring-0"] {
+  background-color: transparent !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* 3. iOS Buttons */
+html.pink .ios-btn-filled {
   background-color: #FF8DA1 !important;
+  color: #ffffff !important;
 }
 
-html.pink .hover\:bg-\[\#1a73e8\]:hover {
+html.pink .ios-btn-filled:hover {
   background-color: #f0748b !important;
 }
 
-html.pink .hover\:bg-blue-50:hover {
-  background-color: #fff0f3 !important;
+html.pink .ios-btn-tinted {
+  background-color: rgba(255, 141, 161, 0.16) !important;
+  color: #d6336c !important;
 }
 
-html.pink .hover\:text-\[\#2383e2\]:hover {
-  color: #FF8DA1 !important;
+html.pink .ios-btn-tinted:hover {
+  background-color: rgba(255, 141, 161, 0.25) !important;
 }
 
-html.pink .border-\[\#2383e2\] {
+html.pink .ios-btn-plain {
+  color: #d6336c !important;
+}
+
+/* 4. iOS Segmented Controls (Pill switchers) */
+html.pink .ios-segmented-control {
+  background-color: rgba(255, 141, 161, 0.14) !important;
+}
+
+html.pink .ios-segmented-item {
+  color: #8c5b68 !important;
+}
+
+html.pink .ios-segmented-item:hover {
+  color: #d6336c !important;
+}
+
+html.pink .ios-segmented-item-active {
+  background-color: #ffffff !important;
+  color: #d6336c !important;
+  box-shadow: 0 1px 4px rgba(255, 141, 161, 0.28) !important;
+}
+
+/* 5. Primary Brand & Accent Overrides (all [#007aff], [#0a84ff], [#2383e2], blue utilities) */
+html.pink .bg-\[\#007aff\],
+html.pink .bg-\[\#0a84ff\],
+html.pink .bg-\[\#2383e2\],
+html.pink .bg-blue-600,
+html.pink .bg-blue-500 {
+  background-color: #FF8DA1 !important;
+  color: #ffffff !important;
+}
+
+html.pink .hover\:bg-\[\#0071e3\]:hover,
+html.pink .hover\:bg-\[\#1a73e8\]:hover,
+html.pink .hover\:bg-blue-600:hover,
+html.pink .hover\:bg-blue-700:hover {
+  background-color: #f0748b !important;
+}
+
+html.pink .text-\[\#007aff\],
+html.pink .text-\[\#0a84ff\],
+html.pink .text-\[\#2383e2\],
+html.pink .text-blue-600,
+html.pink .text-blue-500,
+html.pink .dark\:text-\[\#0a84ff\],
+html.pink .dark\:text-blue-400 {
+  color: #d6336c !important;
+}
+
+html.pink .hover\:text-\[\#007aff\]:hover,
+html.pink .hover\:text-\[\#2383e2\]:hover,
+html.pink .hover\:text-blue-600:hover,
+html.pink .group:hover .group-hover\:text-\[\#007aff\] {
+  color: #d6336c !important;
+}
+
+html.pink .border-\[\#007aff\],
+html.pink .border-\[\#0a84ff\],
+html.pink .border-\[\#2383e2\],
+html.pink .border-blue-500,
+html.pink .border-blue-600 {
   border-color: #FF8DA1 !important;
 }
 
-html.pink .text-blue-600 {
-  color: #e56c82 !important;
+html.pink .bg-\[\#007aff\]\/10,
+html.pink .bg-\[\#007aff\]\/15,
+html.pink .bg-\[\#007aff\]\/20,
+html.pink .bg-\[\#2383e2\]\/10,
+html.pink .bg-\[\#2383e2\]\/15,
+html.pink .bg-blue-50,
+html.pink .bg-blue-100 {
+  background-color: rgba(255, 141, 161, 0.16) !important;
+  color: #d6336c !important;
 }
 
-html.pink .bg-blue-50 {
-  background-color: #fff0f3 !important;
+html.pink .bg-\[\#007aff\]\/5 {
+  background-color: rgba(255, 141, 161, 0.08) !important;
 }
 
+html.pink .hover\:bg-\[\#007aff\]\/10:hover,
+html.pink .hover\:bg-\[\#007aff\]\/15:hover,
+html.pink .hover\:bg-\[\#007aff\]\/20:hover,
+html.pink .hover\:bg-blue-50:hover,
 html.pink .dark\:hover\:bg-blue-950\/30:hover {
-  background-color: #fff0f3 !important;
+  background-color: rgba(255, 141, 161, 0.24) !important;
 }
 
-html.pink .dark\:text-blue-400 {
-  color: #e56c82 !important;
-}
-
-html.pink .dark\:bg-neutral-800 {
-  background-color: #f8f8f8;
-  color: #1a1a1a;
-}
-
-html.pink .dark\:border-\[\#2e2e2e\] {
-  border-color: #f3e2e5;
-}
-
-html.pink .dark\:bg-\[\#191919\] {
-  background-color: #ffffff;
-  color: #1a1a1a;
-}
-
-html.pink .dark\:bg-\[\#202020\] {
-  background-color: #ffffff;
-  color: #1a1a1a;
-}
-
-html.pink .dark\:text-\[\#e6e6e6\] {
-  color: #1a1a1a;
-}
-
-html.pink .dark\:text-white {
-  color: #1a1a1a;
-}
-
-html.pink .focus\:ring-\[\#2383e2\]:focus {
+html.pink .focus\:ring-\[\#007aff\]:focus,
+html.pink .focus\:ring-\[\#2383e2\]:focus,
+html.pink .focus\:ring-blue-500:focus,
+html.pink .ring-\[\#007aff\],
+html.pink .ring-\[\#0a84ff\] {
   --tw-ring-color: #FF8DA1 !important;
+  border-color: #FF8DA1 !important;
 }
 
+html.pink .ring-\[\#007aff\]\/20,
+html.pink .ring-\[\#007aff\]\/25,
+html.pink .ring-\[\#007aff\]\/30 {
+  --tw-ring-color: rgba(255, 141, 161, 0.35) !important;
+}
+
+html.pink .hover\:border-\[\#007aff\]\/30:hover,
+html.pink .hover\:border-\[\#007aff\]\/40:hover,
+html.pink .hover\:border-\[\#007aff\]:hover {
+  border-color: rgba(255, 141, 161, 0.5) !important;
+}
+
+/* 6. Navigation Bar & Sidebar in Pink Mode */
+html.pink .ios-nav-item-active {
+  background-color: #ffffff !important;
+  color: #d6336c !important;
+  box-shadow: 0 1px 4px rgba(255, 141, 161, 0.28) !important;
+  font-weight: 700 !important;
+}
+
+html.pink aside nav button:not(.ios-nav-item-active) {
+  background-color: transparent !important;
+  color: #525252 !important;
+  box-shadow: none !important;
+  font-weight: 500 !important;
+}
+
+html.pink aside nav button:not(.ios-nav-item-active):hover {
+  background-color: rgba(255, 141, 161, 0.12) !important;
+  color: #d6336c !important;
+}
+
+html.pink aside {
+  border-color: rgba(255, 141, 161, 0.22) !important;
+}
+
+html.pink aside nav {
+  background-color: rgba(255, 141, 161, 0.08) !important;
+  border-color: rgba(255, 141, 161, 0.18) !important;
+}
+
+html.pink aside .bg-black\/\[0\.03\],
+html.pink aside .bg-black\/\[0\.04\],
+html.pink aside .bg-black\/\[0\.05\] {
+  background-color: rgba(255, 141, 161, 0.08) !important;
+  border-color: rgba(255, 141, 161, 0.16) !important;
+}
+
+/* 7. Calendar View Adaptations in Pink Mode */
+html.pink .bg-\[\#e8f3fc\] {
+  background-color: #fff0f3 !important;
+  border-color: #fcc2d0 !important;
+  color: #a61e4d !important;
+}
+
+html.pink .text-\[\#143c60\] {
+  color: #a61e4d !important;
+}
+
+html.pink .bg-\[\#cfe5f9\] {
+  background-color: #fcc2d0 !important;
+  color: #a61e4d !important;
+}
+
+html.pink .text-\[\#1c4d79\] {
+  color: #a61e4d !important;
+}
+
+/* 8. Modals, Toasts, & Overlays */
 html.pink .toast-item {
   background-color: rgba(255, 255, 255, 0.98) !important;
   border-color: #fcd5dc !important;
   color: #1a1a1a !important;
-  box-shadow: 0 10px 25px -5px rgba(255, 141, 161, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.05) !important;
+  box-shadow: 0 10px 25px -5px rgba(255, 141, 161, 0.25), 0 8px 10px -6px rgba(0, 0, 0, 0.05) !important;
 }
 
 html.pink .toast-item .toast-accent-icon {
@@ -126,6 +314,10 @@ html.pink .toast-item .toast-accent-icon {
 
 html.pink .toast-item .toast-progress-bar {
   background-color: #FF8DA1 !important;
+}
+
+html.pink .drop-shadow-\[0_0_12px_rgba\(37\,99\,235\,0\.25\)\] {
+  filter: drop-shadow(0 0 14px rgba(255, 141, 161, 0.45)) !important;
 }
 
 /* Custom Minimal Notion Scrollbar */

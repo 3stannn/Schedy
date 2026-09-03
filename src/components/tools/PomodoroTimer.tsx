@@ -578,18 +578,21 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
   const { minutes, seconds } = formatTime(timeLeft);
   const totalDuration = getModeDurationSeconds(mode, settings);
   const progressPercent = totalDuration > 0 ? ((totalDuration - timeLeft) / totalDuration) * 100 : 0;
+  const isPink = typeof document !== 'undefined' && document.documentElement.classList.contains('pink');
 
   // Theme color maps for modes
   const modeConfig = {
     focus: {
       label: 'Focus Time',
       subtitle: 'Stay locked in and eliminate distractions',
-      icon: <Brain className="w-4 h-4 text-blue-500" />,
-      colorClass: 'text-blue-600 dark:text-blue-400',
-      ringColor: '#2563eb',
-      glowClass: 'from-blue-500/10 via-indigo-500/5 to-transparent',
-      pillClass: 'bg-blue-600 text-white shadow-md shadow-blue-500/20',
-      tagBadge: 'bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200/60 dark:border-blue-900/40',
+      icon: <Brain className={`w-4 h-4 ${isPink ? 'text-[#FF8DA1]' : 'text-blue-500'}`} />,
+      colorClass: isPink ? 'text-[#d6336c]' : 'text-blue-600 dark:text-blue-400',
+      ringColor: isPink ? '#FF8DA1' : '#2563eb',
+      glowClass: isPink ? 'from-pink-500/15 via-rose-500/5 to-transparent' : 'from-blue-500/10 via-indigo-500/5 to-transparent',
+      pillClass: isPink ? 'bg-[#FF8DA1] text-white shadow-md shadow-pink-500/25' : 'bg-blue-600 text-white shadow-md shadow-blue-500/20',
+      tagBadge: isPink
+        ? 'bg-pink-50 text-pink-700 border border-pink-200/60'
+        : 'bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200/60 dark:border-blue-900/40',
     },
     shortBreak: {
       label: 'Short Break',
