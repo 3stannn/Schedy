@@ -24,6 +24,7 @@ interface EventListViewProps {
   onDeleteEvent: (id: string) => void;
   onStatusChange: (event: ScheduleEvent, status: EventStatus) => void;
   onAddNew: () => void;
+  onSelectEvent?: (event: ScheduleEvent) => void;
 }
 
 export const EventListView: React.FC<EventListViewProps> = ({
@@ -33,6 +34,7 @@ export const EventListView: React.FC<EventListViewProps> = ({
   onDeleteEvent,
   onStatusChange,
   onAddNew,
+  onSelectEvent,
 }) => {
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
@@ -248,6 +250,7 @@ export const EventListView: React.FC<EventListViewProps> = ({
                     onEdit={onEditEvent}
                     onDelete={onDeleteEvent}
                     onStatusChange={onStatusChange}
+                    onSelect={onSelectEvent || onEditEvent}
                   />
                 ))}
               </div>

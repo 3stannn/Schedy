@@ -23,6 +23,7 @@ interface OverviewDashboardProps {
   onNewAnnouncement?: () => void;
   onStatusChange: (event: ScheduleEvent, status: EventStatus) => void;
   onAcknowledgeAnnouncement: (id: string) => void;
+  onSelectEvent?: (event: ScheduleEvent) => void;
 }
 
 const formatEventTime = (isoString?: string, isAllDay?: boolean) => {
@@ -90,6 +91,7 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
   onNewEvent,
   onStatusChange,
   onAcknowledgeAnnouncement,
+  onSelectEvent,
 }) => {
   const safeEvents = Array.isArray(events) ? events : [];
   const safeAnnos = Array.isArray(announcements) ? announcements : [];
@@ -237,17 +239,22 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
                 return (
                   <div
                     key={evt.id}
-                    className={`p-3 rounded-[14px] border border-black/[0.06] dark:border-white/[0.08] transition-all flex items-start justify-between gap-3 ${
+                    onClick={() => onSelectEvent?.(evt)}
+                    className={`p-3 rounded-[14px] border border-black/[0.06] dark:border-white/[0.08] transition-all flex items-start justify-between gap-3 cursor-pointer active:scale-[0.99] ${
                       isCompleted
-                        ? 'bg-black/[0.02] dark:bg-white/[0.02] opacity-60'
+                        ? 'bg-black/[0.02] dark:bg-white/[0.02] opacity-60 hover:opacity-100 hover:border-black/20 dark:hover:border-white/20'
                         : isInProgress
-                        ? 'bg-amber-500/[0.04] border-amber-500/30 shadow-2xs'
-                        : 'bg-black/[0.02] dark:bg-white/[0.03] hover:border-[#007aff]/30 shadow-2xs'
+                        ? 'bg-amber-500/[0.04] border-amber-500/30 hover:border-amber-500/60 shadow-2xs'
+                        : 'bg-black/[0.02] dark:bg-white/[0.03] hover:border-[#007aff]/40 shadow-2xs'
                     }`}
                   >
                     <div className="flex items-start gap-2.5 flex-1 min-w-0">
                       <button
-                        onClick={() => onStatusChange(evt, isCompleted ? 'pending' : 'completed')}
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onStatusChange(evt, isCompleted ? 'pending' : 'completed');
+                        }}
                         className="mt-0.5 text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 transition-colors active:scale-90 cursor-pointer"
                         title={isCompleted ? 'Mark as Pending' : 'Mark as Completed'}
                       >
@@ -287,6 +294,7 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
                         href={evt.meetingUrl}
                         target="_blank"
                         rel="noreferrer"
+                        onClick={e => e.stopPropagation()}
                         className="p-1.5 rounded-[8px] text-[#007aff] dark:text-[#0a84ff] hover:bg-[#007aff]/10 text-xs shrink-0 transition-colors"
                         title="Join Meeting"
                       >

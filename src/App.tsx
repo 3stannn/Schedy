@@ -7,6 +7,7 @@ import { TopBanner } from './components/layout/TopBanner';
 import { CalendarView } from './components/schedule/CalendarView';
 import { EventListView } from './components/schedule/EventListView';
 import { EventModal } from './components/schedule/EventModal';
+import { EventPreviewModal } from './components/schedule/EventPreviewModal';
 import { AnnouncementFeed } from './components/announcements/AnnouncementFeed';
 import { AnnouncementModal } from './components/announcements/AnnouncementModal';
 import { TaskBoard } from './components/tasks/TaskBoard';
@@ -87,6 +88,9 @@ export function App() {
   const [isCloudConnected, setIsCloudConnected] = useState<boolean>(false);
 
   // Modals
+  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
+  const [previewingEvent, setPreviewingEvent] = useState<ScheduleEvent | null>(null);
+
   const [isEventModalOpen, setIsEventModalOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<ScheduleEvent | null>(null);
   const [selectedDateForNewEvent, setSelectedDateForNewEvent] = useState<Date | null>(null);
@@ -262,6 +266,39 @@ export function App() {
     } catch (err: any) {
       addToast('error', 'Failed to update status', err.message);
     }
+  };
+
+  const handleSelectEvent = (evt: ScheduleEvent) => {
+    const realId = evt.id.includes('_rec_') ? evt.id.split('_rec_')[0] : evt.id;
+    const baseEvent = events.find(e => e.id === realId) || evt;
+    setPreviewingEvent({
+      ...baseEvent,
+      startTime: evt.startTime,
+      endTime: evt.endTime,
+    });
+    setIsPreviewModalOpen(true);
+  };
+
+  const handleEditFromPreview = (evt: ScheduleEvent) => {
+    setIsPreviewModalOpen(false);
+    const realId = evt.id.includes('_rec_') ? evt.id.split('_rec_')[0] : evt.id;
+    const baseEvent = events.find(e => e.id === realId) || evt;
+    setEditingEvent(baseEvent);
+    setSelectedDateForNewEvent(null);
+    setIsEventModalOpen(true);
+  };
+
+  const handleStatusChangeFromPreview = async (event: ScheduleEvent, status: EventStatus) => {
+    await handleStatusChange(event, status);
+    setPreviewingEvent(prev => {
+      if (!prev) return null;
+      const realPrevId = prev.id.includes('_rec_') ? prev.id.split('_rec_')[0] : prev.id;
+      const realEventId = event.id.includes('_rec_') ? event.id.split('_rec_')[0] : event.id;
+      if (realPrevId === realEventId) {
+        return { ...prev, status };
+      }
+      return prev;
+    });
   };
 
   // Announcement Handlers
@@ -500,10 +537,7 @@ export function App() {
             {scheduleViewType === 'calendar' ? (
               <CalendarView
                 events={expandedEvents}
-                onSelectEvent={(evt) => {
-                  setEditingEvent(evt);
-                  setIsEventModalOpen(true);
-                }}
+                onSelectEvent={handleSelectEvent}
                 onAddEventForDate={(date) => {
                   setEditingEvent(null);
                   setSelectedDateForNewEvent(date);
@@ -519,6 +553,7 @@ export function App() {
                   setEditingEvent(evt);
                   setIsEventModalOpen(true);
                 }}
+                onSelectEvent={handleSelectEvent}
                 onDeleteEvent={handleDeleteEvent}
                 onStatusChange={handleStatusChange}
                 onAddNew={() => {
@@ -567,6 +602,7 @@ export function App() {
               events={expandedEvents}
               announcements={announcements}
               onNavigateTab={setActiveTab}
+              onSelectEvent={handleSelectEvent}
               onNewEvent={() => {
                 setEditingEvent(null);
                 setSelectedDateForNewEvent(new Date());
@@ -595,10 +631,7 @@ export function App() {
             <TaskBoard
               events={events}
               notes={notes}
-              onSelectEvent={(evt) => {
-                setEditingEvent(evt);
-                setIsEventModalOpen(true);
-              }}
+              onSelectEvent={handleSelectEvent}
               onStatusChange={handleStatusChange}
               onAddNewEvent={handleAddNewTaskFromBoard}
               onSelectNote={(note) => {
@@ -662,6 +695,15 @@ export function App() {
       </div>
 
       {/* Modals */}
+      <EventPreviewModal
+        isOpen={isPreviewModalOpen}
+        onClose={() => setIsPreviewModalOpen(false)}
+        event={previewingEvent}
+        onEdit={handleEditFromPreview}
+        onDelete={handleDeleteEvent}
+        onStatusChange={handleStatusChangeFromPreview}
+      />
+
       <EventModal
         isOpen={isEventModalOpen}
         onClose={() => setIsEventModalOpen(false)}

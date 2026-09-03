@@ -21,6 +21,7 @@ interface EventCardProps {
   onEdit: (event: ScheduleEvent) => void;
   onDelete: (id: string) => void;
   onStatusChange: (event: ScheduleEvent, status: EventStatus) => void;
+  onSelect?: (event: ScheduleEvent) => void;
 }
 
 const priorityColors: Record<PriorityLevel, { tag: string }> = {
@@ -45,6 +46,7 @@ export const EventCard: React.FC<EventCardProps> = ({
   onEdit,
   onDelete,
   onStatusChange,
+  onSelect,
 }) => {
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const isCompleted = event.status === 'completed';
@@ -72,7 +74,8 @@ export const EventCard: React.FC<EventCardProps> = ({
       )}
 
       <div
-        className={`group relative ios-card rounded-2xl p-4 transition-all text-neutral-900 dark:text-neutral-100 ${
+        onClick={() => (onSelect ? onSelect(event) : onEdit(event))}
+        className={`group relative ios-card rounded-2xl p-4 transition-all text-neutral-900 dark:text-neutral-100 cursor-pointer hover:border-[#007aff]/40 active:scale-[0.99] ${
           isCompleted ? 'opacity-60 bg-black/[0.02] dark:bg-white/[0.02]' : ''
         }`}
       >
@@ -80,7 +83,11 @@ export const EventCard: React.FC<EventCardProps> = ({
           {/* Left Checkbox & Content */}
           <div className="flex items-start gap-3 flex-1 min-w-0">
             <button
-              onClick={() => onStatusChange(event, isCompleted ? 'pending' : 'completed')}
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onStatusChange(event, isCompleted ? 'pending' : 'completed');
+              }}
               className="mt-0.5 text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 transition-colors shrink-0 active:scale-90 cursor-pointer"
               title={isCompleted ? 'Mark incomplete' : 'Mark complete'}
             >
@@ -146,6 +153,7 @@ export const EventCard: React.FC<EventCardProps> = ({
                     href={event.meetingUrl.startsWith('http') ? event.meetingUrl : `https://${event.meetingUrl}`}
                     target="_blank"
                     rel="noopener noreferrer"
+                    onClick={e => e.stopPropagation()}
                     className="flex items-center gap-1 text-blue-600 dark:text-blue-400 hover:underline shrink-0 font-semibold"
                   >
                     <Video className="w-3.5 h-3.5" />
@@ -160,14 +168,22 @@ export const EventCard: React.FC<EventCardProps> = ({
           {isAdmin && (
             <div className="flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity shrink-0">
               <button
-                onClick={() => onEdit(event)}
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit(event);
+                }}
                 className="p-2 sm:p-1.5 text-neutral-400 hover:text-neutral-800 dark:hover:text-neutral-100 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg transition-colors cursor-pointer"
                 title="Edit event"
               >
                 <Edit3 className="w-3.5 h-3.5" />
               </button>
               <button
-                onClick={() => setShowConfirmDelete(true)}
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowConfirmDelete(true);
+                }}
                 className="p-2 sm:p-1.5 text-neutral-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-lg transition-colors cursor-pointer"
                 title="Delete event"
               >
