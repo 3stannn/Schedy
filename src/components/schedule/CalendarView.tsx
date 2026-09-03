@@ -10,7 +10,7 @@ import {
   Video,
   Trash2,
   Edit3
-} from 'lucide-react';
+} from '../common/MovingIcon';
 import { ConfirmModal } from '../common/ConfirmModal';
 import { FormattedNoteContent } from '../tasks/FormattedNoteContent';
 import { getEventAutoDeleteInfo } from '../../utils/autoDeleteUtils';
@@ -577,21 +577,21 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                         </h4>
                         
                         {isAdmin && (
-                          <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <div className="flex items-center gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity shrink-0">
                             <button
                               onClick={() => onSelectEvent(evt)}
-                              className="p-1 text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                              className="p-1.5 text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 cursor-pointer"
                               title="Edit"
                             >
-                              <Edit3 className="w-3 h-3" />
+                              <Edit3 className="w-3.5 h-3.5" />
                             </button>
                             {onDeleteEvent && (
                               <button
                                 onClick={() => setEventToDelete(evt)}
-                                className="p-1 text-neutral-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40"
+                                className="p-1.5 text-neutral-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40 cursor-pointer"
                                 title="Delete event"
                               >
-                                <Trash2 className="w-3 h-3" />
+                                <Trash2 className="w-3.5 h-3.5" />
                               </button>
                             )}
                           </div>

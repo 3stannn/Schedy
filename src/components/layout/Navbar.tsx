@@ -7,11 +7,11 @@ import {
   Plus, 
   Sun, 
   Moon, 
-  Flower2,
-  Menu,
-  X,
-  Timer
-} from 'lucide-react';
+  Flower2, 
+  Menu, 
+  X, 
+  Timer 
+} from '../common/MovingIcon';
 
 import type { PomodoroInfo } from '../tools/PomodoroTimer';
 
@@ -60,6 +60,8 @@ export const Navbar: React.FC<NavbarProps> = ({
       onNewAnnouncement();
     } else if (activeTab === 'tasks' && onNewTask) {
       onNewTask();
+    } else if (activeTab === 'pomodoro' && onNewTask) {
+      onNewTask();
     } else {
       onNewEvent();
     }
@@ -68,6 +70,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   const getPrimaryButtonText = () => {
     if (activeTab === 'announcements') return 'New Notice';
     if (activeTab === 'tasks') return 'New Task';
+    if (activeTab === 'pomodoro') return 'New Task';
     return 'New Event';
   };
 
@@ -338,12 +341,11 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
           </div>
 
-          {/* Mobile View Switcher Tabs Bar */}
-          {/* Outer R (14px) = Inner R (10px) + Padding (4px / p-1) */}
-          <div className="flex mt-2 p-1 rounded-[14px] bg-neutral-100/90 dark:bg-neutral-900/90 border border-neutral-200/60 dark:border-neutral-800/60 shadow-inner">
+          {/* Mobile View Switcher Tabs Bar (5 Tabs including Pomodoro Focus Timer) */}
+          <div className="grid grid-cols-5 mt-2 p-1 rounded-[14px] bg-neutral-100/90 dark:bg-neutral-900/90 border border-neutral-200/60 dark:border-neutral-800/60 shadow-inner gap-0.5 text-center">
             <button
               onClick={() => setActiveTab('schedule')}
-              className={`flex-1 flex items-center justify-center py-1 rounded-[10px] text-xs font-medium transition-all ${
+              className={`flex items-center justify-center py-1.5 rounded-[10px] text-[11px] font-medium transition-all ${
                 activeTab === 'schedule'
                   ? 'bg-white dark:bg-[#202024] text-[#1c1917] dark:text-white shadow-xs font-semibold'
                   : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
@@ -354,7 +356,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             <button
               onClick={() => setActiveTab('tasks')}
-              className={`flex-1 flex items-center justify-center py-1 rounded-[10px] text-xs font-medium transition-all ${
+              className={`flex items-center justify-center py-1.5 rounded-[10px] text-[11px] font-medium transition-all ${
                 activeTab === 'tasks'
                   ? 'bg-white dark:bg-[#202024] text-[#1c1917] dark:text-white shadow-xs font-semibold'
                   : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
@@ -365,7 +367,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             <button
               onClick={() => setActiveTab('announcements')}
-              className={`flex-1 relative flex items-center justify-center py-1 rounded-[10px] text-xs font-medium transition-all ${
+              className={`relative flex items-center justify-center py-1.5 rounded-[10px] text-[11px] font-medium transition-all ${
                 activeTab === 'announcements'
                   ? 'bg-white dark:bg-[#202024] text-[#1c1917] dark:text-white shadow-xs font-semibold'
                   : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
@@ -373,7 +375,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             >
               <span>Notices</span>
               {unreadCount > 0 && (
-                <span className="px-1.5 py-0.2 text-[9px] font-bold rounded-full bg-rose-500 text-white shadow-xs">
+                <span className="absolute -top-1 -right-0.5 px-1 py-0.2 text-[8px] font-bold rounded-full bg-rose-500 text-white shadow-xs">
                   {unreadCount}
                 </span>
               )}
@@ -381,13 +383,25 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             <button
               onClick={() => setActiveTab('overview')}
-              className={`flex-1 flex items-center justify-center py-1 rounded-[10px] text-xs font-medium transition-all ${
+              className={`flex items-center justify-center py-1.5 rounded-[10px] text-[11px] font-medium transition-all ${
                 activeTab === 'overview'
                   ? 'bg-white dark:bg-[#202024] text-[#1c1917] dark:text-white shadow-xs font-semibold'
                   : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
               }`}
             >
               <span>Overview</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('pomodoro')}
+              className={`flex items-center justify-center gap-1 py-1.5 rounded-[10px] text-[11px] font-medium transition-all ${
+                activeTab === 'pomodoro'
+                  ? 'bg-white dark:bg-[#202024] text-[#1c1917] dark:text-white shadow-xs font-semibold'
+                  : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+              }`}
+            >
+              <Timer className={`w-3 h-3 ${pomodoroInfo?.isRunning ? 'text-blue-500 animate-pulse' : ''}`} />
+              <span className="truncate">{pomodoroInfo?.isRunning ? `${Math.floor(pomodoroInfo.timeLeft / 60)}m` : 'Focus'}</span>
             </button>
           </div>
 

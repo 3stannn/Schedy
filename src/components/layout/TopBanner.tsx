@@ -1,6 +1,6 @@
 import React from 'react';
 import type { Announcement } from '../../types/announcement';
-import { CheckCircle2, AlertTriangle, Sparkles } from 'lucide-react';
+import { CheckCircle2, AlertTriangle, Sparkles } from '../common/MovingIcon';
 
 interface TopBannerProps {
   urgentAnnouncements: Announcement[];

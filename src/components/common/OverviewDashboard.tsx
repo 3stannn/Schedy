@@ -9,9 +9,9 @@ import {
   AlertTriangle, 
   ArrowRight, 
   Video, 
-  Pin,
-  Square
-} from 'lucide-react';
+  Pin, 
+  Square 
+} from './MovingIcon';
 import { isToday, parseISO, format } from 'date-fns';
 
 interface OverviewDashboardProps {

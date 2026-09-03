@@ -1,5 +1,5 @@
 import React from 'react';
-import { AlertTriangle, Info, X } from 'lucide-react';
+import { AlertTriangle, Info, X } from './MovingIcon';
 
 export interface ConfirmModalProps {
   isOpen: boolean;

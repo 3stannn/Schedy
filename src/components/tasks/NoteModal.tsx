@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import type { Note, NoteColor } from '../../types/note';
-import { X, Pin, Trash2, FileText } from 'lucide-react';
+import { X, Pin, Trash2, FileText } from '../common/MovingIcon';
 import { RichTextEditor } from './RichTextEditor';
 import { stripHtml } from './noteFormattingUtils';
 

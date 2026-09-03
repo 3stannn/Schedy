@@ -21,7 +21,7 @@ import {
   Check,
   Undo,
   Redo
-} from 'lucide-react';
+} from '../common/MovingIcon';
 import { convertMarkdownOrTextToHtml } from './noteFormattingUtils';
 
 interface RichTextEditorProps {

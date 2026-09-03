@@ -10,10 +10,10 @@ import {
   Trash2, 
   Clock, 
   User, 
-  Plus,
-  AlertTriangle,
-  Sparkles
-} from 'lucide-react';
+  Plus, 
+  AlertTriangle, 
+  Sparkles 
+} from '../common/MovingIcon';
 import { parseISO, formatDistanceToNow } from 'date-fns';
 import { ConfirmModal } from '../common/ConfirmModal';
 import { DevPasswordModal } from './DevPasswordModal';

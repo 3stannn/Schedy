@@ -17,7 +17,7 @@ import {
   Video,
   MapPin,
   Sparkles
-} from 'lucide-react';
+} from '../common/MovingIcon';
 import { format, parseISO } from 'date-fns';
 import { FormattedNoteContent } from './FormattedNoteContent';
 import { stripHtml } from './noteFormattingUtils';
@@ -618,20 +618,20 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
                         <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
                           <button
                             onClick={() => onTogglePinNote(note)}
-                            className={`p-1 rounded-md transition-colors ${note.isPinned
+                            className={`p-1.5 rounded-md transition-colors ${note.isPinned
                                 ? 'text-amber-500 bg-amber-100/60 dark:bg-amber-950/60'
-                                : 'text-neutral-400 opacity-0 group-hover:opacity-100 hover:text-neutral-700 dark:hover:text-neutral-200'
+                                : 'text-neutral-400 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 hover:text-neutral-700 dark:hover:text-neutral-200'
                               }`}
                             title={note.isPinned ? 'Unpin note' : 'Pin note to top'}
                           >
-                            <Pin className="w-3 h-3" />
+                            <Pin className="w-3.5 h-3.5" />
                           </button>
                           <button
                             onClick={() => onDeleteNote(note.id)}
-                            className="p-1 rounded-md text-neutral-400 opacity-0 group-hover:opacity-100 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
+                            className="p-1.5 rounded-md text-neutral-400 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
                             title="Delete note"
                           >
-                            <Trash2 className="w-3 h-3" />
+                            <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </div>
                       </div>

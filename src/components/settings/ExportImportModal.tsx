@@ -9,14 +9,14 @@ import {
   Calendar, 
   FileSpreadsheet, 
   FileJson, 
-  FileText,
+  FileText, 
   CheckCircle2, 
-  AlertCircle,
-  Download,
-  Copy,
-  Check,
-  Eye
-} from 'lucide-react';
+  AlertCircle, 
+  Download, 
+  Copy, 
+  Check, 
+  Eye 
+} from '../common/MovingIcon';
 
 interface ExportImportModalProps {
   isOpen: boolean;
@@ -261,7 +261,7 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
 
           {/* Export Preview Area */}
           <div className="space-y-2">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
               <div className="flex items-center gap-1.5 text-neutral-600 dark:text-neutral-300">
                 <Eye className="w-3.5 h-3.5 text-[#2383e2]" />
                 <span className="font-semibold text-xs">Preview: {previewData.label}</span>
@@ -269,11 +269,11 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
                   ({lineCount} {lineCount === 1 ? 'line' : 'lines'})
                 </span>
               </div>
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-2 w-full sm:w-auto">
                 <button
                   type="button"
                   onClick={handleCopy}
-                  className="flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-200 transition-colors shadow-2xs"
+                  className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-200 transition-colors shadow-2xs cursor-pointer min-h-[38px]"
                 >
                   {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
                   <span>{copied ? 'Copied' : 'Copy'}</span>
@@ -281,7 +281,7 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
                 <button
                   type="button"
                   onClick={handleDownload}
-                  className="flex items-center gap-1 px-3 py-1 text-xs font-medium rounded-lg bg-[#2383e2] hover:bg-[#1a73e8] text-white transition-colors shadow-xs"
+                  className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-xl bg-[#2383e2] hover:bg-[#1a73e8] text-white transition-colors shadow-xs active:scale-95 cursor-pointer min-h-[38px]"
                 >
                   <Download className="w-3.5 h-3.5" />
                   <span>Download {selectedFormat.toUpperCase()}</span>

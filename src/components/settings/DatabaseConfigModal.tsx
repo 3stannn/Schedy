@@ -10,7 +10,7 @@ import {
   Server,
   RefreshCw,
   BookOpen
-} from 'lucide-react';
+} from '../common/MovingIcon';
 import { ConfirmModal } from '../common/ConfirmModal';
 import {
   getSupabaseConfig,

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { CheckCircle2, AlertCircle, Info, AlertTriangle, X } from 'lucide-react';
+import { CheckCircle2, AlertCircle, Info, AlertTriangle, X } from './MovingIcon';
 
 export interface ToastMessage {
   id: string;
@@ -39,7 +39,7 @@ export function calculateToastDuration(toast: ToastMessage): number {
 
 export const ToastContainer: React.FC<ToastContainerProps> = ({ toasts, onDismiss }) => {
   return (
-    <div className="toast-container fixed bottom-5 right-5 z-50 flex flex-col gap-2.5 max-w-sm w-full pointer-events-none px-3 sm:px-0">
+    <div className="toast-container fixed top-3 sm:top-auto sm:bottom-5 right-2 sm:right-5 z-50 flex flex-col gap-2 max-w-sm w-[calc(100vw-1rem)] sm:w-full pointer-events-none px-1 sm:px-0">
       {toasts.map(toast => (
         <ToastItem key={toast.id} toast={toast} onDismiss={onDismiss} />
       ))}

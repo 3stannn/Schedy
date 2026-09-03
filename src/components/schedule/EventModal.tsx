@@ -12,7 +12,7 @@ import {
   CheckSquare,
   Layers,
   Calendar
-} from 'lucide-react';
+} from '../common/MovingIcon';
 import { format, addHours, parseISO } from 'date-fns';
 import { ConfirmModal } from '../common/ConfirmModal';
 import { RichTextEditor } from '../tasks/RichTextEditor';
@@ -167,10 +167,10 @@ export const EventModal: React.FC<EventModalProps> = ({
           message={`Are you sure you want to delete "${initialEvent?.title}"? This action cannot be undone.`}
         />
       )}
-      <div className="bg-white/95 dark:bg-[#161619]/95 backdrop-blur-2xl rounded-2xl max-w-3xl w-full max-h-[92vh] overflow-y-auto border border-neutral-200/80 dark:border-neutral-800/80 shadow-2xl transition-all text-[#1c1917] dark:text-[#f4f4f5]">
+      <div className="bg-white/95 dark:bg-[#161619]/95 backdrop-blur-2xl rounded-2xl max-w-3xl w-full max-h-[92vh] flex flex-col border border-neutral-200/80 dark:border-neutral-800/80 shadow-2xl transition-all text-[#1c1917] dark:text-[#f4f4f5] overflow-hidden">
 
         {/* Notion-style Top Action Bar */}
-        <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 border-b border-neutral-100 dark:border-neutral-800 text-xs text-neutral-400">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 border-b border-neutral-100 dark:border-neutral-800 text-xs text-neutral-400 shrink-0">
           <div className="flex items-center gap-2 font-medium">
             <Calendar className="w-4 h-4 text-[#2383e2]" />
             <span className="font-semibold text-neutral-700 dark:text-neutral-300">
@@ -183,7 +183,7 @@ export const EventModal: React.FC<EventModalProps> = ({
               <button
                 type="button"
                 onClick={() => setShowDeleteConfirm(true)}
-                className="p-1.5 rounded text-neutral-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
+                className="p-2 sm:p-1.5 rounded-lg text-neutral-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
                 title="Delete event"
               >
                 <Trash2 className="w-4 h-4" />
@@ -191,7 +191,7 @@ export const EventModal: React.FC<EventModalProps> = ({
             )}
             <button
               onClick={onClose}
-              className="p-1.5 rounded text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+              className="p-2 sm:p-1.5 rounded-lg text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
@@ -199,7 +199,7 @@ export const EventModal: React.FC<EventModalProps> = ({
         </div>
 
         {/* Notion Page Body */}
-        <form onSubmit={handleSubmit} className="p-4 sm:p-8 space-y-5">
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-4 sm:p-7 space-y-4 sm:space-y-5">
           {error && (
             <div className="flex items-center gap-2 p-3 text-xs text-rose-700 bg-rose-50 dark:bg-rose-950/40 dark:text-rose-300 rounded-lg border border-rose-200 dark:border-rose-900">
               <AlertTriangle className="w-4 h-4 shrink-0" />
@@ -401,17 +401,17 @@ export const EventModal: React.FC<EventModalProps> = ({
           </div>
 
           {/* Footer Actions */}
-          <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-neutral-100 dark:border-neutral-800">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-neutral-100 dark:border-neutral-800">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-1.5 text-xs font-medium text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded transition-colors"
+              className="px-4 py-2 text-xs font-semibold text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-xl transition-all cursor-pointer min-h-[40px]"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-5 py-1.5 text-xs font-medium text-white bg-[#2383e2] hover:bg-[#1a73e8] rounded shadow-xs transition-colors"
+              className="px-5 py-2 text-xs font-semibold text-white bg-[#2383e2] hover:bg-[#1a73e8] rounded-xl shadow-xs transition-all active:scale-95 cursor-pointer min-h-[40px]"
             >
               {initialEvent ? 'Save Changes' : 'Create Event'}
             </button>

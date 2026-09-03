@@ -48,7 +48,7 @@ import {
 } from './services/noteService';
 
 import { isUserSupabaseConfigured, testUserSupabaseConnection } from './services/supabaseClient';
-import { Calendar, List } from 'lucide-react';
+import { Calendar, List } from './components/common/MovingIcon';
 import { startOfMonth, endOfMonth, addMonths, subMonths } from 'date-fns';
 
 export function App() {
@@ -460,8 +460,8 @@ export function App() {
           onOpenFeed={() => setActiveTab('announcements')}
         />
 
-        {/* Main Container with generous left and right spacing */}
-        <main className="flex-1 w-full max-w-[1560px] mx-auto px-6 sm:px-10 md:px-12 lg:px-16 xl:px-20 2xl:px-24 py-6 sm:py-8 space-y-5">
+        {/* Main Container with generous responsive padding */}
+        <main className="flex-1 w-full max-w-[1560px] mx-auto px-3 sm:px-6 md:px-10 lg:px-12 xl:px-16 2xl:px-20 py-4 sm:py-7 space-y-4 sm:space-y-5">
         
         {/* TAB 1: SCHEDULE VIEW */}
         {activeTab === 'schedule' && (

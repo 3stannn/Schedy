@@ -356,3 +356,175 @@ html.dark .notion-editor hr,
 html.dark .notion-rendered-content hr {
   border-top-color: #27272a;
 }
+
+/* ==========================================================================
+   Moving Icons Micro-Animations (movingicons.dev motion dynamics)
+   ========================================================================== */
+
+@keyframes moving-swing {
+  0% { transform: rotate(0deg); }
+  20% { transform: rotate(14deg); }
+  40% { transform: rotate(-10deg); }
+  60% { transform: rotate(6deg); }
+  80% { transform: rotate(-3deg); }
+  100% { transform: rotate(0deg); }
+}
+
+@keyframes moving-wiggle {
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  25% { transform: rotate(-12deg) scale(1.05); }
+  50% { transform: rotate(10deg) scale(1.05); }
+  75% { transform: rotate(-6deg) scale(1.02); }
+}
+
+@keyframes moving-bounce {
+  0%, 100% { transform: translateY(0); }
+  35% { transform: translateY(-3px); }
+  65% { transform: translateY(2px); }
+}
+
+@keyframes moving-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes moving-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.18); }
+}
+
+@keyframes moving-pop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.22); }
+  100% { transform: scale(1); }
+}
+
+@keyframes moving-success {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.25) rotate(-6deg); }
+  70% { transform: scale(0.95); }
+  100% { transform: scale(1); }
+}
+
+@keyframes moving-nudge {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(2px, -2px); }
+}
+
+@keyframes moving-shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-3px); }
+  50% { transform: translateX(3px); }
+  75% { transform: translateX(-2px); }
+}
+
+/* Base moving icon style */
+.moving-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transform-origin: center center;
+  will-change: transform;
+  transition: transform 0.15s ease;
+}
+
+.moving-icon-swing {
+  transform-origin: top center;
+}
+
+/* Hover triggers: icon itself or parent button, anchor, or group container */
+.moving-icon-swing:hover,
+button:hover .moving-icon-swing,
+a:hover .moving-icon-swing,
+.group:hover .moving-icon-swing {
+  animation: moving-swing 0.75s ease-in-out;
+}
+
+.moving-icon-wiggle:hover,
+button:hover .moving-icon-wiggle,
+a:hover .moving-icon-wiggle,
+.group:hover .moving-icon-wiggle {
+  animation: moving-wiggle 0.6s ease-in-out;
+}
+
+.moving-icon-bounce:hover,
+button:hover .moving-icon-bounce,
+a:hover .moving-icon-bounce,
+.group:hover .moving-icon-bounce {
+  animation: moving-bounce 0.65s ease-in-out;
+}
+
+.moving-icon-spin:hover,
+button:hover .moving-icon-spin,
+a:hover .moving-icon-spin,
+.group:hover .moving-icon-spin {
+  animation: moving-spin 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.moving-icon-pulse:hover,
+button:hover .moving-icon-pulse,
+a:hover .moving-icon-pulse,
+.group:hover .moving-icon-pulse {
+  animation: moving-pulse 0.8s ease-in-out;
+}
+
+.moving-icon-pop:hover,
+button:hover .moving-icon-pop,
+a:hover .moving-icon-pop,
+.group:hover .moving-icon-pop {
+  animation: moving-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.moving-icon-success:hover,
+button:hover .moving-icon-success,
+a:hover .moving-icon-success,
+.group:hover .moving-icon-success {
+  animation: moving-success 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.moving-icon-nudge:hover,
+button:hover .moving-icon-nudge,
+a:hover .moving-icon-nudge,
+.group:hover .moving-icon-nudge {
+  animation: moving-nudge 0.35s ease-out;
+}
+
+.moving-icon-shake:hover,
+button:hover .moving-icon-shake,
+a:hover .moving-icon-shake,
+.group:hover .moving-icon-shake {
+  animation: moving-shake 0.4s ease-in-out;
+}
+
+/* Always-on animations (e.g., active timer) */
+.moving-icon-always.moving-icon-swing {
+  animation: moving-swing 1.2s ease-in-out infinite;
+}
+.moving-icon-always.moving-icon-wiggle {
+  animation: moving-wiggle 1.2s ease-in-out infinite;
+}
+.moving-icon-always.moving-icon-bounce {
+  animation: moving-bounce 1s ease-in-out infinite;
+}
+.moving-icon-always.moving-icon-spin {
+  animation: moving-spin 1.5s linear infinite;
+}
+.moving-icon-always.moving-icon-pulse {
+  animation: moving-pulse 1.5s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .moving-icon,
+  .moving-icon-swing,
+  .moving-icon-wiggle,
+  .moving-icon-bounce,
+  .moving-icon-spin,
+  .moving-icon-pulse,
+  .moving-icon-pop,
+  .moving-icon-success,
+  .moving-icon-nudge,
+  .moving-icon-shake {
+    animation: none !important;
+    transition: none !important;
+  }
+}

@@ -10,9 +10,9 @@ import {
   Layers, 
   Link as LinkIcon, 
   AlertCircle, 
-  Sparkles,
-  ArrowRight
-} from 'lucide-react';
+  Sparkles, 
+  ArrowRight 
+} from '../common/MovingIcon';
 import { 
   generateShareCode, 
   generateShareUrl, 

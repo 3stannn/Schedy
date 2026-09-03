@@ -6,7 +6,7 @@ import {
   Calendar,
   SlidersHorizontal,
   Plus
-} from 'lucide-react';
+} from '../common/MovingIcon';
 import {
   isToday,
   isTomorrow,
