@@ -729,7 +729,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                                       className={`text-[10px] font-medium px-1.5 py-0.5 rounded truncate cursor-pointer ${getPriorityChipStyle(evt.priority)} ${
                                         evt.status === 'completed' ? 'line-through opacity-50' : ''
                                       }`}
-                                      title={`${evt.title} (${evt.isAllDay ? 'All Day' : format(parseISO(evt.startTime), 'p')})`}
+                                      title={`${evt.title} (${evt.isAllDay ? 'All Day' : evt.startTime ? format(parseISO(evt.startTime), 'p') : ''})`}
                                     >
                                       {evt.title}
                                     </div>
@@ -831,7 +831,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                           ) : (
                             <span className="flex items-center gap-1">
                               <Clock className="w-3 h-3" />
-                              {evt.isAllDay ? 'All Day' : format(parseISO(evt.startTime), 'h:mm a')}
+                              {evt.isAllDay ? 'All Day' : evt.startTime ? format(parseISO(evt.startTime), 'h:mm a') : ''}
                             </span>
                           )}
                           {evt.location && (

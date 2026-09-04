@@ -86,6 +86,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
   onTogglePinNote,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [typeFilter, setTypeFilter] = useState<'all' | 'task' | 'event'>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
 
@@ -99,11 +100,15 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
         const matchLoc = e.location?.toLowerCase().includes(q);
         if (!matchTitle && !matchDesc && !matchLoc) return false;
       }
+      if (typeFilter !== 'all') {
+        const itemType = e.itemType || 'event';
+        if (itemType !== typeFilter) return false;
+      }
       if (categoryFilter !== 'all' && e.category !== categoryFilter) return false;
       if (priorityFilter !== 'all' && e.priority !== priorityFilter) return false;
       return true;
     });
-  }, [events, searchQuery, categoryFilter, priorityFilter]);
+  }, [events, searchQuery, typeFilter, categoryFilter, priorityFilter]);
 
   // Group events by status
   const upcomingEvents = useMemo(() => {
@@ -140,6 +145,20 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
     });
   }, [notes, searchQuery]);
 
+  // Type Styles
+  const getItemTypeBadge = (evt: ScheduleEvent) => {
+    const isTask = evt.itemType === 'task';
+    return (
+      <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[5px] text-[9px] font-semibold border ${
+        isTask 
+          ? 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20' 
+          : 'bg-blue-500/10 text-[#007aff] dark:text-[#0a84ff] border-blue-500/20'
+      }`}>
+        {isTask ? 'Task' : 'Event'}
+      </span>
+    );
+  };
+
   // Priority Styles
   const getPriorityBadge = (priority: string) => {
     switch (priority) {
@@ -155,9 +174,22 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
   };
 
   // Format Event DateTime nicely
-  const formatEventDate = (isoString: string) => {
+  const formatEventDate = (isoString?: string) => {
+    if (!isoString) return '';
     try {
       const d = parseISO(isoString);
+      if (isNaN(d.getTime())) return '';
+      return format(d, 'MMM d, h:mm a');
+    } catch {
+      return '';
+    }
+  };
+
+  const formatNoteDate = (isoString?: string) => {
+    if (!isoString) return '';
+    try {
+      const d = parseISO(isoString);
+      if (isNaN(d.getTime())) return '';
       return format(d, 'MMM d, h:mm a');
     } catch {
       return '';
@@ -182,6 +214,16 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
 
         {/* Filters */}
         <div className="flex items-center gap-2 flex-wrap">
+          <select
+            value={typeFilter}
+            onChange={(e) => setTypeFilter(e.target.value as 'all' | 'task' | 'event')}
+            className="h-9 px-3 text-xs bg-black/[0.04] dark:bg-white/[0.06] border border-black/[0.06] dark:border-white/[0.08] rounded-xl text-neutral-700 dark:text-neutral-300 focus:outline-none focus:ring-2 focus:ring-[#007aff] cursor-pointer box-border font-medium"
+          >
+            <option value="all">All Types</option>
+            <option value="task">Tasks Only</option>
+            <option value="event">Events Only</option>
+          </select>
+
           <select
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
@@ -208,10 +250,11 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
             <option value="low">Low</option>
           </select>
 
-          {(searchQuery || categoryFilter !== 'all' || priorityFilter !== 'all') && (
+          {(searchQuery || typeFilter !== 'all' || categoryFilter !== 'all' || priorityFilter !== 'all') && (
             <button
               onClick={() => {
                 setSearchQuery('');
+                setTypeFilter('all');
                 setCategoryFilter('all');
                 setPriorityFilter('all');
               }}
@@ -278,7 +321,10 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
                       <h4 className="font-bold text-xs sm:text-[13px] text-[#1c1917] dark:text-white group-hover:text-[#2383e2] transition-colors line-clamp-2">
                         {evt.title}
                       </h4>
-                      {getPriorityBadge(evt.priority)}
+                      <div className="flex items-center gap-1 shrink-0">
+                        {getItemTypeBadge(evt)}
+                        {getPriorityBadge(evt.priority)}
+                      </div>
                     </div>
 
                     {evt.description && (
@@ -394,7 +440,10 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
                       <h4 className="font-bold text-xs sm:text-[13px] text-[#1c1917] dark:text-white group-hover:text-amber-600 transition-colors line-clamp-2">
                         {evt.title}
                       </h4>
-                      {getPriorityBadge(evt.priority)}
+                      <div className="flex items-center gap-1 shrink-0">
+                        {getItemTypeBadge(evt)}
+                        {getPriorityBadge(evt.priority)}
+                      </div>
                     </div>
 
                     {evt.description && (
@@ -504,9 +553,12 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
                       <h4 className="font-bold text-xs sm:text-[13px] text-neutral-600 dark:text-neutral-300 line-through truncate">
                         {evt.title}
                       </h4>
-                      <span className="p-0.5 text-emerald-600 dark:text-emerald-400 shrink-0">
-                        <CheckCircle2 className="w-3.5 h-3.5" />
-                      </span>
+                      <div className="flex items-center gap-1 shrink-0">
+                        {getItemTypeBadge(evt)}
+                        <span className="p-0.5 text-emerald-600 dark:text-emerald-400 shrink-0">
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                        </span>
+                      </div>
                     </div>
 
                     {evt.description && (
@@ -644,7 +696,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
                     </div>
 
                     <div className="flex items-center justify-between pt-1 text-[9px] text-neutral-400 font-mono">
-                      <span>{format(parseISO(note.updatedAt || note.createdAt), 'MMM d, h:mm a')}</span>
+                      <span>{formatNoteDate(note.updatedAt || note.createdAt)}</span>
                       <span className="flex items-center gap-0.5 text-neutral-400 group-hover:text-neutral-700 dark:group-hover:text-neutral-200">
                         <Edit3 className="w-2.5 h-2.5" />
                         <span>Edit</span>

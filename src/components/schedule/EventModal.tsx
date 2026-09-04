@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import type { ScheduleEvent, PriorityLevel, EventCategory, EventStatus, RecurrenceRule } from '../../types/schedule';
+import type { ScheduleEvent, PriorityLevel, EventCategory, EventStatus, RecurrenceRule, ScheduleItemType } from '../../types/schedule';
 import {
   X,
   Trash2,
@@ -26,6 +26,7 @@ interface EventModalProps {
   initialEvent?: ScheduleEvent | null;
   selectedDate?: Date | null;
   initialStatus?: EventStatus;
+  initialItemType?: ScheduleItemType;
 }
 
 export const EventModal: React.FC<EventModalProps> = ({
@@ -36,7 +37,9 @@ export const EventModal: React.FC<EventModalProps> = ({
   initialEvent,
   selectedDate,
   initialStatus,
+  initialItemType = 'event',
 }) => {
+  const [itemType, setItemType] = useState<ScheduleItemType>('event');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [startTime, setStartTime] = useState('');
@@ -55,6 +58,7 @@ export const EventModal: React.FC<EventModalProps> = ({
     if (!isOpen) return;
 
     if (initialEvent) {
+      setItemType(initialEvent.itemType || 'event');
       setTitle(initialEvent.title || '');
       setDescription(initialEvent.description || '');
       try {
@@ -77,6 +81,7 @@ export const EventModal: React.FC<EventModalProps> = ({
     } else {
       const start = selectedDate || new Date();
       const end = addHours(start, 1);
+      setItemType(initialItemType || 'event');
       setTitle('');
       setDescription('');
       setStartTime(format(start, "yyyy-MM-dd'T'HH:mm"));
@@ -90,14 +95,14 @@ export const EventModal: React.FC<EventModalProps> = ({
       setRecurrenceRule('none');
     }
     setError(null);
-  }, [initialEvent, selectedDate, initialStatus, isOpen]);
+  }, [initialEvent, selectedDate, initialStatus, initialItemType, isOpen]);
 
   if (!isOpen) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) {
-      setError('Event title is required.');
+      setError(itemType === 'task' ? 'Task title is required.' : 'Event title is required.');
       return;
     }
 
@@ -140,6 +145,7 @@ export const EventModal: React.FC<EventModalProps> = ({
       category,
       priority,
       status,
+      itemType,
       location: location.trim(),
       meetingUrl: meetingUrl.trim(),
       recurrenceRule,
@@ -185,8 +191,16 @@ export const EventModal: React.FC<EventModalProps> = ({
           </button>
 
           <div className="flex items-center gap-1.5 font-semibold text-xs text-neutral-900 dark:text-white">
-            <Calendar className="w-3.5 h-3.5 text-[#007aff] dark:text-[#0a84ff]" />
-            <span>{initialEvent ? 'Edit Event' : 'New Event'}</span>
+            {itemType === 'task' ? (
+              <CheckSquare className="w-3.5 h-3.5 text-[#007aff] dark:text-[#0a84ff]" />
+            ) : (
+              <Calendar className="w-3.5 h-3.5 text-[#007aff] dark:text-[#0a84ff]" />
+            )}
+            <span>
+              {initialEvent
+                ? (itemType === 'task' ? 'Edit Task' : 'Edit Event')
+                : (itemType === 'task' ? 'New Task' : 'New Event')}
+            </span>
           </div>
 
           <div className="flex items-center gap-2">
@@ -195,7 +209,7 @@ export const EventModal: React.FC<EventModalProps> = ({
                 type="button"
                 onClick={() => setShowDeleteConfirm(true)}
                 className="p-1.5 rounded-full text-neutral-400 hover:text-[#ff3b30] hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer"
-                title="Delete event"
+                title={itemType === 'task' ? 'Delete task' : 'Delete event'}
               >
                 <Trash2 className="w-3.5 h-3.5" />
               </button>
@@ -218,6 +232,40 @@ export const EventModal: React.FC<EventModalProps> = ({
             </div>
           )}
 
+          {/* Item Type Segmented Selector */}
+          <div className="flex items-center justify-between gap-3">
+            <div className="inline-flex p-1 rounded-2xl bg-black/[0.04] dark:bg-white/[0.06] border border-black/[0.06] dark:border-white/[0.08]">
+              <button
+                type="button"
+                onClick={() => setItemType('event')}
+                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                  itemType === 'event'
+                    ? 'bg-white dark:bg-[#2c2c2e] text-[#007aff] dark:text-[#0a84ff] shadow-sm'
+                    : 'text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200'
+                }`}
+              >
+                <Calendar className="w-3.5 h-3.5" />
+                <span>Event</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setItemType('task')}
+                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                  itemType === 'task'
+                    ? 'bg-white dark:bg-[#2c2c2e] text-[#007aff] dark:text-[#0a84ff] shadow-sm'
+                    : 'text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200'
+                }`}
+              >
+                <CheckSquare className="w-3.5 h-3.5" />
+                <span>Task</span>
+              </button>
+            </div>
+
+            <span className="text-[11px] text-neutral-400 font-medium hidden sm:inline">
+              {itemType === 'task' ? 'Actionable item or deadline' : 'Scheduled calendar event'}
+            </span>
+          </div>
+
           {/* Large Clean Notion Title */}
           <div>
             <input
@@ -226,7 +274,7 @@ export const EventModal: React.FC<EventModalProps> = ({
               autoFocus
               value={title}
               onChange={e => setTitle(e.target.value)}
-              placeholder="Untitled Event"
+              placeholder={itemType === 'task' ? 'Untitled Task' : 'Untitled Event'}
               className="w-full text-2xl sm:text-3xl font-bold text-[#37352f] dark:text-[#e6e6e6] placeholder-neutral-300 dark:placeholder-neutral-600 bg-transparent border-none outline-none focus:ring-0 p-0 tracking-tight"
             />
           </div>
@@ -248,6 +296,22 @@ export const EventModal: React.FC<EventModalProps> = ({
 
           {/* Notion Properties List */}
           <div className="space-y-2.5 pt-3 border-t border-neutral-100 dark:border-neutral-800 text-xs">
+
+            {/* Type Property */}
+            <div className="flex items-center gap-3 py-1">
+              <div className="w-32 flex items-center gap-2 text-neutral-400 shrink-0">
+                {itemType === 'task' ? <CheckSquare className="w-3.5 h-3.5" /> : <Calendar className="w-3.5 h-3.5" />}
+                <span>Type</span>
+              </div>
+              <select
+                value={itemType}
+                onChange={e => setItemType(e.target.value as ScheduleItemType)}
+                className="px-2.5 py-1 rounded bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 text-xs border-none outline-none focus:ring-1 focus:ring-neutral-400 cursor-pointer font-medium"
+              >
+                <option value="event">Event (Schedule)</option>
+                <option value="task">Task (To-Do)</option>
+              </select>
+            </div>
 
             {/* Category Property */}
             <div className="flex items-center gap-3 py-1">
@@ -309,7 +373,7 @@ export const EventModal: React.FC<EventModalProps> = ({
             <div className="flex flex-col sm:flex-row sm:items-start gap-1.5 sm:gap-3 py-1">
               <div className="w-32 flex items-center gap-2 text-neutral-400 shrink-0 sm:pt-1.5">
                 <Clock className="w-3.5 h-3.5" />
-                <span>Date & Time</span>
+                <span>{itemType === 'task' ? 'Due / Schedule' : 'Date & Time'}</span>
               </div>
               <div className="flex-1 space-y-2">
                 <div className="flex items-center gap-2 flex-wrap">
@@ -424,7 +488,11 @@ export const EventModal: React.FC<EventModalProps> = ({
               type="submit"
               className="ios-btn-filled px-5 py-2 text-xs font-semibold text-white bg-[#007aff] hover:bg-[#0071e3] dark:bg-[#0a84ff] rounded-[12px] shadow-xs transition-all active:scale-[0.98] cursor-pointer min-h-[38px]"
             >
-              {initialEvent ? 'Save Changes' : 'Create Event'}
+              {initialEvent
+                ? 'Save Changes'
+                : itemType === 'task'
+                ? 'Create Task'
+                : 'Create Event'}
             </button>
           </div>
         </form>

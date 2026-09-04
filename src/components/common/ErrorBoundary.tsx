@@ -45,9 +45,19 @@ export class ErrorBoundary extends Component<Props, State> {
               <h2 className="text-base font-bold text-[#1c1917] dark:text-white">
                 Something went wrong
               </h2>
-              <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
+              <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-1 font-mono">
                 {this.state.error?.message || 'An unexpected rendering error occurred.'}
               </p>
+              {this.state.error?.stack && (
+                <details className="mt-2 text-left">
+                  <summary className="text-[10px] text-neutral-400 cursor-pointer hover:underline text-center">
+                    View error details
+                  </summary>
+                  <pre className="mt-1 p-2 rounded bg-black/[0.04] dark:bg-white/[0.04] text-[10px] text-rose-600 dark:text-rose-400 overflow-x-auto max-h-48 font-mono leading-tight whitespace-pre-wrap">
+                    {this.state.error.stack}
+                  </pre>
+                </details>
+              )}
             </div>
 
             <div className="flex items-center justify-center gap-2 pt-2">

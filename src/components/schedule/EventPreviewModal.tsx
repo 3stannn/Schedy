@@ -9,7 +9,6 @@ import {
   Clock,
   Repeat,
   CheckSquare,
-  Square,
   Edit3,
   Calendar,
   ExternalLink
@@ -152,6 +151,16 @@ export const EventPreviewModal: React.FC<EventPreviewModalProps> = ({
           {/* Header Row: Badges & Close Button */}
           <div className="flex items-center justify-between px-6 pt-5 pb-3 border-b border-black/[0.06] dark:border-white/[0.08] sticky top-0 bg-white/95 dark:bg-[#1c1c1e]/95 backdrop-blur-md z-10">
             <div className="flex items-center gap-1.5 flex-wrap">
+              {/* Type Badge: Event or Task */}
+              <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${
+                event.itemType === 'task'
+                  ? 'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300 border-amber-200/80 dark:border-amber-800/60'
+                  : 'bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300 border-blue-200/80 dark:border-blue-800/60'
+              }`}>
+                {event.itemType === 'task' ? <CheckSquare className="w-3 h-3" /> : <Calendar className="w-3 h-3" />}
+                <span>{event.itemType === 'task' ? 'Task' : 'Event'}</span>
+              </span>
+
               {/* Category Badge */}
               <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${category.badge}`}>
                 {category.label}
@@ -192,26 +201,11 @@ export const EventPreviewModal: React.FC<EventPreviewModalProps> = ({
           {/* Scrollable Modal Body */}
           <div className="p-6 space-y-5 overflow-y-auto flex-1 text-xs">
             
-            {/* Title & Quick Status Checkbox */}
-            <div className="flex items-start gap-3">
-              <button
-                type="button"
-                onClick={() => onStatusChange(event, isCompleted ? 'pending' : 'completed')}
-                className="mt-1 text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 transition-colors active:scale-90 cursor-pointer shrink-0"
-                title={isCompleted ? 'Mark as Pending' : 'Mark as Completed'}
-              >
-                {isCompleted ? (
-                  <CheckSquare className="w-5 h-5 text-[#007aff] dark:text-[#0a84ff]" />
-                ) : (
-                  <Square className="w-5 h-5" />
-                )}
-              </button>
-
-              <div className="flex-1 min-w-0">
-                <h2 className={`text-lg sm:text-xl font-bold tracking-tight leading-snug break-words ${isCompleted ? 'line-through text-neutral-400 dark:text-neutral-500' : 'text-neutral-900 dark:text-white'}`}>
-                  {event.title}
-                </h2>
-              </div>
+            {/* Title (Checkbox removed) */}
+            <div>
+              <h2 className={`text-lg sm:text-xl font-bold tracking-tight leading-snug break-words ${isCompleted ? 'line-through text-neutral-400 dark:text-neutral-500' : 'text-neutral-900 dark:text-white'}`}>
+                {event.title}
+              </h2>
             </div>
 
             {/* Quick Status Segmented Switcher */}

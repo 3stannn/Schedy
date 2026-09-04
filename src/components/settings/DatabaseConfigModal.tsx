@@ -84,6 +84,7 @@ CREATE TABLE IF NOT EXISTS public.schedules (
     category TEXT DEFAULT 'general',
     priority TEXT DEFAULT 'medium',
     status TEXT DEFAULT 'pending',
+    item_type TEXT DEFAULT 'event',
     location TEXT DEFAULT '',
     meeting_url TEXT DEFAULT '',
     recurrence_rule TEXT DEFAULT 'none',
@@ -91,6 +92,9 @@ CREATE TABLE IF NOT EXISTS public.schedules (
     created_at TIMESTAMPTZ DEFAULT now(),
     updated_at TIMESTAMPTZ DEFAULT now()
 );
+
+-- Ensure item_type column exists on existing installations
+ALTER TABLE public.schedules ADD COLUMN IF NOT EXISTS item_type TEXT DEFAULT 'event';
 
 -- 2. Announcements Table
 CREATE TABLE IF NOT EXISTS public.announcements (

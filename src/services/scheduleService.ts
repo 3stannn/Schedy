@@ -20,12 +20,13 @@ function mapRowToEvent(row: DatabaseScheduleRow): ScheduleEvent {
     category: (row.category || 'general') as any,
     priority: (row.priority || 'medium') as any,
     status: (row.status || 'pending') as any,
+    itemType: (row.item_type === 'task' ? 'task' : 'event'),
     location: row.location || '',
     meetingUrl: row.meeting_url || '',
     recurrenceRule: (row.recurrence_rule || 'none') as RecurrenceRule,
     createdBy: row.created_by,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
+    createdAt: row.created_at || new Date().toISOString(),
+    updatedAt: row.updated_at || new Date().toISOString(),
   };
 }
 
@@ -40,6 +41,7 @@ function mapEventToRow(event: ScheduleEvent): Partial<DatabaseScheduleRow> {
     category: event.category,
     priority: event.priority,
     status: event.status,
+    item_type: event.itemType || 'event',
     location: event.location,
     meeting_url: event.meetingUrl,
     recurrence_rule: event.recurrenceRule,
@@ -143,7 +145,15 @@ export async function bulkSaveEvents(
       });
 
       if (rows.length > 0) {
-        await supabase.from('schedules').upsert(rows);
+        const { error } = await supabase.from('schedules').upsert(rows);
+        if (error && (error.message?.includes('item_type') || error.details?.includes('item_type'))) {
+          const stripped = rows.map(r => {
+            const copy = { ...r };
+            delete copy.item_type;
+            return copy;
+          });
+          await supabase.from('schedules').upsert(stripped);
+        }
       }
     } catch (err) {
       console.warn('User Supabase bulk save error:', err);
@@ -165,26 +175,34 @@ export async function createEvent(eventData: Omit<ScheduleEvent, 'id' | 'created
   if (supabase && isUserSupabaseConfigured()) {
     try {
       const row = mapEventToRow(newEvent);
-      const { data, error } = await supabase
+      const insertPayload: any = {
+        title: row.title,
+        description: row.description,
+        start_time: row.start_time,
+        end_time: row.end_time,
+        is_all_day: row.is_all_day,
+        category: row.category,
+        priority: row.priority,
+        status: row.status,
+        item_type: row.item_type || 'event',
+        location: row.location,
+        meeting_url: row.meeting_url,
+        recurrence_rule: row.recurrence_rule,
+        created_by: row.created_by,
+      };
+
+      let { data, error } = await supabase
         .from('schedules')
-        .insert([
-          {
-            title: row.title,
-            description: row.description,
-            start_time: row.start_time,
-            end_time: row.end_time,
-            is_all_day: row.is_all_day,
-            category: row.category,
-            priority: row.priority,
-            status: row.status,
-            location: row.location,
-            meeting_url: row.meeting_url,
-            recurrence_rule: row.recurrence_rule,
-            created_by: row.created_by,
-          }
-        ])
+        .insert([insertPayload])
         .select()
         .single();
+
+      if (error && (error.message?.includes('item_type') || error.details?.includes('item_type'))) {
+        delete insertPayload.item_type;
+        const retry = await supabase.from('schedules').insert([insertPayload]).select().single();
+        data = retry.data;
+        error = retry.error;
+      }
 
       if (!error && data) {
         const created = mapRowToEvent(data);
@@ -214,12 +232,20 @@ export async function updateEvent(event: ScheduleEvent): Promise<ScheduleEvent> 
   if (supabase && isUserSupabaseConfigured() && isUUID(event.id)) {
     try {
       const row = mapEventToRow(updatedEvent);
-      const { data, error } = await supabase
+      let updatePayload: any = { ...row };
+      let { data, error } = await supabase
         .from('schedules')
-        .update(row)
+        .update(updatePayload)
         .eq('id', event.id)
         .select()
         .single();
+
+      if (error && (error.message?.includes('item_type') || error.details?.includes('item_type'))) {
+        delete updatePayload.item_type;
+        const retry = await supabase.from('schedules').update(updatePayload).eq('id', event.id).select().single();
+        data = retry.data;
+        error = retry.error;
+      }
 
       if (!error && data) {
         const saved = mapRowToEvent(data);

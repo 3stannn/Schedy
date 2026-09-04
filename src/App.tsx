@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import type { ScheduleEvent, EventStatus } from './types/schedule';
+import type { ScheduleEvent, EventStatus, ScheduleItemType } from './types/schedule';
 import type { Announcement } from './types/announcement';
 import type { Note } from './types/note';
 import { Navbar } from './components/layout/Navbar';
@@ -95,6 +95,7 @@ export function App() {
   const [editingEvent, setEditingEvent] = useState<ScheduleEvent | null>(null);
   const [selectedDateForNewEvent, setSelectedDateForNewEvent] = useState<Date | null>(null);
   const [initialTaskStatusForModal, setInitialTaskStatusForModal] = useState<EventStatus>('pending');
+  const [initialItemTypeForModal, setInitialItemTypeForModal] = useState<ScheduleItemType>('event');
 
   const [isAnnouncementModalOpen, setIsAnnouncementModalOpen] = useState(false);
   const [editingAnnouncement, setEditingAnnouncement] = useState<Announcement | null>(null);
@@ -382,6 +383,7 @@ export function App() {
     setEditingEvent(null);
     setSelectedDateForNewEvent(new Date());
     setInitialTaskStatusForModal(status);
+    setInitialItemTypeForModal('task');
     setIsEventModalOpen(true);
   };
 
@@ -541,6 +543,7 @@ export function App() {
                 onAddEventForDate={(date) => {
                   setEditingEvent(null);
                   setSelectedDateForNewEvent(date);
+                  setInitialItemTypeForModal('event');
                   setIsEventModalOpen(true);
                 }}
                 onDeleteEvent={handleDeleteEvent}
@@ -559,6 +562,7 @@ export function App() {
                 onAddNew={() => {
                   setEditingEvent(null);
                   setSelectedDateForNewEvent(new Date());
+                  setInitialItemTypeForModal('event');
                   setIsEventModalOpen(true);
                 }}
               />
@@ -607,6 +611,14 @@ export function App() {
                 setEditingEvent(null);
                 setSelectedDateForNewEvent(new Date());
                 setInitialTaskStatusForModal('pending');
+                setInitialItemTypeForModal('event');
+                setIsEventModalOpen(true);
+              }}
+              onNewTask={() => {
+                setEditingEvent(null);
+                setSelectedDateForNewEvent(new Date());
+                setInitialTaskStatusForModal('pending');
+                setInitialItemTypeForModal('task');
                 setIsEventModalOpen(true);
               }}
               onNewAnnouncement={() => {
@@ -712,6 +724,7 @@ export function App() {
         initialEvent={editingEvent}
         selectedDate={selectedDateForNewEvent}
         initialStatus={initialTaskStatusForModal}
+        initialItemType={initialItemTypeForModal}
       />
 
       <AnnouncementModal

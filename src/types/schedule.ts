@@ -1,4 +1,4 @@
-﻿export type PriorityLevel = 'low' | 'medium' | 'high' | 'urgent';
+export type PriorityLevel = 'low' | 'medium' | 'high' | 'urgent';
 
 export type EventStatus = 'pending' | 'in_progress' | 'completed' | 'cancelled';
 
@@ -12,6 +12,8 @@ export type EventCategory =
   | 'education' 
   | 'general';
 
+export type ScheduleItemType = 'event' | 'task';
+
 export interface ScheduleEvent {
   id: string;
   title: string;
@@ -22,6 +24,7 @@ export interface ScheduleEvent {
   category: EventCategory;
   priority: PriorityLevel;
   status: EventStatus;
+  itemType?: ScheduleItemType;
   location?: string;
   meetingUrl?: string;
   recurrenceRule: RecurrenceRule;

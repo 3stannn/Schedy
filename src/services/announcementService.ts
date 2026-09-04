@@ -19,8 +19,8 @@ function mapRowToAnnouncement(row: DatabaseAnnouncementRow, isRead = false): Ann
     isPinned: row.is_pinned ?? false,
     expiresAt: row.expires_at || undefined,
     authorName: row.author_name || 'Admin',
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
+    createdAt: row.created_at || new Date().toISOString(),
+    updatedAt: row.updated_at || new Date().toISOString(),
     isRead,
   };
 }

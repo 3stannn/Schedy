@@ -8,6 +8,7 @@ export interface DatabaseScheduleRow {
   category: string;
   priority: string;
   status: string;
+  item_type?: string;
   location: string;
   meeting_url: string;
   recurrence_rule: string;

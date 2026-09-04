@@ -50,8 +50,8 @@ export const EventCard: React.FC<EventCardProps> = ({
 }) => {
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const isCompleted = event.status === 'completed';
-  const start = parseISO(event.startTime);
-  const end = parseISO(event.endTime);
+  const start = event.startTime ? parseISO(event.startTime) : new Date();
+  const end = event.endTime ? parseISO(event.endTime) : start;
 
   const formattedTime = event.isAllDay
     ? 'All Day'
@@ -68,7 +68,7 @@ export const EventCard: React.FC<EventCardProps> = ({
           isOpen={showConfirmDelete}
           onClose={() => setShowConfirmDelete(false)}
           onConfirm={() => onDelete(event.id)}
-          title="Delete Event"
+          title={`Delete ${(event.itemType || 'event') === 'task' ? 'Task' : 'Event'}`}
           message={`Delete "${event.title}"? This action cannot be undone.`}
         />
       )}
@@ -101,6 +101,13 @@ export const EventCard: React.FC<EventCardProps> = ({
             <div className="flex-1 min-w-0">
               {/* Title & Tags */}
               <div className="flex items-center gap-1.5 flex-wrap mb-1.5">
+                <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-md border ${
+                  (event.itemType || 'event') === 'task'
+                    ? 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20'
+                    : 'bg-blue-500/10 text-[#007aff] dark:text-[#0a84ff] border-blue-500/20'
+                }`}>
+                  {(event.itemType || 'event') === 'task' ? 'Task' : 'Event'}
+                </span>
                 <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-md tracking-tight ${category.tag}`}>
                   {category.label}
                 </span>

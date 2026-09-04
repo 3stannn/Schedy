@@ -61,9 +61,10 @@ function compactEvent(e: ScheduleEvent): any[] {
     e.location || '',
     e.meetingUrl || '',
     e.recurrenceRule || 'none',
+    e.itemType || 'event',
   ];
   // Trim trailing empty/default values to minimize code size
-  while (tuple.length > 5 && (tuple[tuple.length - 1] === '' || tuple[tuple.length - 1] === 'none' || tuple[tuple.length - 1] === 'pending' || tuple[tuple.length - 1] === 'medium' || tuple[tuple.length - 1] === 'general')) {
+  while (tuple.length > 5 && (tuple[tuple.length - 1] === '' || tuple[tuple.length - 1] === 'none' || tuple[tuple.length - 1] === 'pending' || tuple[tuple.length - 1] === 'medium' || tuple[tuple.length - 1] === 'general' || tuple[tuple.length - 1] === 'event')) {
     tuple.pop();
   }
   return tuple;
@@ -83,6 +84,7 @@ function expandEvent(t: any[]): ScheduleEvent {
     category: (t[6] || 'general') as EventCategory,
     priority: (t[7] || 'medium') as PriorityLevel,
     status: (t[8] || 'pending') as EventStatus,
+    itemType: (t[12] === 'task' ? 'task' : 'event'),
     location: t[9] || '',
     meetingUrl: t[10] || '',
     recurrenceRule: (t[11] || 'none') as RecurrenceRule,
