@@ -549,7 +549,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
             {isAdmin && (
               <button
                 onClick={() => onAddEventForDate(selectedDate)}
-                className="h-9 px-3.5 text-xs font-semibold text-white bg-[#007aff] hover:bg-[#0071e3] dark:bg-[#0a84ff] rounded-xl shadow-xs active:scale-[0.98] cursor-pointer flex items-center gap-1.5 box-border"
+                className="h-8 min-h-[32px] px-3 text-xs font-semibold text-white bg-[#007aff] hover:bg-[#0071e3] dark:bg-[#0a84ff] rounded-xl shadow-xs active:scale-[0.98] cursor-pointer flex items-center gap-1.5 box-border"
               >
                 <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
                 <span>New</span>

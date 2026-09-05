@@ -323,7 +323,7 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.notes;`;
                       type="button"
                       onClick={handleTest}
                       disabled={isTesting || !url || !anonKey}
-                      className="ios-btn-tinted flex items-center gap-1.5 px-3.5 py-2 rounded-[12px] text-xs font-semibold disabled:opacity-50 transition-colors cursor-pointer min-h-[38px]"
+                      className="ios-btn-tinted flex items-center gap-1.5 px-3.5 py-1 rounded-xl text-xs font-semibold disabled:opacity-50 transition-colors cursor-pointer min-h-[32px] h-8"
                     >
                       <RefreshCw className={`w-3.5 h-3.5 ${isTesting ? 'animate-spin' : ''}`} />
                       <span>{isTesting ? 'Testing...' : 'Test Connection'}</span>
@@ -333,7 +333,7 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.notes;`;
                       <button
                         type="button"
                         onClick={() => setShowDisconnectConfirm(true)}
-                        className="px-2.5 py-1.5 text-xs font-medium text-[#ff3b30] hover:bg-[#ff3b30]/10 rounded-[10px] transition-colors cursor-pointer"
+                        className="px-2.5 py-1 text-xs font-medium text-[#ff3b30] hover:bg-[#ff3b30]/10 rounded-lg transition-colors cursor-pointer h-8 flex items-center"
                       >
                         Use Local Mode
                       </button>
@@ -344,7 +344,7 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.notes;`;
                     <button
                       type="button"
                       onClick={onClose}
-                      className="ios-btn-tinted px-4 py-2 text-xs font-semibold rounded-[12px] transition-colors cursor-pointer min-h-[38px]"
+                      className="ios-btn-tinted px-3.5 py-1 text-xs font-semibold rounded-xl transition-colors cursor-pointer min-h-[32px] h-8"
                     >
                       Cancel
                     </button>
@@ -352,7 +352,7 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.notes;`;
                       type="button"
                       onClick={handleSave}
                       disabled={!url || !anonKey}
-                      className="ios-btn-filled px-5 py-2 text-xs font-semibold text-white bg-[#34c759] hover:bg-[#30d158] rounded-[12px] shadow-xs disabled:opacity-50 transition-all active:scale-[0.98] cursor-pointer min-h-[38px]"
+                      className="ios-btn-filled px-4 py-1 text-xs font-semibold text-white bg-[#34c759] hover:bg-[#30d158] rounded-xl shadow-xs disabled:opacity-50 transition-all active:scale-[0.98] cursor-pointer min-h-[32px] h-8"
                     >
                       Save & Connect
                     </button>
@@ -416,7 +416,7 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.notes;`;
                   </span>
                   <button
                     onClick={copyToClipboard}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl shadow-sm transition-all"
+                    className="flex items-center gap-1.5 px-3 py-1 h-8 text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl shadow-sm transition-all"
                   >
                     {copiedSql ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
                     <span>{copiedSql ? 'Copied!' : 'Copy SQL Schema'}</span>

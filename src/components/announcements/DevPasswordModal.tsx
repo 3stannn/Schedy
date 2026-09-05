@@ -111,13 +111,13 @@ export const DevPasswordModal: React.FC<DevPasswordModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-xs font-semibold text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-xl transition-colors cursor-pointer min-h-[38px]"
+              className="px-3.5 py-1 text-xs font-semibold text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-xl transition-colors cursor-pointer min-h-[32px] h-8"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-5 py-2 text-xs font-semibold text-white bg-neutral-900 hover:bg-neutral-800 dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-200 rounded-xl transition-colors cursor-pointer min-h-[38px] active:scale-95 flex items-center gap-1.5"
+              className="px-4 py-1 text-xs font-semibold text-white bg-neutral-900 hover:bg-neutral-800 dark:bg-white dark:text-neutral-950 dark:hover:bg-neutral-200 rounded-xl transition-colors cursor-pointer min-h-[32px] h-8 active:scale-95 flex items-center gap-1.5"
             >
               <Lock className="w-3.5 h-3.5" />
               <span>Verify & Continue</span>

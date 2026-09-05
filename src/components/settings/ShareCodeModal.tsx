@@ -185,16 +185,16 @@ export const ShareCodeModal: React.FC<ShareCodeModalProps> = ({
                   />
                   <button
                     onClick={handleCopyCode}
-                    className="absolute top-2.5 right-2.5 flex items-center gap-1 px-2.5 py-1 text-xs font-medium bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-md shadow-xs hover:bg-neutral-50 transition-all text-neutral-700 dark:text-neutral-200"
+                    className="absolute top-2.5 right-2.5 flex items-center gap-1 px-2.5 h-8 min-h-[32px] text-xs font-medium bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg shadow-xs hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-all text-neutral-700 dark:text-neutral-200 cursor-pointer box-border"
                   >
-                    {copiedCode ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                    {copiedCode ? <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
                     <span>{copiedCode ? 'Copied!' : 'Copy Code'}</span>
                   </button>
                 </div>
               </div>
 
               {/* Shareable Link Box */}
-              <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 p-3 rounded-lg border border-[#e9e9e7] dark:border-[#2e2e2e] bg-neutral-50/50 dark:bg-neutral-800/30">
+              <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 p-3 rounded-xl border border-[#e9e9e7] dark:border-[#2e2e2e] bg-neutral-50/50 dark:bg-neutral-800/30">
                 <div className="flex items-center gap-2 min-w-0">
                   <LinkIcon className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
                   <span className="truncate text-[11px] text-neutral-500 font-mono">
@@ -204,7 +204,7 @@ export const ShareCodeModal: React.FC<ShareCodeModalProps> = ({
 
                 <button
                   onClick={handleCopyLink}
-                  className="flex items-center justify-center gap-1 px-3 py-1.5 text-xs font-medium text-white bg-[#2383e2] hover:bg-[#1a73e8] rounded shadow-xs transition-all shrink-0"
+                  className="flex items-center justify-center gap-1.5 px-3.5 h-8 min-h-[32px] text-xs font-medium text-white bg-[#007aff] hover:bg-[#0071e3] rounded-xl shadow-xs transition-all shrink-0 cursor-pointer active:scale-[0.98] box-border"
                 >
                   {copiedLink ? <Check className="w-3.5 h-3.5" /> : <Share2 className="w-3.5 h-3.5" />}
                   <span>{copiedLink ? 'Link Copied!' : 'Copy Share Link'}</span>
@@ -288,16 +288,16 @@ export const ShareCodeModal: React.FC<ShareCodeModalProps> = ({
                   <div className="pt-2 border-t border-emerald-100 dark:border-emerald-900/40 flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2">
                     <button
                       onClick={() => handleApply('merge')}
-                      className="flex items-center justify-center gap-1.5 px-3.5 py-1.5 text-xs font-medium text-neutral-700 dark:text-neutral-200 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 hover:bg-neutral-50 rounded transition-colors"
+                      className="flex items-center justify-center gap-1.5 px-3.5 h-8 min-h-[32px] text-xs font-medium text-neutral-700 dark:text-neutral-200 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-700 rounded-xl transition-colors cursor-pointer active:scale-[0.98] box-border"
                       title="Add only new events without removing your current ones"
                     >
-                      <Layers className="w-3.5 h-3.5 text-[#2383e2]" />
+                      <Layers className="w-3.5 h-3.5 text-[#007aff]" />
                       <span>Merge with My Calendar</span>
                     </button>
 
                     <button
                       onClick={() => handleApply('replace')}
-                      className="flex items-center justify-center gap-1.5 px-4 py-1.5 text-xs font-medium text-white bg-emerald-600 hover:bg-emerald-500 rounded shadow-xs transition-colors"
+                      className="flex items-center justify-center gap-1.5 px-4 h-8 min-h-[32px] text-xs font-medium text-white bg-emerald-600 hover:bg-emerald-500 rounded-xl shadow-xs transition-colors cursor-pointer active:scale-[0.98] box-border"
                       title="Replace current calendar with exact copy"
                     >
                       <ArrowRight className="w-3.5 h-3.5" />

@@ -50,7 +50,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="py-3 px-4 text-xs font-medium text-[#007aff] dark:text-[#0a84ff] hover:bg-black/5 dark:hover:bg-white/5 active:bg-black/10 dark:active:bg-white/10 transition-colors cursor-pointer"
+            className="py-2.5 px-4 text-xs font-medium text-[#007aff] dark:text-[#0a84ff] hover:bg-black/5 dark:hover:bg-white/5 active:bg-black/10 dark:active:bg-white/10 transition-colors cursor-pointer"
           >
             {cancelText}
           </button>
@@ -60,7 +60,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
               onConfirm();
               onClose();
             }}
-            className={`py-3 px-4 text-xs font-semibold hover:bg-black/5 dark:hover:bg-white/5 active:bg-black/10 dark:active:bg-white/10 transition-colors cursor-pointer ${
+            className={`py-2.5 px-4 text-xs font-semibold hover:bg-black/5 dark:hover:bg-white/5 active:bg-black/10 dark:active:bg-white/10 transition-colors cursor-pointer ${
               isDanger
                 ? 'text-[#ff3b30] dark:text-[#ff453a]'
                 : 'text-[#007aff] dark:text-[#0a84ff]'

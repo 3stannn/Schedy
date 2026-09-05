@@ -119,7 +119,7 @@ export const EventListView: React.FC<EventListViewProps> = ({
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Filter by keyword, title, notes..."
-              className="w-full h-9 pl-9 pr-3 text-xs rounded-xl bg-black/[0.04] dark:bg-white/[0.06] border border-black/[0.06] dark:border-white/[0.08] text-neutral-900 dark:text-neutral-100 placeholder-neutral-400 outline-none focus:ring-2 focus:ring-[#007aff] transition-all box-border"
+              className="w-full h-8 pl-9 pr-3 text-xs rounded-xl bg-black/[0.04] dark:bg-white/[0.06] border border-black/[0.06] dark:border-white/[0.08] text-neutral-900 dark:text-neutral-100 placeholder-neutral-400 outline-none focus:ring-2 focus:ring-[#007aff] transition-all box-border"
             />
           </div>
 
@@ -141,7 +141,7 @@ export const EventListView: React.FC<EventListViewProps> = ({
           {isAdmin && (
             <button
               onClick={onAddNew}
-              className="h-9 px-3.5 text-xs font-semibold text-white bg-[#007aff] hover:bg-[#0071e3] rounded-xl shadow-xs active:scale-[0.98] shrink-0 cursor-pointer flex items-center justify-center gap-1.5 box-border"
+              className="h-8 min-h-[32px] px-3 text-xs font-semibold text-white bg-[#007aff] hover:bg-[#0071e3] rounded-xl shadow-xs active:scale-[0.98] shrink-0 cursor-pointer flex items-center justify-center gap-1.5 box-border"
             >
               <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
               <span>New</span>
@@ -158,7 +158,7 @@ export const EventListView: React.FC<EventListViewProps> = ({
           <select
             value={categoryFilter}
             onChange={e => setCategoryFilter(e.target.value)}
-            className="h-9 px-3 rounded-xl bg-black/[0.04] dark:bg-white/[0.06] text-neutral-700 dark:text-neutral-300 text-xs border border-black/[0.06] dark:border-white/[0.08] outline-none focus:ring-2 focus:ring-[#007aff] cursor-pointer font-medium box-border"
+            className="h-8 px-2.5 rounded-xl bg-black/[0.04] dark:bg-white/[0.06] text-neutral-700 dark:text-neutral-300 text-xs border border-black/[0.06] dark:border-white/[0.08] outline-none focus:ring-2 focus:ring-[#007aff] cursor-pointer font-medium box-border"
           >
             <option value="all">Category: All</option>
             <option value="work">Work</option>
@@ -172,7 +172,7 @@ export const EventListView: React.FC<EventListViewProps> = ({
           <select
             value={priorityFilter}
             onChange={e => setPriorityFilter(e.target.value)}
-            className="h-9 px-3 rounded-xl bg-black/[0.04] dark:bg-white/[0.06] text-neutral-700 dark:text-neutral-300 text-xs border border-black/[0.06] dark:border-white/[0.08] outline-none focus:ring-2 focus:ring-[#007aff] cursor-pointer font-medium box-border"
+            className="h-8 px-2.5 rounded-xl bg-black/[0.04] dark:bg-white/[0.06] text-neutral-700 dark:text-neutral-300 text-xs border border-black/[0.06] dark:border-white/[0.08] outline-none focus:ring-2 focus:ring-[#007aff] cursor-pointer font-medium box-border"
           >
             <option value="all">Priority: All</option>
             <option value="urgent">Urgent</option>
@@ -184,7 +184,7 @@ export const EventListView: React.FC<EventListViewProps> = ({
           <select
             value={statusFilter}
             onChange={e => setStatusFilter(e.target.value)}
-            className="h-9 px-3 rounded-xl bg-black/[0.04] dark:bg-white/[0.06] text-neutral-700 dark:text-neutral-300 text-xs border border-black/[0.06] dark:border-white/[0.08] outline-none focus:ring-2 focus:ring-[#007aff] cursor-pointer font-medium box-border"
+            className="h-8 px-2.5 rounded-xl bg-black/[0.04] dark:bg-white/[0.06] text-neutral-700 dark:text-neutral-300 text-xs border border-black/[0.06] dark:border-white/[0.08] outline-none focus:ring-2 focus:ring-[#007aff] cursor-pointer font-medium box-border"
           >
             <option value="all">Status: All</option>
             <option value="pending">Pending</option>
@@ -202,7 +202,7 @@ export const EventListView: React.FC<EventListViewProps> = ({
                 setStatusFilter('all');
                 setTimeFilter('all');
               }}
-              className="h-9 px-3 rounded-xl text-xs font-semibold text-[#ff3b30] hover:bg-[#ff3b30]/10 flex items-center justify-center cursor-pointer ml-auto box-border"
+              className="h-8 min-h-[32px] px-3 rounded-xl text-xs font-semibold text-[#ff3b30] hover:bg-[#ff3b30]/10 flex items-center justify-center cursor-pointer ml-auto box-border"
             >
               Reset Filters
             </button>

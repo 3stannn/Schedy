@@ -283,7 +283,7 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
                 <button
                   type="button"
                   onClick={handleCopy}
-                  className="ios-btn-tinted flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold rounded-[12px] transition-colors cursor-pointer min-h-[38px]"
+                  className="ios-btn-tinted flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-xl transition-colors cursor-pointer min-h-[32px] h-8"
                 >
                   {copied ? <Check className="w-3.5 h-3.5 text-[#34c759]" /> : <Copy className="w-3.5 h-3.5" />}
                   <span>{copied ? 'Copied' : 'Copy'}</span>
@@ -291,7 +291,7 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
                 <button
                   type="button"
                   onClick={handleDownload}
-                  className="ios-btn-filled flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-[12px] bg-[#007aff] hover:bg-[#0071e3] dark:bg-[#0a84ff] text-white transition-all active:scale-[0.98] cursor-pointer min-h-[38px]"
+                  className="ios-btn-filled flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3.5 py-1 text-xs font-semibold rounded-xl bg-[#007aff] hover:bg-[#0071e3] dark:bg-[#0a84ff] text-white transition-all active:scale-[0.98] cursor-pointer min-h-[32px] h-8"
                 >
                   <Download className="w-3.5 h-3.5" />
                 </button>

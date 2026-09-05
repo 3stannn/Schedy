@@ -290,11 +290,11 @@ export const AnnouncementModal: React.FC<AnnouncementModalProps> = ({
             </label>
             <textarea
               required
-              rows={4}
+              rows={6}
               value={content}
               onChange={e => setContent(e.target.value)}
               placeholder="Announcement text..."
-              className="w-full px-3 py-2.5 rounded-xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-neutral-900 dark:text-white text-xs outline-none focus:border-neutral-400 dark:focus:border-neutral-600 resize-y leading-relaxed"
+              className="w-full px-3 py-2.5 rounded-xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-neutral-900 dark:text-white text-xs outline-none focus:border-neutral-400 dark:focus:border-neutral-600 resize-y leading-relaxed min-h-[140px]"
             />
           </div>
 
@@ -303,13 +303,13 @@ export const AnnouncementModal: React.FC<AnnouncementModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="ios-btn-tinted px-4 py-2 text-xs font-semibold rounded-[12px] transition-colors cursor-pointer min-h-[38px]"
+              className="ios-btn-tinted px-3.5 py-1 text-xs font-semibold rounded-xl transition-colors cursor-pointer min-h-[32px] h-8"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className={`ios-btn-filled px-5 py-2 text-xs font-semibold text-white rounded-[12px] shadow-xs transition-all active:scale-[0.98] cursor-pointer min-h-[38px] ${
+              className={`ios-btn-filled px-4 py-1 text-xs font-semibold text-white rounded-xl shadow-xs transition-all active:scale-[0.98] cursor-pointer min-h-[32px] h-8 ${
                 priority === 'dev'
                   ? 'bg-purple-600 hover:bg-purple-700'
                   : 'bg-[#007aff] hover:bg-[#0071e3] dark:bg-[#0a84ff]'

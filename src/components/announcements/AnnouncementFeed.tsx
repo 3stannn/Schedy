@@ -163,7 +163,7 @@ export const AnnouncementFeed: React.FC<AnnouncementFeedProps> = ({
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Search bulletins..."
-              className="w-full h-9 pl-9 pr-3 text-xs rounded-xl bg-black/[0.04] dark:bg-white/[0.06] border border-black/[0.06] dark:border-white/[0.08] text-neutral-900 dark:text-neutral-100 placeholder-neutral-400 outline-none focus:ring-2 focus:ring-[#007aff] transition-all box-border"
+              className="w-full h-8 pl-9 pr-3 text-xs rounded-xl bg-black/[0.04] dark:bg-white/[0.06] border border-black/[0.06] dark:border-white/[0.08] text-neutral-900 dark:text-neutral-100 placeholder-neutral-400 outline-none focus:ring-2 focus:ring-[#007aff] transition-all box-border"
             />
           </div>
 
@@ -214,7 +214,7 @@ export const AnnouncementFeed: React.FC<AnnouncementFeedProps> = ({
             {isAdmin && (
               <button
                 onClick={onAddNew}
-                className="h-9 px-3.5 text-xs font-semibold text-white bg-[#007aff] hover:bg-[#0071e3] rounded-xl shadow-xs active:scale-[0.98] whitespace-nowrap cursor-pointer flex items-center gap-1.5 box-border"
+                className="h-8 min-h-[32px] px-3 text-xs font-semibold text-white bg-[#007aff] hover:bg-[#0071e3] rounded-xl shadow-xs active:scale-[0.98] whitespace-nowrap cursor-pointer flex items-center gap-1.5 box-border"
               >
                 <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
                 <span>Post Notice</span>

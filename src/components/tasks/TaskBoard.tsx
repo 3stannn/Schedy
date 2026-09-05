@@ -208,7 +208,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search tasks, events, and notes..."
-            className="w-full h-9 pl-9 pr-3 text-xs bg-black/[0.04] dark:bg-white/[0.06] border border-black/[0.06] dark:border-white/[0.08] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#007aff] text-neutral-900 dark:text-white placeholder:text-neutral-400 transition-all box-border"
+            className="w-full h-8 pl-9 pr-3 text-xs bg-black/[0.04] dark:bg-white/[0.06] border border-black/[0.06] dark:border-white/[0.08] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#007aff] text-neutral-900 dark:text-white placeholder:text-neutral-400 transition-all box-border"
           />
         </div>
 
@@ -217,7 +217,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
           <select
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value as 'all' | 'task' | 'event')}
-            className="h-9 px-3 text-xs bg-black/[0.04] dark:bg-white/[0.06] border border-black/[0.06] dark:border-white/[0.08] rounded-xl text-neutral-700 dark:text-neutral-300 focus:outline-none focus:ring-2 focus:ring-[#007aff] cursor-pointer box-border font-medium"
+            className="h-8 px-2.5 text-xs bg-black/[0.04] dark:bg-white/[0.06] border border-black/[0.06] dark:border-white/[0.08] rounded-xl text-neutral-700 dark:text-neutral-300 focus:outline-none focus:ring-2 focus:ring-[#007aff] cursor-pointer box-border font-medium"
           >
             <option value="all">All Types</option>
             <option value="task">Tasks Only</option>
@@ -227,7 +227,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
           <select
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
-            className="h-9 px-3 text-xs bg-black/[0.04] dark:bg-white/[0.06] border border-black/[0.06] dark:border-white/[0.08] rounded-xl text-neutral-700 dark:text-neutral-300 focus:outline-none focus:ring-2 focus:ring-[#007aff] cursor-pointer box-border"
+            className="h-8 px-2.5 text-xs bg-black/[0.04] dark:bg-white/[0.06] border border-black/[0.06] dark:border-white/[0.08] rounded-xl text-neutral-700 dark:text-neutral-300 focus:outline-none focus:ring-2 focus:ring-[#007aff] cursor-pointer box-border"
           >
             <option value="all">All Categories</option>
             <option value="work">Work</option>
@@ -241,7 +241,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
           <select
             value={priorityFilter}
             onChange={(e) => setPriorityFilter(e.target.value)}
-            className="h-9 px-3 text-xs bg-black/[0.04] dark:bg-white/[0.06] border border-black/[0.06] dark:border-white/[0.08] rounded-xl text-neutral-700 dark:text-neutral-300 focus:outline-none focus:ring-2 focus:ring-[#007aff] cursor-pointer box-border"
+            className="h-8 px-2.5 text-xs bg-black/[0.04] dark:bg-white/[0.06] border border-black/[0.06] dark:border-white/[0.08] rounded-xl text-neutral-700 dark:text-neutral-300 focus:outline-none focus:ring-2 focus:ring-[#007aff] cursor-pointer box-border"
           >
             <option value="all">All Priorities</option>
             <option value="urgent">Urgent</option>
@@ -258,7 +258,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
                 setCategoryFilter('all');
                 setPriorityFilter('all');
               }}
-              className="h-9 px-3 text-xs font-semibold text-[#ff3b30] hover:bg-[#ff3b30]/10 rounded-xl transition-colors cursor-pointer flex items-center justify-center box-border"
+              className="h-8 min-h-[32px] px-3 text-xs font-semibold text-[#ff3b30] hover:bg-[#ff3b30]/10 rounded-xl transition-colors cursor-pointer flex items-center justify-center box-border"
             >
               Reset
             </button>
@@ -388,7 +388,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
           {/* Bottom Add Button */}
           <button
             onClick={() => onAddNewEvent('pending')}
-            className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white hover:bg-white dark:hover:bg-[#18181b] border border-dashed border-neutral-200 dark:border-neutral-800 transition-all"
+            className="w-full flex items-center justify-center gap-1.5 h-8 min-h-[32px] rounded-xl text-xs font-semibold text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white hover:bg-white dark:hover:bg-[#18181b] border border-dashed border-neutral-200 dark:border-neutral-800 transition-all"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>Add Task</span>
@@ -501,7 +501,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
           {/* Bottom Add Button */}
           <button
             onClick={() => onAddNewEvent('in_progress')}
-            className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white hover:bg-white dark:hover:bg-[#18181b] border border-dashed border-neutral-200 dark:border-neutral-800 transition-all"
+            className="w-full flex items-center justify-center gap-1.5 h-8 min-h-[32px] rounded-xl text-xs font-semibold text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white hover:bg-white dark:hover:bg-[#18181b] border border-dashed border-neutral-200 dark:border-neutral-800 transition-all"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>Add Task</span>
@@ -606,7 +606,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
           {/* Bottom Add Button */}
           <button
             onClick={() => onAddNewEvent('completed')}
-            className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white hover:bg-white dark:hover:bg-[#18181b] border border-dashed border-neutral-200 dark:border-neutral-800 transition-all"
+            className="w-full flex items-center justify-center gap-1.5 h-8 min-h-[32px] rounded-xl text-xs font-semibold text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white hover:bg-white dark:hover:bg-[#18181b] border border-dashed border-neutral-200 dark:border-neutral-800 transition-all"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>Add Done Task</span>
@@ -711,7 +711,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
           {/* Bottom Add Button */}
           <button
             onClick={onAddNewNote}
-            className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white hover:bg-white dark:hover:bg-[#18181b] border border-dashed border-neutral-200 dark:border-neutral-800 transition-all"
+            className="w-full flex items-center justify-center gap-1.5 h-8 min-h-[32px] rounded-xl text-xs font-semibold text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white hover:bg-white dark:hover:bg-[#18181b] border border-dashed border-neutral-200 dark:border-neutral-800 transition-all"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>Add Note</span>

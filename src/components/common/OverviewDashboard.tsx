@@ -236,7 +236,7 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
               {isAdmin && (
                 <button
                   onClick={onNewEvent}
-                  className="text-xs font-semibold text-[#007aff] dark:text-[#0a84ff] hover:bg-[#007aff]/10 flex items-center gap-1 px-2 py-1 rounded-[10px] transition-colors cursor-pointer"
+                  className="h-8 min-h-[32px] text-xs font-semibold text-[#007aff] dark:text-[#0a84ff] hover:bg-[#007aff]/10 flex items-center gap-1 px-2.5 rounded-[10px] transition-colors cursor-pointer box-border"
                   title="Add Event for Today"
                 >
                   <Plus className="w-3.5 h-3.5" />
@@ -245,7 +245,7 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
               )}
               <button
                 onClick={() => onNavigateTab('schedule')}
-                className="text-xs font-semibold text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white flex items-center gap-1 px-2.5 py-1 rounded-[10px] hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer"
+                className="h-8 min-h-[32px] text-xs font-semibold text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white flex items-center gap-1 px-2.5 rounded-[10px] hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer box-border"
                 title="View Calendar"
               >
                 <span>Calendar</span>
@@ -356,7 +356,7 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
               {isAdmin && (
                 <button
                   onClick={handleCreateTask}
-                  className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 flex items-center gap-1 px-2 py-1 rounded-[10px] transition-colors cursor-pointer"
+                  className="h-8 min-h-[32px] text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 flex items-center gap-1 px-2.5 rounded-[10px] transition-colors cursor-pointer box-border"
                   title="Add Task for Today"
                 >
                   <Plus className="w-3.5 h-3.5" />
@@ -365,7 +365,7 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
               )}
               <button
                 onClick={() => onNavigateTab('tasks')}
-                className="text-xs font-semibold text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white flex items-center gap-1 px-2.5 py-1 rounded-[10px] hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer"
+                className="h-8 min-h-[32px] text-xs font-semibold text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white flex items-center gap-1 px-2.5 rounded-[10px] hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer box-border"
                 title="View Task Board"
               >
                 <span>Task Board</span>
@@ -476,7 +476,7 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
             {isAdmin && onNewAnnouncement && (
               <button
                 onClick={onNewAnnouncement}
-                className="text-xs font-semibold text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 flex items-center gap-1 px-2.5 py-1 rounded-[10px] transition-colors cursor-pointer"
+                className="h-8 min-h-[32px] text-xs font-semibold text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 flex items-center gap-1 px-2.5 rounded-[10px] transition-colors cursor-pointer box-border"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Post Notice</span>
@@ -484,7 +484,7 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
             )}
             <button
               onClick={() => onNavigateTab('announcements')}
-              className="text-xs font-semibold text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white flex items-center gap-1 px-2.5 py-1 rounded-[10px] hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer"
+              className="h-8 min-h-[32px] text-xs font-semibold text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white flex items-center gap-1 px-2.5 rounded-[10px] hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer box-border"
             >
               <span>View All</span>
               <ArrowRight className="w-3 h-3" />
@@ -518,7 +518,7 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
                       </div>
                       <button
                         onClick={() => onAcknowledgeAnnouncement(anno.id)}
-                        className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-[8px] transition-all active:scale-95 cursor-pointer ${
+                        className={`text-[11px] font-semibold px-2.5 h-7 min-h-[28px] flex items-center justify-center rounded-[8px] transition-all active:scale-95 cursor-pointer box-border ${
                           anno.isRead 
                             ? 'text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300' 
                             : 'bg-[#007aff] text-white hover:bg-[#0071e3] shadow-xs'

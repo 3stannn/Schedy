@@ -934,7 +934,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
       </div>
 
       {/* WYSIWYG ContentEditable Container */}
-      <div className="flex-1 min-h-0 bg-neutral-50/70 dark:bg-neutral-900/60 border border-neutral-200/80 dark:border-neutral-800/80 rounded-xl p-4 sm:p-5 overflow-y-auto shadow-2xs">
+      <div className="flex-1 min-h-[180px] sm:min-h-[220px] bg-neutral-50/70 dark:bg-neutral-900/60 border border-neutral-200/80 dark:border-neutral-800/80 rounded-xl p-4 sm:p-5 overflow-y-auto shadow-2xs">
         <div
           ref={editorRef}
           contentEditable={true}
@@ -945,7 +945,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
           onMouseUp={updateToolbarState}
           onKeyDown={handleKeyDown}
           data-placeholder={placeholder}
-          className="notion-editor outline-none min-h-full font-sans text-xs sm:text-sm text-[#1c1917] dark:text-neutral-100 leading-relaxed"
+          className="notion-editor outline-none min-h-[140px] sm:min-h-[180px] font-sans text-xs sm:text-sm text-[#1c1917] dark:text-neutral-100 leading-relaxed"
         />
       </div>
 

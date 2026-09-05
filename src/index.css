@@ -629,9 +629,9 @@ html.dark .ios-sheet-handle {
   background-color: #007aff;
   color: #ffffff;
   font-weight: 600;
-  border-radius: 12px;
-  min-height: 44px;
-  padding: 0 18px;
+  border-radius: 10px;
+  min-height: 32px;
+  padding: 0 14px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -662,9 +662,9 @@ html.dark .ios-btn-filled:hover {
   background-color: rgba(0, 122, 255, 0.12);
   color: #007aff;
   font-weight: 600;
-  border-radius: 12px;
-  min-height: 44px;
-  padding: 0 16px;
+  border-radius: 10px;
+  min-height: 32px;
+  padding: 0 14px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -692,7 +692,7 @@ html.dark .ios-btn-tinted {
   font-weight: 600;
   background: transparent;
   border: none;
-  padding: 6px 10px;
+  padding: 4px 8px;
   display: inline-flex;
   align-items: center;
   gap: 4px;

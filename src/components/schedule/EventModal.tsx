@@ -462,7 +462,7 @@ export const EventModal: React.FC<EventModalProps> = ({
           </div>
 
           {/* Notion Page Description / Rich Content */}
-          <div className="pt-4 border-t border-neutral-100 dark:border-neutral-800 flex flex-col min-h-[220px]">
+          <div className="pt-4 border-t border-neutral-100 dark:border-neutral-800 flex flex-col min-h-[300px] sm:min-h-[360px]">
             <label className="block text-xs font-semibold text-neutral-600 dark:text-neutral-300 mb-2">
               Notes & Description
             </label>
@@ -471,7 +471,7 @@ export const EventModal: React.FC<EventModalProps> = ({
               initialHtml={description}
               onChange={setDescription}
               placeholder="Add rich notes, agenda, checklist, or event details..."
-              className="min-h-[180px]"
+              className="min-h-[260px] sm:min-h-[320px]"
             />
           </div>
 
@@ -480,13 +480,13 @@ export const EventModal: React.FC<EventModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="ios-btn-tinted px-4 py-2 text-xs font-semibold rounded-[12px] transition-all cursor-pointer min-h-[38px]"
+              className="ios-btn-tinted px-3.5 py-1 text-xs font-semibold rounded-xl transition-all cursor-pointer min-h-[32px] h-8"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="ios-btn-filled px-5 py-2 text-xs font-semibold text-white bg-[#007aff] hover:bg-[#0071e3] dark:bg-[#0a84ff] rounded-[12px] shadow-xs transition-all active:scale-[0.98] cursor-pointer min-h-[38px]"
+              className="ios-btn-filled px-4.5 py-1 text-xs font-semibold text-white bg-[#007aff] hover:bg-[#0071e3] dark:bg-[#0a84ff] rounded-xl shadow-xs transition-all active:scale-[0.98] cursor-pointer min-h-[32px] h-8"
             >
               {initialEvent
                 ? 'Save Changes'

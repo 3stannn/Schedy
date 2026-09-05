@@ -115,7 +115,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Primary "+ New" Action Button - iOS Filled Button */}
           <button
             onClick={handlePrimaryNewAction}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2.5 text-xs font-semibold text-white bg-[#007aff] hover:bg-[#0071e3] dark:bg-[#0a84ff] dark:hover:bg-[#0077ed] rounded-[14px] shadow-xs hover:shadow-sm transition-all active:scale-[0.98] cursor-pointer min-h-[42px]"
+            className="w-full flex items-center justify-center gap-2 px-3 py-1.5 text-xs font-semibold text-white bg-[#007aff] hover:bg-[#0071e3] dark:bg-[#0a84ff] dark:hover:bg-[#0077ed] rounded-xl shadow-xs hover:shadow-sm transition-all active:scale-[0.98] cursor-pointer min-h-[32px] h-8"
             title="Create New Item"
           >
             <Plus className="w-4 h-4 stroke-[2.5]" />
@@ -221,7 +221,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* Share Code Button - iOS Tinted Button */}
             <button
               onClick={onOpenShare}
-              className="w-full flex items-center justify-center gap-2 px-2.5 py-2 rounded-[10px] text-xs font-semibold text-[#007aff] dark:text-[#0a84ff] bg-[#007aff]/10 hover:bg-[#007aff]/15 transition-all active:scale-[0.98] cursor-pointer"
+              className="w-full flex items-center justify-center gap-2 px-2.5 py-1.5 rounded-[10px] text-xs font-semibold text-[#007aff] dark:text-[#0a84ff] bg-[#007aff]/10 hover:bg-[#007aff]/15 transition-all active:scale-[0.98] cursor-pointer min-h-[30px] h-[30px]"
               title="Share / Sync Calendar with Code"
             >
               <Share2 className="w-3.5 h-3.5 shrink-0" />
@@ -232,7 +232,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <div className="grid grid-cols-2 gap-1">
               <button
                 onClick={onOpenConfig}
-                className={`flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-[10px] text-[11px] font-medium transition-all active:scale-95 cursor-pointer ${
+                className={`flex items-center justify-center gap-1.5 px-2 py-1 rounded-[10px] text-[11px] font-medium transition-all active:scale-95 cursor-pointer h-7 ${
                   isCloudConnected
                     ? 'text-[#34c759] bg-[#34c759]/10'
                     : 'text-neutral-600 dark:text-neutral-300 hover:bg-black/5 dark:hover:bg-white/10'
@@ -245,7 +245,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
               <button
                 onClick={onOpenExport}
-                className="flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-[10px] text-[11px] font-medium text-neutral-600 dark:text-neutral-300 hover:bg-black/5 dark:hover:bg-white/10 transition-all active:scale-95 cursor-pointer"
+                className="flex items-center justify-center gap-1.5 px-2 py-1 rounded-[10px] text-[11px] font-medium text-neutral-600 dark:text-neutral-300 hover:bg-black/5 dark:hover:bg-white/10 transition-all active:scale-95 cursor-pointer h-7"
                 title="Export Data"
               >
                 <Download className="w-3.5 h-3.5 shrink-0" />
@@ -317,7 +317,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               {/* "+ New" Action Button - iOS Pill */}
               <button
                 onClick={handlePrimaryNewAction}
-                className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-white bg-[#007aff] hover:bg-[#0071e3] dark:bg-[#0a84ff] rounded-full shadow-xs transition-all active:scale-95 cursor-pointer min-h-[34px]"
+                className="flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-white bg-[#007aff] hover:bg-[#0071e3] dark:bg-[#0a84ff] rounded-full shadow-xs transition-all active:scale-95 cursor-pointer min-h-[28px] h-7"
                 title="Create New Item"
               >
                 <Plus className="w-3.5 h-3.5 stroke-[2.5]" />

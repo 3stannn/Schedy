@@ -353,12 +353,12 @@ export const EventPreviewModal: React.FC<EventPreviewModalProps> = ({
           </div>
 
           {/* Footer Actions */}
-          <div className="flex items-center justify-between px-6 py-4 border-t border-black/[0.06] dark:border-white/[0.08] bg-black/[0.015] dark:bg-white/[0.02]">
+          <div className="flex items-center justify-between px-6 py-3.5 border-t border-black/[0.06] dark:border-white/[0.08] bg-black/[0.015] dark:bg-white/[0.02]">
             {/* Delete Button */}
             <button
               type="button"
               onClick={() => setShowDeleteConfirm(true)}
-              className="h-9 px-3 rounded-xl text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+              className="h-8 px-3 rounded-xl text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
             >
               <Trash2 className="w-3.5 h-3.5" />
               <span>Delete</span>
@@ -369,7 +369,7 @@ export const EventPreviewModal: React.FC<EventPreviewModalProps> = ({
               <button
                 type="button"
                 onClick={onClose}
-                className="ios-btn-tinted h-9 px-4 text-xs font-semibold rounded-xl transition-all cursor-pointer"
+                className="ios-btn-tinted h-8 px-3.5 text-xs font-semibold rounded-xl transition-all cursor-pointer min-h-[32px]"
               >
                 Close
               </button>
@@ -380,7 +380,7 @@ export const EventPreviewModal: React.FC<EventPreviewModalProps> = ({
                   onClose();
                   onEdit(event);
                 }}
-                className="ios-btn-filled h-9 px-4.5 text-xs font-semibold text-white bg-[#007aff] hover:bg-[#0071e3] dark:bg-[#0a84ff] rounded-xl shadow-xs transition-all active:scale-[0.98] cursor-pointer flex items-center gap-1.5"
+                className="ios-btn-filled h-8 px-4 text-xs font-semibold text-white bg-[#007aff] hover:bg-[#0071e3] dark:bg-[#0a84ff] rounded-xl shadow-xs transition-all active:scale-[0.98] cursor-pointer flex items-center gap-1.5 min-h-[32px]"
               >
                 <Edit3 className="w-3.5 h-3.5" />
                 <span>Edit</span>

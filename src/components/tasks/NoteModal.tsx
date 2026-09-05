@@ -148,13 +148,13 @@ export const NoteModal: React.FC<NoteModalProps> = ({
           </div>
 
           {/* Notion WYSIWYG Rich Text Editor */}
-          <div className="flex-1 min-h-0 px-4 sm:px-6 pb-3 flex flex-col">
+          <div className="flex-1 min-h-[260px] sm:min-h-[320px] px-4 sm:px-6 pb-3 flex flex-col">
             <RichTextEditor
               key={initialNote?.id || 'new-note'}
               initialHtml={content}
               onChange={setContent}
               placeholder="Write your note here... Use formatting tools above or keyboard shortcuts like Ctrl+B, Ctrl+I, Ctrl+U..."
-              className="flex-1 min-h-0"
+              className="flex-1 min-h-[260px] sm:min-h-[320px]"
             />
           </div>
 
@@ -198,7 +198,7 @@ export const NoteModal: React.FC<NoteModalProps> = ({
                     onDelete(initialNote.id);
                     onClose();
                   }}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#ff3b30] hover:bg-[#ff3b30]/10 rounded-[10px] transition-colors active:scale-95 cursor-pointer"
+                  className="flex items-center gap-1.5 px-3 py-1 text-xs font-semibold text-[#ff3b30] hover:bg-[#ff3b30]/10 rounded-[10px] transition-colors active:scale-95 cursor-pointer h-8"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                   <span>Delete</span>
@@ -209,13 +209,13 @@ export const NoteModal: React.FC<NoteModalProps> = ({
                 <button
                   type="button"
                   onClick={onClose}
-                  className="ios-btn-tinted px-4 py-1.5 text-xs font-semibold rounded-[12px] transition-colors active:scale-95 cursor-pointer min-h-[36px]"
+                  className="ios-btn-tinted px-3.5 py-1 text-xs font-semibold rounded-xl transition-colors active:scale-95 cursor-pointer min-h-[32px] h-8"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="ios-btn-filled px-4.5 py-1.5 text-xs font-semibold text-white bg-[#007aff] hover:bg-[#0071e3] dark:bg-[#0a84ff] rounded-[12px] shadow-xs transition-all active:scale-[0.98] cursor-pointer min-h-[36px]"
+                  className="ios-btn-filled px-4 py-1 text-xs font-semibold text-white bg-[#007aff] hover:bg-[#0071e3] dark:bg-[#0a84ff] rounded-xl shadow-xs transition-all active:scale-[0.98] cursor-pointer min-h-[32px] h-8"
                 >
                   {initialNote ? 'Save Changes' : 'Create Note'}
                 </button>

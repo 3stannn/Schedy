@@ -661,7 +661,7 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
             {/* Inline Play / Pause */}
             <button
               onClick={toggleRunning}
-              className={`p-2 rounded-full text-white transition-all active:scale-95 cursor-pointer ml-1 min-w-[34px] min-h-[34px] flex items-center justify-center shrink-0 ${
+              className={`w-8 h-8 rounded-full text-white transition-all active:scale-95 cursor-pointer ml-1 min-w-[32px] min-h-[32px] flex items-center justify-center shrink-0 ${
                 isRunning
                   ? 'bg-[#ff9500] hover:bg-[#e08500]'
                   : 'bg-[#007aff] hover:bg-[#0071e3]'
@@ -869,7 +869,7 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
               {/* Reset button */}
               <button
                 onClick={handleReset}
-                className="flex items-center justify-center w-11 h-11 sm:w-12 sm:h-12 rounded-[14px] bg-black/[0.04] dark:bg-white/[0.08] hover:bg-black/[0.08] dark:hover:bg-white/[0.12] text-neutral-700 dark:text-neutral-200 transition-all cursor-pointer active:scale-95 shrink-0"
+                className="flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-black/[0.04] dark:bg-white/[0.08] hover:bg-black/[0.08] dark:hover:bg-white/[0.12] text-neutral-700 dark:text-neutral-200 transition-all cursor-pointer active:scale-95 shrink-0"
                 title="Reset timer"
               >
                 <RotateCcw className="w-4 h-4" />
@@ -878,7 +878,7 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
               {/* Main Play / Pause Button */}
               <button
                 onClick={toggleRunning}
-                className={`ios-btn-filled flex-1 sm:flex-initial flex items-center justify-center gap-2 px-6 sm:px-8 py-3.5 sm:py-4 rounded-[16px] text-sm sm:text-base font-bold text-white shadow-md transition-all active:scale-95 cursor-pointer min-w-[130px] sm:min-w-[170px] min-h-[48px] ${
+                className={`ios-btn-filled flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 sm:px-7 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-bold text-white shadow-xs transition-all active:scale-95 cursor-pointer min-w-[110px] sm:min-w-[140px] h-9 sm:h-10 min-h-[36px] box-border ${
                   isRunning
                     ? 'bg-[#ff9500] hover:bg-[#e08500]'
                     : 'bg-[#007aff] hover:bg-[#0071e3] dark:bg-[#0a84ff]'
@@ -886,12 +886,12 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
               >
                 {isRunning ? (
                   <>
-                    <Pause className="w-4 h-4 sm:w-5 sm:h-5 fill-current" />
+                    <Pause className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-current" />
                     <span>Pause</span>
                   </>
                 ) : (
                   <>
-                    <Play className="w-4 h-4 sm:w-5 sm:h-5 fill-current ml-0.5" />
+                    <Play className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-current ml-0.5" />
                     <span>Start Focus</span>
                   </>
                 )}
@@ -900,7 +900,7 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
               {/* Skip button */}
               <button
                 onClick={handleSkip}
-                className="flex items-center justify-center w-11 h-11 sm:w-12 sm:h-12 rounded-[14px] bg-black/[0.04] dark:bg-white/[0.08] hover:bg-black/[0.08] dark:hover:bg-white/[0.12] text-neutral-700 dark:text-neutral-200 transition-all cursor-pointer active:scale-95 shrink-0"
+                className="flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-black/[0.04] dark:bg-white/[0.08] hover:bg-black/[0.08] dark:hover:bg-white/[0.12] text-neutral-700 dark:text-neutral-200 transition-all cursor-pointer active:scale-95 shrink-0"
                 title="Skip to next session"
               >
                 <SkipForward className="w-4 h-4" />
@@ -909,7 +909,7 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
               {/* Quick +5m (Desktop inline) */}
               <button
                 onClick={() => adjustTime(300)}
-                className="hidden sm:flex items-center justify-center w-11 h-11 rounded-[14px] bg-black/[0.04] dark:bg-white/[0.08] hover:bg-black/[0.08] dark:hover:bg-white/[0.12] text-neutral-700 dark:text-neutral-200 text-xs font-bold transition-all cursor-pointer active:scale-95 shrink-0"
+                className="hidden sm:flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-black/[0.04] dark:bg-white/[0.08] hover:bg-black/[0.08] dark:hover:bg-white/[0.12] text-neutral-700 dark:text-neutral-200 text-xs font-bold transition-all cursor-pointer active:scale-95 shrink-0"
                 title="Add 5 minutes"
               >
                 +5m
@@ -920,14 +920,14 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
             <div className="flex sm:hidden items-center justify-center gap-2 w-full max-w-xs">
               <button
                 onClick={() => adjustTime(-60)}
-                className="flex-1 py-2 px-3 rounded-xl bg-slate-100/90 hover:bg-slate-200 dark:bg-white/[0.05] dark:hover:bg-white/10 text-slate-600 dark:text-slate-300 text-xs font-bold transition-all cursor-pointer active:scale-95 text-center"
+                className="flex-1 h-8 min-h-[32px] px-3 rounded-lg bg-slate-100/90 hover:bg-slate-200 dark:bg-white/[0.05] dark:hover:bg-white/10 text-slate-600 dark:text-slate-300 text-xs font-semibold transition-all cursor-pointer active:scale-95 text-center flex items-center justify-center box-border"
                 title="Subtract 1 minute"
               >
                 -1 min
               </button>
               <button
                 onClick={() => adjustTime(300)}
-                className="flex-1 py-2 px-3 rounded-xl bg-slate-100/90 hover:bg-slate-200 dark:bg-white/[0.05] dark:hover:bg-white/10 text-slate-600 dark:text-slate-300 text-xs font-bold transition-all cursor-pointer active:scale-95 text-center"
+                className="flex-1 h-8 min-h-[32px] px-3 rounded-lg bg-slate-100/90 hover:bg-slate-200 dark:bg-white/[0.05] dark:hover:bg-white/10 text-slate-600 dark:text-slate-300 text-xs font-semibold transition-all cursor-pointer active:scale-95 text-center flex items-center justify-center box-border"
                 title="Add 5 minutes"
               >
                 +5 min
@@ -973,7 +973,7 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
                   <select
                     value={selectedTaskId}
                     onChange={(e) => setSelectedTaskId(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-100/90 dark:bg-neutral-800/90 text-xs font-semibold text-slate-800 dark:text-slate-100 border border-slate-200/80 dark:border-neutral-700/80 focus:ring-2 focus:ring-blue-500/30 min-h-[42px] truncate"
+                    className="w-full px-3 py-1 rounded-xl bg-slate-100/90 dark:bg-neutral-800/90 text-xs font-semibold text-slate-800 dark:text-slate-100 border border-slate-200/80 dark:border-neutral-700/80 focus:ring-2 focus:ring-blue-500/30 h-8 min-h-[32px] truncate box-border"
                   >
                     <option value="">-- Choose a task to focus on --</option>
                     {pendingTasks.map(t => (
@@ -989,7 +989,7 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
                       value={customGoal}
                       onChange={(e) => setCustomGoal(e.target.value)}
                       placeholder="Or type a custom goal (e.g. Finish Chapter 3 review)..."
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-100/70 dark:bg-white/[0.04] text-xs font-medium text-slate-800 dark:text-slate-100 border border-slate-200/80 dark:border-white/[0.06] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 min-h-[42px]"
+                      className="w-full px-3 py-1 rounded-xl bg-slate-100/70 dark:bg-white/[0.04] text-xs font-medium text-slate-800 dark:text-slate-100 border border-slate-200/80 dark:border-white/[0.06] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 h-8 min-h-[32px] box-border"
                     />
                   )}
                 </div>
@@ -999,7 +999,7 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
                   value={customGoal}
                   onChange={(e) => setCustomGoal(e.target.value)}
                   placeholder="What are you working on right now? (e.g. Code refactoring)"
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-100/70 dark:bg-white/[0.04] text-xs font-medium text-slate-800 dark:text-slate-100 border border-slate-200/80 dark:border-white/[0.06] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 min-h-[42px]"
+                  className="w-full px-3 py-1 rounded-xl bg-slate-100/70 dark:bg-white/[0.04] text-xs font-medium text-slate-800 dark:text-slate-100 border border-slate-200/80 dark:border-white/[0.06] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 h-8 min-h-[32px] box-border"
                 />
               )}
 
@@ -1057,7 +1057,7 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
               <select
                 value={settings.ambientSound}
                 onChange={(e) => updateSettings({ ambientSound: e.target.value as any })}
-                className="px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-neutral-800 text-slate-700 dark:text-slate-200 text-xs border border-slate-200/60 dark:border-neutral-700 font-semibold min-h-[36px]"
+                className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-neutral-800 text-slate-700 dark:text-slate-200 text-xs border border-slate-200/60 dark:border-neutral-700 font-semibold h-8 min-h-[32px]"
               >
                 <option value="none">Off</option>
                 <option value="tick">Clock Ticking</option>
@@ -1241,7 +1241,7 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
                 <button
                   type="button"
                   onClick={() => setIsSettingsOpen(false)}
-                  className="px-5 py-2.5 rounded-xl font-semibold text-white bg-slate-900 hover:bg-slate-800 dark:bg-white dark:text-slate-950 shadow-xs transition-all active:scale-95 cursor-pointer text-xs"
+                  className="px-4 py-1.5 h-8 min-h-[32px] rounded-xl font-semibold text-white bg-slate-900 hover:bg-slate-800 dark:bg-white dark:text-slate-950 shadow-xs transition-all active:scale-95 cursor-pointer text-xs flex items-center justify-center"
                 >
                   Done
                 </button>

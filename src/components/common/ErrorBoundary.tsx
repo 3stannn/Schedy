@@ -63,7 +63,7 @@ export class ErrorBoundary extends Component<Props, State> {
             <div className="flex items-center justify-center gap-2 pt-2">
               <button
                 onClick={this.handleReload}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-[#2383e2] hover:bg-[#1a73e8] text-white shadow-xs transition-all active:scale-95"
+                className="flex items-center justify-center gap-1.5 px-3.5 h-8 min-h-[32px] rounded-xl text-xs font-semibold bg-[#2383e2] hover:bg-[#1a73e8] text-white shadow-xs transition-all active:scale-95 cursor-pointer box-border"
               >
                 <RefreshCw className="w-3.5 h-3.5" />
                 <span>Reload Application</span>
@@ -71,7 +71,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
               <button
                 onClick={this.handleResetLocal}
-                className="px-4 py-2 rounded-xl text-xs font-medium text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+                className="flex items-center justify-center px-3.5 h-8 min-h-[32px] rounded-xl text-xs font-medium text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer box-border"
               >
                 Clear Data & Reset
               </button>
