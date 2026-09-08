@@ -11,7 +11,7 @@
 > **A distraction-free, minimalist schedule planner, Kanban task board, and notice workspace.**  
 > Effortlessly manage your schedule, track tasks on a Kanban board, capture rich Notion-style notes, stay focused with an ambient Pomodoro timer, broadcast team notices, and enjoy offline-first local storage, real-time Supabase cloud sync, compressed share codes, and multi-format exports.
 
-**[🌐 Experience the Live Demo](https://schedy-sepia.vercel.app)**
+**[🌐 Try it live](https://schedy-sepia.vercel.app)**
 
 ---
 
