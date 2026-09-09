@@ -346,7 +346,7 @@ export const CustomDateTimePicker: React.FC<CustomDateTimePickerProps> = ({
         {/* Hours Column */}
         <div className={`flex flex-col items-center ${isMobileView ? 'flex-1' : ''}`}>
           <span className="text-[10px] text-neutral-400 mb-1">Hour</span>
-          <div className="flex-1 overflow-y-auto space-y-1 w-full max-h-[175px] px-0.5">
+          <div className="flex-1 overflow-y-auto space-y-1 w-full max-h-[175px] px-0.5 no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
             {HOURS_LIST.map((h) => {
               const isSelected = h === currentHoursStr;
               return (
@@ -369,7 +369,7 @@ export const CustomDateTimePicker: React.FC<CustomDateTimePickerProps> = ({
         {/* Minutes Column */}
         <div className={`flex flex-col items-center ${isMobileView ? 'flex-1' : ''}`}>
           <span className="text-[10px] text-neutral-400 mb-1">Min</span>
-          <div className="flex-1 overflow-y-auto space-y-1 w-full max-h-[175px] px-0.5">
+          <div className="flex-1 overflow-y-auto space-y-1 w-full max-h-[175px] px-0.5 no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
             {MINUTES_LIST.map((m) => {
               const isSelected = m === currentMinutesStr;
               return (
@@ -426,7 +426,7 @@ export const CustomDateTimePicker: React.FC<CustomDateTimePickerProps> = ({
         aria-label={ariaLabel}
         disabled={disabled}
         onClick={toggleOpen}
-        className={`inline-flex items-center justify-between border select-none transition-all duration-150 outline-none h-8 px-2.5 text-xs font-medium rounded-xl gap-2 cursor-pointer ${disabled
+        className={`inline-flex items-center justify-between border select-none transition-all duration-150 outline-none h-8 px-2 sm:px-2.5 text-[11px] sm:text-xs font-medium rounded-xl gap-1.5 sm:gap-2 cursor-pointer ${disabled
             ? 'opacity-50 cursor-not-allowed bg-black/[0.02] dark:bg-white/[0.02] border-black/[0.05] dark:border-white/[0.06] text-neutral-400'
             : isOpen
               ? 'bg-black/[0.04] dark:bg-[#1e1e24] border-black/20 dark:border-white/30 ring-2 ring-[#007aff]/30 dark:ring-white/20 text-neutral-900 dark:text-white'
@@ -434,7 +434,7 @@ export const CustomDateTimePicker: React.FC<CustomDateTimePickerProps> = ({
           } ${className}`}
       >
         <span className="truncate font-medium">{displayString}</span>
-        <CalendarIcon className="w-3.5 h-3.5 text-neutral-400 shrink-0 ml-1" />
+        <CalendarIcon className="w-3.5 h-3.5 text-neutral-400 shrink-0 ml-0.5 sm:ml-1" />
       </button>
 
       {isOpen &&

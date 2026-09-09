@@ -400,10 +400,10 @@ export const EventModal: React.FC<EventModalProps> = ({
                 <Clock className="w-3.5 h-3.5" />
                 <span>{itemType === 'task' ? 'Due / Schedule' : 'Date & Time'}</span>
               </div>
-              <div className="flex-1 space-y-1.5">
-                <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full">
+              <div className="flex-1 space-y-1.5 min-w-0">
+                <div className="flex items-center gap-1.5 sm:gap-2 w-full">
                   <CustomDateTimePicker
-                    className="w-full sm:w-auto flex-1"
+                    className="flex-1 min-w-0"
                     value={startTime}
                     mode={isAllDay ? 'date' : 'datetime'}
                     onChange={val => {
@@ -413,9 +413,9 @@ export const EventModal: React.FC<EventModalProps> = ({
                       }
                     }}
                   />
-                  <span className="text-neutral-400 text-xs hidden sm:inline">→</span>
+                  <span className="text-neutral-400 text-xs shrink-0">→</span>
                   <CustomDateTimePicker
-                    className="w-full sm:w-auto flex-1"
+                    className="flex-1 min-w-0"
                     value={endTime}
                     mode={isAllDay ? 'date' : 'datetime'}
                     onChange={val => {
