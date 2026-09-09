@@ -211,13 +211,13 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         {/* Bottom Utility Card: iOS Inset Grouped Card */}
         <div className="space-y-2">
-          <iframe
+          {/* <iframe
             src="https://appbuildersph.com/embed/apps/schedy"
             title="Schedy votes on App Builders PH"
             className="w-full border-0"
             height="72"
             loading="lazy"
-          />
+          /> */}
           <div className="p-2 rounded-[16px] bg-black/[0.03] dark:bg-white/[0.05] border border-black/[0.05] dark:border-white/[0.08] space-y-1.5">
             {/* Share Code Button - iOS Tinted Button */}
             <button
