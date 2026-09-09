@@ -22,6 +22,32 @@ import { format, parseISO } from 'date-fns';
 import { FormattedNoteContent } from './FormattedNoteContent';
 import { stripHtml } from './noteFormattingUtils';
 import { getEventAutoDeleteInfo } from '../../utils/autoDeleteUtils';
+import { CustomSelect } from '../common/CustomSelect';
+
+const TYPE_FILTER_OPTIONS = [
+  { value: 'all', label: 'All Types' },
+  { value: 'task', label: 'Tasks Only' },
+  { value: 'event', label: 'Events Only' },
+];
+
+const CATEGORY_FILTER_OPTIONS = [
+  { value: 'all', label: 'All Categories' },
+  { value: 'work', label: 'Work' },
+  { value: 'meeting', label: 'Meeting' },
+  { value: 'deadline', label: 'Deadline' },
+  { value: 'personal', label: 'Personal' },
+  { value: 'education', label: 'Education' },
+  { value: 'general', label: 'General' },
+];
+
+const PRIORITY_FILTER_OPTIONS = [
+  { value: 'all', label: 'All Priorities' },
+  { value: 'urgent', label: 'Urgent' },
+  { value: 'high', label: 'High' },
+  { value: 'medium', label: 'Medium' },
+  { value: 'low', label: 'Low' },
+];
+
 
 interface TaskBoardProps {
   events: ScheduleEvent[];
@@ -214,41 +240,27 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
 
         {/* Filters */}
         <div className="flex items-center gap-2 flex-wrap">
-          <select
+          <CustomSelect
             value={typeFilter}
-            onChange={(e) => setTypeFilter(e.target.value as 'all' | 'task' | 'event')}
-            className="h-8 px-2.5 text-xs bg-black/[0.04] dark:bg-white/[0.06] border border-black/[0.06] dark:border-white/[0.08] rounded-xl text-neutral-700 dark:text-neutral-300 focus:outline-none focus:ring-2 focus:ring-[#007aff] cursor-pointer box-border font-medium"
-          >
-            <option value="all">All Types</option>
-            <option value="task">Tasks Only</option>
-            <option value="event">Events Only</option>
-          </select>
+            onChange={(val) => setTypeFilter(val as 'all' | 'task' | 'event')}
+            options={TYPE_FILTER_OPTIONS}
+            size="sm"
+          />
 
-          <select
+          <CustomSelect
             value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
-            className="h-8 px-2.5 text-xs bg-black/[0.04] dark:bg-white/[0.06] border border-black/[0.06] dark:border-white/[0.08] rounded-xl text-neutral-700 dark:text-neutral-300 focus:outline-none focus:ring-2 focus:ring-[#007aff] cursor-pointer box-border"
-          >
-            <option value="all">All Categories</option>
-            <option value="work">Work</option>
-            <option value="meeting">Meeting</option>
-            <option value="deadline">Deadline</option>
-            <option value="personal">Personal</option>
-            <option value="education">Education</option>
-            <option value="general">General</option>
-          </select>
+            onChange={setCategoryFilter}
+            options={CATEGORY_FILTER_OPTIONS}
+            size="sm"
+          />
 
-          <select
+          <CustomSelect
             value={priorityFilter}
-            onChange={(e) => setPriorityFilter(e.target.value)}
-            className="h-8 px-2.5 text-xs bg-black/[0.04] dark:bg-white/[0.06] border border-black/[0.06] dark:border-white/[0.08] rounded-xl text-neutral-700 dark:text-neutral-300 focus:outline-none focus:ring-2 focus:ring-[#007aff] cursor-pointer box-border"
-          >
-            <option value="all">All Priorities</option>
-            <option value="urgent">Urgent</option>
-            <option value="high">High</option>
-            <option value="medium">Medium</option>
-            <option value="low">Low</option>
-          </select>
+            onChange={setPriorityFilter}
+            options={PRIORITY_FILTER_OPTIONS}
+            size="sm"
+          />
+
 
           {(searchQuery || typeFilter !== 'all' || categoryFilter !== 'all' || priorityFilter !== 'all') && (
             <button

@@ -11,6 +11,10 @@ import {
   EyeOff,
 } from '../common/MovingIcon';
 import { verifyDevPassword } from '../../services/announcementService';
+import { CustomCheckbox } from '../common/CustomCheckbox';
+import { CustomDateTimePicker } from '../common/CustomDateTimePicker';
+
+
 
 interface AnnouncementModalProps {
   isOpen: boolean;
@@ -258,11 +262,12 @@ export const AnnouncementModal: React.FC<AnnouncementModalProps> = ({
               <label className="block text-[11px] font-semibold text-neutral-600 dark:text-neutral-400 uppercase tracking-wider">
                 Expires On
               </label>
-              <input
-                type="date"
+              <CustomDateTimePicker
                 value={expiresAt}
-                onChange={e => setExpiresAt(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-neutral-900 dark:text-white text-xs outline-none focus:border-neutral-400 dark:focus:border-neutral-600 font-mono"
+                onChange={setExpiresAt}
+                mode="date"
+                placeholder="Select expiration date..."
+                className="w-full h-9.5"
               />
             </div>
 
@@ -270,16 +275,18 @@ export const AnnouncementModal: React.FC<AnnouncementModalProps> = ({
               <label className="block text-[11px] font-semibold text-neutral-600 dark:text-neutral-400 uppercase tracking-wider">
                 Pin to Top
               </label>
-              <label className="flex items-center gap-2 px-3 py-2 rounded-xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 cursor-pointer text-xs text-neutral-700 dark:text-neutral-300">
-                <input
-                  type="checkbox"
+              <div
+                onClick={() => setIsPinned(!isPinned)}
+                className="flex items-center gap-2 px-3 py-2 rounded-xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 cursor-pointer text-xs text-neutral-700 dark:text-neutral-300 select-none hover:border-neutral-300 dark:hover:border-neutral-700 transition-colors"
+              >
+                <CustomCheckbox
                   checked={isPinned}
-                  onChange={e => setIsPinned(e.target.checked)}
-                  className="rounded border-neutral-300 text-neutral-900 focus:ring-0"
+                  onChange={setIsPinned}
+                  size="sm"
                 />
-                <Pin className="w-3.5 h-3.5 text-neutral-500" />
-                <span>Pin notice</span>
-              </label>
+                <Pin className="w-3.5 h-3.5 text-neutral-500 shrink-0" />
+                <span className="font-medium">Pin notice</span>
+              </div>
             </div>
           </div>
 

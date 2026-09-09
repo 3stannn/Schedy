@@ -21,8 +21,17 @@ import {
   Minimize2,
   Timer
 } from '../common/MovingIcon';
+import { CustomSelect } from '../common/CustomSelect';
+import { CustomCheckbox } from '../common/CustomCheckbox';
+
+const AMBIENT_SOUND_OPTIONS = [
+  { value: 'none', label: 'Off' },
+  { value: 'tick', label: 'Clock Ticking' },
+  { value: 'rain', label: 'Rain / White Noise' },
+];
 
 export type TimerMode = 'focus' | 'shortBreak' | 'longBreak';
+
 
 export interface PomodoroInfo {
   isRunning: boolean;
@@ -970,20 +979,22 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
               {/* Task selector from Schedy schedule */}
               {pendingTasks.length > 0 ? (
                 <div className="space-y-2">
-                  <select
+                  <CustomSelect
                     value={selectedTaskId}
-                    onChange={(e) => setSelectedTaskId(e.target.value)}
-                    className="w-full px-3 py-1 rounded-xl bg-slate-100/90 dark:bg-neutral-800/90 text-xs font-semibold text-slate-800 dark:text-slate-100 border border-slate-200/80 dark:border-neutral-700/80 focus:ring-2 focus:ring-blue-500/30 h-8 min-h-[32px] truncate box-border"
-                  >
-                    <option value="">-- Choose a task to focus on --</option>
-                    {pendingTasks.map(t => (
-                      <option key={t.id} value={t.id}>
-                        [{t.priority.toUpperCase()}] {t.title} {t.category ? `(${t.category})` : ''}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={setSelectedTaskId}
+                    options={[
+                      { value: '', label: '-- Choose a task to focus on --' },
+                      ...pendingTasks.map(t => ({
+                        value: t.id,
+                        label: `[${t.priority.toUpperCase()}] ${t.title}${t.category ? ` (${t.category})` : ''}`,
+                      })),
+                    ]}
+                    size="sm"
+                    className="w-full"
+                  />
 
                   {!selectedTaskId && (
+
                     <input
                       type="text"
                       value={customGoal}
@@ -1054,15 +1065,12 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
                 <Headphones className="w-3.5 h-3.5" />
                 <span>Ambient Audio</span>
               </span>
-              <select
+              <CustomSelect
                 value={settings.ambientSound}
-                onChange={(e) => updateSettings({ ambientSound: e.target.value as any })}
-                className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-neutral-800 text-slate-700 dark:text-slate-200 text-xs border border-slate-200/60 dark:border-neutral-700 font-semibold h-8 min-h-[32px]"
-              >
-                <option value="none">Off</option>
-                <option value="tick">Clock Ticking</option>
-                <option value="rain">Rain / White Noise</option>
-              </select>
+                onChange={(val) => updateSettings({ ambientSound: val as any })}
+                options={AMBIENT_SOUND_OPTIONS}
+                size="sm"
+              />
             </div>
           </div>
 
@@ -1184,32 +1192,35 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
 
                 {/* Automation Toggles */}
                 <div className="space-y-2 pt-1">
-                  <label className="flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-white/[0.02] cursor-pointer">
+                  <div
+                    onClick={() => updateSettings({ autoStartBreaks: !settings.autoStartBreaks })}
+                    className="flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-white/[0.02] cursor-pointer select-none"
+                  >
                     <div>
-                      <span className="font-bold text-slate-900 dark:text-white block">Auto-start Breaks</span>
+                      <span className="font-bold text-slate-900 dark:text-white block text-xs">Auto-start Breaks</span>
                       <span className="text-[11px] text-slate-400">Automatically begin break timer when focus ends</span>
                     </div>
-                    <input
-                      type="checkbox"
+                    <CustomCheckbox
                       checked={settings.autoStartBreaks}
-                      onChange={(e) => updateSettings({ autoStartBreaks: e.target.checked })}
-                      className="w-4 h-4 rounded text-blue-600 focus:ring-0 cursor-pointer"
+                      onChange={(checked) => updateSettings({ autoStartBreaks: checked })}
                     />
-                  </label>
+                  </div>
 
-                  <label className="flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-white/[0.02] cursor-pointer">
+                  <div
+                    onClick={() => updateSettings({ autoStartFocus: !settings.autoStartFocus })}
+                    className="flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-white/[0.02] cursor-pointer select-none"
+                  >
                     <div>
-                      <span className="font-bold text-slate-900 dark:text-white block">Auto-start Focus</span>
+                      <span className="font-bold text-slate-900 dark:text-white block text-xs">Auto-start Focus</span>
                       <span className="text-[11px] text-slate-400">Automatically begin focus timer when break ends</span>
                     </div>
-                    <input
-                      type="checkbox"
+                    <CustomCheckbox
                       checked={settings.autoStartFocus}
-                      onChange={(e) => updateSettings({ autoStartFocus: e.target.checked })}
-                      className="w-4 h-4 rounded text-blue-600 focus:ring-0 cursor-pointer"
+                      onChange={(checked) => updateSettings({ autoStartFocus: checked })}
                     />
-                  </label>
+                  </div>
                 </div>
+
 
                 {/* Sound volume slider */}
                 <div className="p-3.5 rounded-2xl bg-slate-100/70 dark:bg-white/[0.04] border border-slate-200/80 dark:border-white/[0.06] space-y-2">

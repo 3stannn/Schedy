@@ -16,6 +16,34 @@ import {
   compareAsc
 } from 'date-fns';
 import { stripHtml } from '../tasks/noteFormattingUtils';
+import { CustomSelect } from '../common/CustomSelect';
+
+const CATEGORY_FILTER_OPTIONS = [
+  { value: 'all', label: 'Category: All' },
+  { value: 'work', label: 'Work' },
+  { value: 'meeting', label: 'Meeting' },
+  { value: 'deadline', label: 'Deadline' },
+  { value: 'personal', label: 'Personal' },
+  { value: 'education', label: 'Education' },
+  { value: 'general', label: 'General' },
+];
+
+const PRIORITY_FILTER_OPTIONS = [
+  { value: 'all', label: 'Priority: All' },
+  { value: 'urgent', label: 'Urgent' },
+  { value: 'high', label: 'High' },
+  { value: 'medium', label: 'Medium' },
+  { value: 'low', label: 'Low' },
+];
+
+const STATUS_FILTER_OPTIONS = [
+  { value: 'all', label: 'Status: All' },
+  { value: 'pending', label: 'Pending' },
+  { value: 'in_progress', label: 'In Progress' },
+  { value: 'completed', label: 'Completed' },
+  { value: 'cancelled', label: 'Cancelled' },
+];
+
 
 interface EventListViewProps {
   events: ScheduleEvent[];
@@ -155,43 +183,27 @@ export const EventListView: React.FC<EventListViewProps> = ({
             <SlidersHorizontal className="w-3 h-3" /> Filter:
           </span>
 
-          <select
+          <CustomSelect
             value={categoryFilter}
-            onChange={e => setCategoryFilter(e.target.value)}
-            className="h-8 px-2.5 rounded-xl bg-black/[0.04] dark:bg-white/[0.06] text-neutral-700 dark:text-neutral-300 text-xs border border-black/[0.06] dark:border-white/[0.08] outline-none focus:ring-2 focus:ring-[#007aff] cursor-pointer font-medium box-border"
-          >
-            <option value="all">Category: All</option>
-            <option value="work">Work</option>
-            <option value="meeting">Meeting</option>
-            <option value="deadline">Deadline</option>
-            <option value="personal">Personal</option>
-            <option value="education">Education</option>
-            <option value="general">General</option>
-          </select>
+            onChange={setCategoryFilter}
+            options={CATEGORY_FILTER_OPTIONS}
+            size="sm"
+          />
 
-          <select
+          <CustomSelect
             value={priorityFilter}
-            onChange={e => setPriorityFilter(e.target.value)}
-            className="h-8 px-2.5 rounded-xl bg-black/[0.04] dark:bg-white/[0.06] text-neutral-700 dark:text-neutral-300 text-xs border border-black/[0.06] dark:border-white/[0.08] outline-none focus:ring-2 focus:ring-[#007aff] cursor-pointer font-medium box-border"
-          >
-            <option value="all">Priority: All</option>
-            <option value="urgent">Urgent</option>
-            <option value="high">High</option>
-            <option value="medium">Medium</option>
-            <option value="low">Low</option>
-          </select>
+            onChange={setPriorityFilter}
+            options={PRIORITY_FILTER_OPTIONS}
+            size="sm"
+          />
 
-          <select
+          <CustomSelect
             value={statusFilter}
-            onChange={e => setStatusFilter(e.target.value)}
-            className="h-8 px-2.5 rounded-xl bg-black/[0.04] dark:bg-white/[0.06] text-neutral-700 dark:text-neutral-300 text-xs border border-black/[0.06] dark:border-white/[0.08] outline-none focus:ring-2 focus:ring-[#007aff] cursor-pointer font-medium box-border"
-          >
-            <option value="all">Status: All</option>
-            <option value="pending">Pending</option>
-            <option value="in_progress">In Progress</option>
-            <option value="completed">Completed</option>
-            <option value="cancelled">Cancelled</option>
-          </select>
+            onChange={setStatusFilter}
+            options={STATUS_FILTER_OPTIONS}
+            size="sm"
+          />
+
 
           {(search || categoryFilter !== 'all' || priorityFilter !== 'all' || statusFilter !== 'all' || timeFilter !== 'all') && (
             <button

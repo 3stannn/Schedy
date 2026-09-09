@@ -17,6 +17,47 @@ import { format, addHours, parseISO } from 'date-fns';
 import { ConfirmModal } from '../common/ConfirmModal';
 import { RichTextEditor } from '../tasks/RichTextEditor';
 import { getEventAutoDeleteInfo } from '../../utils/autoDeleteUtils';
+import { CustomSelect } from '../common/CustomSelect';
+import { CustomCheckbox } from '../common/CustomCheckbox';
+import { CustomDateTimePicker } from '../common/CustomDateTimePicker';
+
+
+const ITEM_TYPE_OPTIONS = [
+  { value: 'event', label: 'Event (Schedule)' },
+  { value: 'task', label: 'Task (To-Do)' },
+];
+
+const CATEGORY_OPTIONS = [
+  { value: 'work', label: 'Work' },
+  { value: 'meeting', label: 'Meeting' },
+  { value: 'deadline', label: 'Deadline' },
+  { value: 'personal', label: 'Personal' },
+  { value: 'education', label: 'Education' },
+  { value: 'general', label: 'General' },
+];
+
+const PRIORITY_OPTIONS = [
+  { value: 'low', label: 'Low' },
+  { value: 'medium', label: 'Medium' },
+  { value: 'high', label: 'High' },
+  { value: 'urgent', label: 'Urgent' },
+];
+
+const STATUS_OPTIONS = [
+  { value: 'pending', label: 'Pending' },
+  { value: 'in_progress', label: 'In Progress' },
+  { value: 'completed', label: 'Completed' },
+  { value: 'cancelled', label: 'Cancelled' },
+];
+
+const RECURRENCE_OPTIONS = [
+  { value: 'none', label: 'Does not repeat' },
+  { value: 'daily', label: 'Daily' },
+  { value: 'weekly', label: 'Weekly' },
+  { value: 'monthly', label: 'Monthly' },
+  { value: 'yearly', label: 'Yearly' },
+];
+
 
 interface EventModalProps {
   isOpen: boolean;
@@ -303,14 +344,12 @@ export const EventModal: React.FC<EventModalProps> = ({
                 {itemType === 'task' ? <CheckSquare className="w-3.5 h-3.5" /> : <Calendar className="w-3.5 h-3.5" />}
                 <span>Type</span>
               </div>
-              <select
+              <CustomSelect
                 value={itemType}
-                onChange={e => setItemType(e.target.value as ScheduleItemType)}
-                className="px-2.5 py-1 rounded bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 text-xs border-none outline-none focus:ring-1 focus:ring-neutral-400 cursor-pointer font-medium"
-              >
-                <option value="event">Event (Schedule)</option>
-                <option value="task">Task (To-Do)</option>
-              </select>
+                onChange={val => setItemType(val as ScheduleItemType)}
+                options={ITEM_TYPE_OPTIONS}
+                size="sm"
+              />
             </div>
 
             {/* Category Property */}
@@ -319,18 +358,12 @@ export const EventModal: React.FC<EventModalProps> = ({
                 <Tag className="w-3.5 h-3.5" />
                 <span>Category</span>
               </div>
-              <select
+              <CustomSelect
                 value={category}
-                onChange={e => setCategory(e.target.value as EventCategory)}
-                className="px-2.5 py-1 rounded bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 text-xs border-none outline-none focus:ring-1 focus:ring-neutral-400 cursor-pointer font-medium"
-              >
-                <option value="work">Work</option>
-                <option value="meeting">Meeting</option>
-                <option value="deadline">Deadline</option>
-                <option value="personal">Personal</option>
-                <option value="education">Education</option>
-                <option value="general">General</option>
-              </select>
+                onChange={val => setCategory(val as EventCategory)}
+                options={CATEGORY_OPTIONS}
+                size="sm"
+              />
             </div>
 
             {/* Priority Property */}
@@ -339,16 +372,12 @@ export const EventModal: React.FC<EventModalProps> = ({
                 <Layers className="w-3.5 h-3.5" />
                 <span>Priority</span>
               </div>
-              <select
+              <CustomSelect
                 value={priority}
-                onChange={e => setPriority(e.target.value as PriorityLevel)}
-                className="px-2.5 py-1 rounded bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 text-xs border-none outline-none focus:ring-1 focus:ring-neutral-400 cursor-pointer font-medium"
-              >
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
-                <option value="urgent">Urgent</option>
-              </select>
+                onChange={val => setPriority(val as PriorityLevel)}
+                options={PRIORITY_OPTIONS}
+                size="sm"
+              />
             </div>
 
             {/* Status Property */}
@@ -357,16 +386,12 @@ export const EventModal: React.FC<EventModalProps> = ({
                 <CheckSquare className="w-3.5 h-3.5" />
                 <span>Status</span>
               </div>
-              <select
+              <CustomSelect
                 value={status}
-                onChange={e => setStatus(e.target.value as EventStatus)}
-                className="px-2.5 py-1 rounded bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 text-xs border-none outline-none focus:ring-1 focus:ring-neutral-400 cursor-pointer font-medium"
-              >
-                <option value="pending">Pending</option>
-                <option value="in_progress">In Progress</option>
-                <option value="completed">Completed</option>
-                <option value="cancelled">Cancelled</option>
-              </select>
+                onChange={val => setStatus(val as EventStatus)}
+                options={STATUS_OPTIONS}
+                size="sm"
+              />
             </div>
 
             {/* Time / Date Property */}
@@ -375,38 +400,35 @@ export const EventModal: React.FC<EventModalProps> = ({
                 <Clock className="w-3.5 h-3.5" />
                 <span>{itemType === 'task' ? 'Due / Schedule' : 'Date & Time'}</span>
               </div>
-              <div className="flex-1 space-y-2">
+              <div className="flex-1 space-y-1.5">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <input
-                    type={isAllDay ? 'date' : 'datetime-local'}
-                    value={isAllDay ? (startTime ? startTime.split('T')[0] : '') : (startTime || '')}
-                    onChange={e => {
-                      const val = e.target.value;
+                  <CustomDateTimePicker
+                    value={startTime}
+                    mode={isAllDay ? 'date' : 'datetime'}
+                    onChange={val => {
                       setStartTime(isAllDay ? `${val}T00:00` : val);
+                      if (itemType === 'task') {
+                        setEndTime(isAllDay ? `${val}T23:59` : addHours(parseISO(val), 1).toISOString().slice(0, 16));
+                      }
                     }}
-                    className="px-2.5 py-1.5 rounded bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 text-xs border-none outline-none focus:ring-1 focus:ring-neutral-400 font-mono"
                   />
                   <span className="text-neutral-400 text-xs">→</span>
-                  <input
-                    type={isAllDay ? 'date' : 'datetime-local'}
-                    value={isAllDay ? (endTime ? endTime.split('T')[0] : '') : (endTime || '')}
-                    onChange={e => {
-                      const val = e.target.value;
+                  <CustomDateTimePicker
+                    value={endTime}
+                    mode={isAllDay ? 'date' : 'datetime'}
+                    onChange={val => {
                       setEndTime(isAllDay ? `${val}T23:59` : val);
                     }}
-                    className="px-2.5 py-1.5 rounded bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 text-xs border-none outline-none focus:ring-1 focus:ring-neutral-400 font-mono"
                   />
                 </div>
 
-                <label className="flex items-center gap-1.5 text-[11px] text-neutral-500 cursor-pointer pt-0.5">
-                  <input
-                    type="checkbox"
-                    checked={isAllDay}
-                    onChange={e => setIsAllDay(e.target.checked)}
-                    className="rounded border-neutral-300 text-[#2383e2] focus:ring-0"
-                  />
-                  <span>All-day event</span>
-                </label>
+                <CustomCheckbox
+                  checked={isAllDay}
+                  onChange={setIsAllDay}
+                  label="All-day event"
+                  size="sm"
+                  className="pt-1"
+                />
               </div>
             </div>
 
@@ -416,17 +438,12 @@ export const EventModal: React.FC<EventModalProps> = ({
                 <Repeat className="w-3.5 h-3.5" />
                 <span>Repeat</span>
               </div>
-              <select
+              <CustomSelect
                 value={recurrenceRule}
-                onChange={e => setRecurrenceRule(e.target.value as RecurrenceRule)}
-                className="px-2.5 py-1 rounded bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 text-xs border-none outline-none focus:ring-1 focus:ring-neutral-400 cursor-pointer font-medium"
-              >
-                <option value="none">Does not repeat</option>
-                <option value="daily">Daily</option>
-                <option value="weekly">Weekly</option>
-                <option value="monthly">Monthly</option>
-                <option value="yearly">Yearly</option>
-              </select>
+                onChange={val => setRecurrenceRule(val as RecurrenceRule)}
+                options={RECURRENCE_OPTIONS}
+                size="sm"
+              />
             </div>
 
             {/* Location */}
