@@ -141,13 +141,17 @@ export const EventPreviewModal: React.FC<EventPreviewModalProps> = ({
   return (
     <>
       <div 
-        className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/40 backdrop-blur-md animate-fade-in"
+        className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 sm:bg-black/40 backdrop-blur-xs animate-fade-in"
         onClick={onClose}
       >
         <div
-          className="ios-card rounded-3xl max-w-lg w-full max-h-[90vh] overflow-hidden border border-black/[0.08] dark:border-white/[0.1] shadow-2xl flex flex-col text-neutral-800 dark:text-neutral-100 bg-white/95 dark:bg-[#1c1c1e]/95 backdrop-blur-2xl"
+          className="rounded-t-[28px] sm:rounded-[24px] max-w-lg w-full max-h-[90vh] overflow-hidden border border-black/[0.08] dark:border-white/[0.12] shadow-2xl flex flex-col text-neutral-800 dark:text-neutral-100 bg-white dark:bg-[#1c1c1e]"
           onClick={e => e.stopPropagation()}
         >
+          {/* iOS Sheet Grab Handle for Mobile */}
+          <div className="sm:hidden pt-2.5 pb-1 flex justify-center shrink-0">
+            <div className="ios-sheet-handle" />
+          </div>
           {/* Header Row: Badges & Close Button */}
           <div className="flex items-center justify-between px-6 pt-5 pb-3 border-b border-black/[0.06] dark:border-white/[0.08] sticky top-0 bg-white/95 dark:bg-[#1c1c1e]/95 backdrop-blur-md z-10">
             <div className="flex items-center gap-1.5 flex-wrap">
@@ -199,7 +203,7 @@ export const EventPreviewModal: React.FC<EventPreviewModalProps> = ({
           </div>
 
           {/* Scrollable Modal Body */}
-          <div className="p-6 space-y-5 overflow-y-auto flex-1 text-xs">
+          <div className="p-6 space-y-5 overflow-y-auto flex-1 text-xs no-scrollbar">
             
             {/* Title (Checkbox removed) */}
             <div>

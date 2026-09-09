@@ -40,8 +40,13 @@ export const DevPasswordModal: React.FC<DevPasswordModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-4 bg-black/50 backdrop-blur-xs animate-fade-in">
-      <div className="bg-white dark:bg-[#18181b] rounded-2xl max-w-md w-full border border-neutral-200 dark:border-neutral-800 shadow-xl transition-all text-neutral-900 dark:text-neutral-100 overflow-hidden">
+    <div className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 sm:bg-black/40 backdrop-blur-xs animate-fade-in">
+      <div className="bg-white dark:bg-[#18181b] rounded-t-[28px] sm:rounded-2xl max-w-md w-full border border-black/[0.08] dark:border-white/[0.12] shadow-2xl transition-all text-neutral-900 dark:text-neutral-100 overflow-hidden">
+        
+        {/* iOS Sheet Grab Handle for Mobile */}
+        <div className="sm:hidden pt-2.5 pb-1 flex justify-center shrink-0">
+          <div className="ios-sheet-handle" />
+        </div>
         
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-neutral-100 dark:border-neutral-800 text-xs shrink-0">

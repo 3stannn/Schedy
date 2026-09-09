@@ -721,12 +721,16 @@ html.dark .ios-segmented-item-active {
   height: 5px;
   border-radius: 9999px;
   background-color: rgba(60, 60, 67, 0.25);
-  margin: 8px auto 12px;
+  margin: 4px auto 6px;
   flex-shrink: 0;
 }
 
 html.dark .ios-sheet-handle {
   background-color: rgba(235, 235, 245, 0.25);
+}
+
+html.pink .ios-sheet-handle {
+  background-color: rgba(255, 141, 161, 0.4);
 }
 
 /* iOS Buttons */

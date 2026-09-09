@@ -76,9 +76,9 @@ export const NoteModal: React.FC<NoteModalProps> = ({
   const charCount = plainText.length;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-black/60 backdrop-blur-sm animate-fade-in">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 md:p-6 bg-black/50 sm:bg-black/40 backdrop-blur-xs animate-fade-in">
       <div 
-        className="bg-white dark:bg-[#1c1c1e] rounded-t-[28px] sm:rounded-[24px] w-full max-w-3xl lg:max-w-4xl h-[88vh] max-h-[820px] min-h-[520px] flex flex-col overflow-hidden border border-black/[0.08] dark:border-white/[0.12] shadow-2xl transition-all text-neutral-900 dark:text-neutral-100"
+        className="bg-white dark:bg-[#1c1c1e] rounded-t-[28px] sm:rounded-[24px] w-full max-w-3xl lg:max-w-4xl h-[90vh] sm:h-[88vh] max-h-[820px] flex flex-col overflow-hidden border border-black/[0.08] dark:border-white/[0.12] shadow-2xl transition-all text-neutral-900 dark:text-neutral-100"
         onClick={(e) => e.stopPropagation()}
       >
         {/* iOS Sheet Grab Handle for Mobile */}

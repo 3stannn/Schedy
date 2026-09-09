@@ -171,7 +171,7 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
   const lineCount = previewData.content ? previewData.content.split('\n').length : 0;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 sm:bg-black/40 backdrop-blur-xs animate-fade-in">
       <div className="bg-white dark:bg-[#1c1c1e] rounded-t-[28px] sm:rounded-[24px] max-w-2xl w-full max-h-[92vh] flex flex-col border border-black/[0.08] dark:border-white/[0.12] shadow-2xl transition-all text-neutral-900 dark:text-neutral-100 overflow-hidden">
         
         {/* iOS Sheet Grab Handle for Mobile */}
@@ -203,7 +203,7 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
         </div>
 
         {/* Content Body */}
-        <div className="p-4 sm:p-6 space-y-4 text-xs overflow-y-auto flex-1">
+        <div className="p-4 sm:p-6 space-y-4 text-xs overflow-y-auto flex-1 no-scrollbar">
           
           {/* Format Selection Buttons */}
           <div>
