@@ -342,11 +342,11 @@ export const CustomDateTimePicker: React.FC<CustomDateTimePickerProps> = ({
         <span>Time ({currentHoursStr}:{currentMinutesStr} {isPM ? 'PM' : 'AM'})</span>
       </div>
 
-      <div className={`flex ${isMobileView ? 'justify-around' : 'gap-1.5'} h-[200px]`}>
+      <div className={`flex ${isMobileView ? 'justify-around items-start' : 'gap-2'} h-[200px]`}>
         {/* Hours Column */}
-        <div className={`flex flex-col items-center ${isMobileView ? 'flex-1' : ''}`}>
-          <span className="text-[10px] text-neutral-400 mb-1">Hour</span>
-          <div className="flex-1 overflow-y-auto space-y-1 w-full max-h-[175px] px-0.5 no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+        <div className={`flex flex-col items-center ${isMobileView ? 'flex-1' : 'w-10 shrink-0'}`}>
+          <span className="text-[10px] text-neutral-400 mb-1.5 font-medium">Hour</span>
+          <div className="flex-1 overflow-y-auto space-y-1 w-full max-h-[175px] no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden flex flex-col items-center">
             {HOURS_LIST.map((h) => {
               const isSelected = h === currentHoursStr;
               return (
@@ -354,10 +354,13 @@ export const CustomDateTimePicker: React.FC<CustomDateTimePickerProps> = ({
                   key={h}
                   type="button"
                   onClick={() => handleSelectHour(h)}
-                  className={`w-full ${isMobileView ? 'h-8' : 'w-9 h-6.5'} rounded-lg text-xs flex items-center justify-center transition-colors cursor-pointer ${isSelected
+                  className={`${
+                    isMobileView ? 'w-14 h-9 rounded-xl text-xs' : 'w-9 h-7 rounded-lg text-xs'
+                  } font-medium flex items-center justify-center transition-colors cursor-pointer shrink-0 ${
+                    isSelected
                       ? 'bg-neutral-900 text-white dark:bg-white dark:text-black font-bold shadow-xs'
                       : 'text-neutral-700 dark:text-neutral-300 hover:bg-black/[0.04] dark:hover:bg-white/[0.06]'
-                    }`}
+                  }`}
                 >
                   {h}
                 </button>
@@ -367,9 +370,9 @@ export const CustomDateTimePicker: React.FC<CustomDateTimePickerProps> = ({
         </div>
 
         {/* Minutes Column */}
-        <div className={`flex flex-col items-center ${isMobileView ? 'flex-1' : ''}`}>
-          <span className="text-[10px] text-neutral-400 mb-1">Min</span>
-          <div className="flex-1 overflow-y-auto space-y-1 w-full max-h-[175px] px-0.5 no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+        <div className={`flex flex-col items-center ${isMobileView ? 'flex-1' : 'w-10 shrink-0'}`}>
+          <span className="text-[10px] text-neutral-400 mb-1.5 font-medium">Min</span>
+          <div className="flex-1 overflow-y-auto space-y-1 w-full max-h-[175px] no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden flex flex-col items-center">
             {MINUTES_LIST.map((m) => {
               const isSelected = m === currentMinutesStr;
               return (
@@ -377,10 +380,13 @@ export const CustomDateTimePicker: React.FC<CustomDateTimePickerProps> = ({
                   key={m}
                   type="button"
                   onClick={() => handleSelectMinute(m)}
-                  className={`w-full ${isMobileView ? 'h-8' : 'w-9 h-6.5'} rounded-lg text-xs flex items-center justify-center transition-colors cursor-pointer ${isSelected
+                  className={`${
+                    isMobileView ? 'w-14 h-9 rounded-xl text-xs' : 'w-9 h-7 rounded-lg text-xs'
+                  } font-medium flex items-center justify-center transition-colors cursor-pointer shrink-0 ${
+                    isSelected
                       ? 'bg-neutral-900 text-white dark:bg-white dark:text-black font-bold shadow-xs'
                       : 'text-neutral-700 dark:text-neutral-300 hover:bg-black/[0.04] dark:hover:bg-white/[0.06]'
-                    }`}
+                  }`}
                 >
                   {m}
                 </button>
@@ -390,9 +396,9 @@ export const CustomDateTimePicker: React.FC<CustomDateTimePickerProps> = ({
         </div>
 
         {/* Period Column (AM / PM) */}
-        <div className={`flex flex-col items-center ${isMobileView ? 'flex-1' : ''}`}>
-          <span className="text-[10px] text-neutral-400 mb-1">Period</span>
-          <div className="flex flex-col gap-1 w-full px-0.5">
+        <div className={`flex flex-col items-center ${isMobileView ? 'flex-1' : 'w-10 shrink-0'}`}>
+          <span className="text-[10px] text-neutral-400 mb-1.5 font-medium">Period</span>
+          <div className="flex flex-col gap-1 w-full flex flex-col items-center">
             {(['AM', 'PM'] as const).map((p) => {
               const isSelected = (p === 'PM' && isPM) || (p === 'AM' && !isPM);
               return (
@@ -400,10 +406,13 @@ export const CustomDateTimePicker: React.FC<CustomDateTimePickerProps> = ({
                   key={p}
                   type="button"
                   onClick={() => handleTogglePeriod(p)}
-                  className={`w-full ${isMobileView ? 'h-9 text-xs' : 'w-9 h-6.5 text-[11px]'} rounded-lg flex items-center justify-center transition-colors cursor-pointer ${isSelected
+                  className={`${
+                    isMobileView ? 'w-14 h-9 rounded-xl text-xs' : 'w-9 h-7 rounded-lg text-xs'
+                  } font-medium flex items-center justify-center transition-colors cursor-pointer shrink-0 ${
+                    isSelected
                       ? 'bg-neutral-900 text-white dark:bg-white dark:text-black font-bold shadow-xs'
                       : 'text-neutral-700 dark:text-neutral-300 hover:bg-black/[0.04] dark:hover:bg-white/[0.06]'
-                    }`}
+                  }`}
                 >
                   {p}
                 </button>
