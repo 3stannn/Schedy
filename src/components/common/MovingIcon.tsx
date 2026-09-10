@@ -34,6 +34,8 @@ const ICON_ANIMATION_MAP: Record<string, MovingAnimation> = {
   Edit: 'wiggle',
   Edit3: 'wiggle',
   Megaphone: 'wiggle',
+  Vibrate: 'wiggle',
+  VibrateOff: 'wiggle',
 
   // Bounce / Directional drop
   Download: 'bounce',
@@ -259,3 +261,6 @@ export const Code = createMovingIcon('Code', 'pop');
 export const Minus = createMovingIcon('Minus', 'pop');
 export const HelpCircle = createMovingIcon('HelpCircle', 'pulse');
 export const GripVertical = createMovingIcon('GripVertical', 'nudge');
+export const Vibrate = createMovingIcon('Vibrate', 'wiggle');
+export const VibrateOff = createMovingIcon('VibrateOff', 'wiggle');
+

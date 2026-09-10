@@ -10,8 +10,10 @@ import {
   Flower2,
   Menu,
   X,
-  Timer
+  Timer,
+  Vibrate
 } from '../common/MovingIcon';
+import { haptics } from '../../utils/haptics';
 
 import type { PomodoroInfo } from '../tools/PomodoroTimer';
 
@@ -49,13 +51,21 @@ export const Navbar: React.FC<NavbarProps> = ({
   pomodoroInfo,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [hapticsEnabled, setHapticsEnabled] = useState(() => haptics.getEnabled());
+
+  const handleSelectTab = (tab: typeof activeTab) => {
+    haptics.selection();
+    setActiveTab(tab);
+  };
 
   const handleActionAndClose = (action: () => void) => {
+    haptics.light();
     action();
     setMobileMenuOpen(false);
   };
 
   const handlePrimaryNewAction = () => {
+    haptics.medium();
     if (activeTab === 'announcements') {
       onNewAnnouncement();
     } else if (activeTab === 'tasks' && onNewTask) {
@@ -130,7 +140,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             <nav className="p-1 rounded-[14px] bg-black/[0.05] dark:bg-white/[0.07] border border-black/[0.04] dark:border-white/[0.06] flex flex-col gap-0.5">
               <button
-                onClick={() => setActiveTab('schedule')}
+                onClick={() => handleSelectTab('schedule')}
                 className={`w-full flex items-center justify-between px-3 py-2 rounded-[10px] text-xs font-medium transition-all cursor-pointer ${activeTab === 'schedule'
                   ? 'ios-nav-item-active bg-white dark:bg-[#636366] text-black dark:text-white shadow-xs font-semibold'
                   : 'text-neutral-600 dark:text-neutral-300 hover:text-black dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5'
@@ -140,7 +150,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               </button>
 
               <button
-                onClick={() => setActiveTab('tasks')}
+                onClick={() => handleSelectTab('tasks')}
                 className={`w-full flex items-center justify-between px-3 py-2 rounded-[10px] text-xs font-medium transition-all cursor-pointer ${activeTab === 'tasks'
                   ? 'ios-nav-item-active bg-white dark:bg-[#636366] text-black dark:text-white shadow-xs font-semibold'
                   : 'text-neutral-600 dark:text-neutral-300 hover:text-black dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5'
@@ -150,7 +160,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               </button>
 
               <button
-                onClick={() => setActiveTab('announcements')}
+                onClick={() => handleSelectTab('announcements')}
                 className={`w-full relative flex items-center justify-between px-3 py-2 rounded-[10px] text-xs font-medium transition-all cursor-pointer ${activeTab === 'announcements'
                   ? 'ios-nav-item-active bg-white dark:bg-[#636366] text-black dark:text-white shadow-xs font-semibold'
                   : 'text-neutral-600 dark:text-neutral-300 hover:text-black dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5'
@@ -165,7 +175,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               </button>
 
               <button
-                onClick={() => setActiveTab('overview')}
+                onClick={() => handleSelectTab('overview')}
                 className={`w-full flex items-center justify-between px-3 py-2 rounded-[10px] text-xs font-medium transition-all cursor-pointer ${activeTab === 'overview'
                   ? 'ios-nav-item-active bg-white dark:bg-[#636366] text-black dark:text-white shadow-xs font-semibold'
                   : 'text-neutral-600 dark:text-neutral-300 hover:text-black dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5'
@@ -184,7 +194,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             <nav className="p-1 rounded-[14px] bg-black/[0.05] dark:bg-white/[0.07] border border-black/[0.04] dark:border-white/[0.06] flex flex-col gap-0.5">
               <button
-                onClick={() => setActiveTab('pomodoro')}
+                onClick={() => handleSelectTab('pomodoro')}
                 className={`w-full flex items-center justify-between px-3 py-2 rounded-[10px] text-xs font-medium transition-all cursor-pointer ${activeTab === 'pomodoro'
                   ? 'ios-nav-item-active bg-white dark:bg-[#636366] text-black dark:text-white shadow-xs font-semibold'
                   : 'text-neutral-600 dark:text-neutral-300 hover:text-black dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5'
@@ -339,7 +349,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Mobile View Switcher (iOS Segmented Control) */}
           <div className="grid grid-cols-5 mt-2 p-[3px] rounded-[12px] bg-black/[0.06] dark:bg-white/[0.1] gap-0.5 text-center">
             <button
-              onClick={() => setActiveTab('schedule')}
+              onClick={() => handleSelectTab('schedule')}
               className={`flex items-center justify-center py-1.5 rounded-[9px] text-[11px] font-medium transition-all cursor-pointer ${activeTab === 'schedule'
                 ? 'ios-nav-item-active bg-white dark:bg-[#636366] text-black dark:text-white shadow-xs font-semibold'
                 : 'text-neutral-600 dark:text-neutral-300'
@@ -349,7 +359,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
 
             <button
-              onClick={() => setActiveTab('tasks')}
+              onClick={() => handleSelectTab('tasks')}
               className={`flex items-center justify-center py-1.5 rounded-[9px] text-[11px] font-medium transition-all cursor-pointer ${activeTab === 'tasks'
                 ? 'ios-nav-item-active bg-white dark:bg-[#636366] text-black dark:text-white shadow-xs font-semibold'
                 : 'text-neutral-600 dark:text-neutral-300'
@@ -359,7 +369,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
 
             <button
-              onClick={() => setActiveTab('announcements')}
+              onClick={() => handleSelectTab('announcements')}
               className={`relative flex items-center justify-center py-1.5 rounded-[9px] text-[11px] font-medium transition-all cursor-pointer ${activeTab === 'announcements'
                 ? 'ios-nav-item-active bg-white dark:bg-[#636366] text-black dark:text-white shadow-xs font-semibold'
                 : 'text-neutral-600 dark:text-neutral-300'
@@ -374,7 +384,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
 
             <button
-              onClick={() => setActiveTab('overview')}
+              onClick={() => handleSelectTab('overview')}
               className={`flex items-center justify-center py-1.5 rounded-[9px] text-[11px] font-medium transition-all cursor-pointer ${activeTab === 'overview'
                 ? 'ios-nav-item-active bg-white dark:bg-[#636366] text-black dark:text-white shadow-xs font-semibold'
                 : 'text-neutral-600 dark:text-neutral-300'
@@ -384,7 +394,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
 
             <button
-              onClick={() => setActiveTab('pomodoro')}
+              onClick={() => handleSelectTab('pomodoro')}
               className={`flex items-center justify-center gap-1 py-1.5 rounded-[9px] text-[11px] font-medium transition-all cursor-pointer ${activeTab === 'pomodoro'
                 ? 'ios-nav-item-active bg-white dark:bg-[#636366] text-black dark:text-white shadow-xs font-semibold'
                 : 'text-neutral-600 dark:text-neutral-300'
@@ -471,6 +481,28 @@ export const Navbar: React.FC<NavbarProps> = ({
                     <span>{theme === 'dark' ? 'Light' : 'Dark'}</span>
                   </button>
                 </div>
+              </div>
+
+              {/* Haptic Feedback Row */}
+              <div className="flex items-center justify-between pt-2 border-t border-black/[0.06] dark:border-white/[0.08] text-xs">
+                <div className="flex items-center gap-1.5">
+                  <Vibrate className="w-3.5 h-3.5 text-neutral-500 dark:text-neutral-400" />
+                  <span className="text-neutral-500 dark:text-neutral-400 font-medium text-[11px]">
+                    iOS Haptics
+                  </span>
+                </div>
+                <button
+                  onClick={() => {
+                    const next = haptics.toggle();
+                    setHapticsEnabled(next);
+                  }}
+                  className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer ${hapticsEnabled
+                    ? 'bg-[#007aff]/15 text-[#007aff] dark:text-[#0a84ff] ring-1 ring-[#007aff]/30'
+                    : 'bg-black/[0.04] dark:bg-white/[0.06] text-neutral-400'
+                    }`}
+                >
+                  <span>{hapticsEnabled ? 'On' : 'Off'}</span>
+                </button>
               </div>
             </div>
           )}

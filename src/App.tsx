@@ -19,6 +19,7 @@ import { OverviewDashboard } from './components/common/OverviewDashboard';
 import { PomodoroTimer, type PomodoroInfo } from './components/tools/PomodoroTimer';
 import { ToastContainer } from './components/common/Toast';
 import type { ToastMessage } from './components/common/Toast';
+import { haptics } from './utils/haptics';
 
 import { 
   fetchAllEvents, 
@@ -235,13 +236,16 @@ export function App() {
         const payload = { ...eventData, id: realId };
         const updated = await updateEvent(payload);
         setEvents(prev => prev.map(e => (e.id === realId ? updated : e)));
+        haptics.success();
         addToast('success', 'Event Updated', `"${updated.title}" was updated.`);
       } else {
         const created = await createEvent(eventData);
         setEvents(prev => [created, ...prev]);
+        haptics.success();
         addToast('success', 'Event Created', `"${created.title}" scheduled successfully.`);
       }
     } catch (err: any) {
+      haptics.error();
       addToast('error', 'Error saving event', err.message);
     }
   };
@@ -251,8 +255,10 @@ export function App() {
       const realId = id.includes('_rec_') ? id.split('_rec_')[0] : id;
       await deleteEvent(realId);
       setEvents(prev => prev.filter(e => e.id !== realId));
+      haptics.warning();
       addToast('info', 'Event Deleted', 'The event was removed.');
     } catch (err: any) {
+      haptics.error();
       addToast('error', 'Failed to delete event', err.message);
     }
   };
@@ -263,8 +269,10 @@ export function App() {
       const baseEvent = events.find(e => e.id === realId) || event;
       const updated = await updateEvent({ ...baseEvent, status });
       setEvents(prev => prev.map(e => (e.id === realId ? updated : e)));
+      haptics.success();
       addToast('success', status === 'completed' ? 'Event Completed' : 'Status Updated');
     } catch (err: any) {
+      haptics.error();
       addToast('error', 'Failed to update status', err.message);
     }
   };
