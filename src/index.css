@@ -859,7 +859,7 @@ html.dark .ios-grouped-list {
   border: 0.5px solid transparent;
   border-radius: 10px;
   padding: 10px 14px;
-  font-size: 15px;
+  font-size: 16px;
   color: #000000;
   outline: none;
   transition: border-color 0.15s ease, background-color 0.15s ease;
@@ -880,6 +880,23 @@ html.dark .ios-input:focus {
   background-color: #1c1c1e;
   border-color: #0a84ff;
   box-shadow: 0 0 0 1px #0a84ff;
+}
+
+/* ==========================================================================
+   Mobile Auto-Zoom Prevention (iOS Safari & Mobile WebKit)
+   Enforces min 16px font-size on all text inputs, textareas, selects, and
+   contenteditable elements on mobile viewports (<= 768px) and touch devices
+   to prevent unwanted automatic zooming on focus.
+   ========================================================================== */
+@media screen and (max-width: 768px), (hover: none) and (pointer: coarse) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="file"]),
+  textarea,
+  select,
+  .ios-input,
+  [contenteditable="true"],
+  .notion-editor {
+    font-size: 16px !important;
+  }
 }
 
 /* iOS Frosted Navigation Bar */

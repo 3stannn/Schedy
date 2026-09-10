@@ -1011,7 +1011,7 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
                       value={customGoal}
                       onChange={(e) => setCustomGoal(e.target.value)}
                       placeholder="Or type a custom goal (e.g. Finish Chapter 3 review)..."
-                      className="w-full px-3 py-1 rounded-xl bg-slate-100/70 dark:bg-white/[0.04] text-xs font-medium text-slate-800 dark:text-slate-100 border border-slate-200/80 dark:border-white/[0.06] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 h-8 min-h-[32px] box-border"
+                      className="w-full px-3 py-1 rounded-xl bg-slate-100/70 dark:bg-white/[0.04] text-base sm:text-xs font-medium text-slate-800 dark:text-slate-100 border border-slate-200/80 dark:border-white/[0.06] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 h-9 sm:h-8 min-h-[32px] box-border"
                     />
                   )}
                 </div>
@@ -1021,7 +1021,7 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
                   value={customGoal}
                   onChange={(e) => setCustomGoal(e.target.value)}
                   placeholder="What are you working on right now? (e.g. Code refactoring)"
-                  className="w-full px-3 py-1 rounded-xl bg-slate-100/70 dark:bg-white/[0.04] text-xs font-medium text-slate-800 dark:text-slate-100 border border-slate-200/80 dark:border-white/[0.06] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 h-8 min-h-[32px] box-border"
+                  className="w-full px-3 py-1 rounded-xl bg-slate-100/70 dark:bg-white/[0.04] text-base sm:text-xs font-medium text-slate-800 dark:text-slate-100 border border-slate-200/80 dark:border-white/[0.06] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 h-9 sm:h-8 min-h-[32px] box-border"
                 />
               )}
 
@@ -1144,7 +1144,7 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
                         max={120}
                         value={settings.focusDuration}
                         onChange={(e) => updateSettings({ focusDuration: Math.max(1, parseInt(e.target.value) || 1) })}
-                        className="w-full font-bold text-sm bg-transparent border-none outline-none text-slate-900 dark:text-white"
+                        className="w-full font-bold text-base sm:text-sm bg-transparent border-none outline-none text-slate-900 dark:text-white"
                       />
                     </div>
 
@@ -1156,7 +1156,7 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
                         max={60}
                         value={settings.shortBreakDuration}
                         onChange={(e) => updateSettings({ shortBreakDuration: Math.max(1, parseInt(e.target.value) || 1) })}
-                        className="w-full font-bold text-sm bg-transparent border-none outline-none text-slate-900 dark:text-white"
+                        className="w-full font-bold text-base sm:text-sm bg-transparent border-none outline-none text-slate-900 dark:text-white"
                       />
                     </div>
 
@@ -1168,7 +1168,7 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
                         max={90}
                         value={settings.longBreakDuration}
                         onChange={(e) => updateSettings({ longBreakDuration: Math.max(1, parseInt(e.target.value) || 1) })}
-                        className="w-full font-bold text-sm bg-transparent border-none outline-none text-slate-900 dark:text-white"
+                        className="w-full font-bold text-base sm:text-sm bg-transparent border-none outline-none text-slate-900 dark:text-white"
                       />
                     </div>
                   </div>
@@ -1186,7 +1186,7 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
                     max={12}
                     value={settings.longBreakInterval}
                     onChange={(e) => updateSettings({ longBreakInterval: Math.max(1, parseInt(e.target.value) || 4) })}
-                    className="w-16 px-2.5 py-1 text-center font-bold text-xs bg-white dark:bg-neutral-800 rounded-xl border border-slate-200 dark:border-white/10"
+                    className="w-16 px-2.5 py-1 text-center font-bold text-base sm:text-xs bg-white dark:bg-neutral-800 rounded-xl border border-slate-200 dark:border-white/10"
                   />
                 </div>
 

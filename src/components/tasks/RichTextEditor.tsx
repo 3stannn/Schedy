@@ -945,7 +945,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
           onMouseUp={updateToolbarState}
           onKeyDown={handleKeyDown}
           data-placeholder={placeholder}
-          className="notion-editor outline-none min-h-[140px] sm:min-h-[180px] font-sans text-xs sm:text-sm text-[#1c1917] dark:text-neutral-100 leading-relaxed"
+          className="notion-editor outline-none min-h-[140px] sm:min-h-[180px] font-sans text-base sm:text-sm text-[#1c1917] dark:text-neutral-100 leading-relaxed"
         />
       </div>
 
@@ -981,7 +981,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
                   value={linkText}
                   onChange={(e) => setLinkText(e.target.value)}
                   placeholder="e.g. MS Teams Portal"
-                  className="w-full px-3 py-1.5 text-xs bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2383e2] text-neutral-900 dark:text-white"
+                  className="w-full px-3 py-1.5 text-base sm:text-xs bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2383e2] text-neutral-900 dark:text-white"
                 />
               </div>
               <div>
@@ -993,7 +993,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
                   value={linkUrl}
                   onChange={(e) => setLinkUrl(e.target.value)}
                   placeholder="https://..."
-                  className="w-full px-3 py-1.5 text-xs bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2383e2] text-neutral-900 dark:text-white"
+                  className="w-full px-3 py-1.5 text-base sm:text-xs bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2383e2] text-neutral-900 dark:text-white"
                   autoFocus
                 />
               </div>

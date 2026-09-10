@@ -226,7 +226,7 @@ export const AnnouncementModal: React.FC<AnnouncementModalProps> = ({
                     if (error) setError(null);
                   }}
                   placeholder="Enter developer password..."
-                  className="w-full pl-3 pr-10 py-2 rounded-lg text-xs bg-white dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 text-neutral-900 dark:text-white outline-none focus:border-neutral-500 font-mono"
+                  className="w-full pl-3 pr-10 py-2 rounded-lg text-base sm:text-xs bg-white dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 text-neutral-900 dark:text-white outline-none focus:border-neutral-500 font-mono"
                 />
                 <button
                   type="button"
@@ -252,7 +252,7 @@ export const AnnouncementModal: React.FC<AnnouncementModalProps> = ({
               value={title}
               onChange={e => setTitle(e.target.value)}
               placeholder="Announcement title"
-              className="w-full px-3 py-2 rounded-xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-neutral-900 dark:text-white text-xs outline-none focus:border-neutral-400 dark:focus:border-neutral-600"
+              className="w-full px-3 py-2 rounded-xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-neutral-900 dark:text-white text-base sm:text-xs outline-none focus:border-neutral-400 dark:focus:border-neutral-600"
             />
           </div>
 
@@ -267,7 +267,7 @@ export const AnnouncementModal: React.FC<AnnouncementModalProps> = ({
                 value={category}
                 onChange={e => setCategory(e.target.value)}
                 placeholder="general"
-                className="w-full px-3 py-2 rounded-xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-neutral-900 dark:text-white text-xs outline-none focus:border-neutral-400 dark:focus:border-neutral-600"
+                className="w-full px-3 py-2 rounded-xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-neutral-900 dark:text-white text-base sm:text-xs outline-none focus:border-neutral-400 dark:focus:border-neutral-600"
               />
             </div>
 
@@ -280,7 +280,7 @@ export const AnnouncementModal: React.FC<AnnouncementModalProps> = ({
                 value={authorName}
                 onChange={e => setAuthorName(e.target.value)}
                 placeholder={priority === 'dev' ? 'Developer' : 'Admin'}
-                className="w-full px-3 py-2 rounded-xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-neutral-900 dark:text-white text-xs outline-none focus:border-neutral-400 dark:focus:border-neutral-600"
+                className="w-full px-3 py-2 rounded-xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-neutral-900 dark:text-white text-base sm:text-xs outline-none focus:border-neutral-400 dark:focus:border-neutral-600"
               />
             </div>
           </div>
@@ -330,7 +330,7 @@ export const AnnouncementModal: React.FC<AnnouncementModalProps> = ({
               value={content}
               onChange={e => setContent(e.target.value)}
               placeholder="Announcement text..."
-              className="w-full px-3 py-2.5 rounded-xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-neutral-900 dark:text-white text-xs outline-none focus:border-neutral-400 dark:focus:border-neutral-600 resize-y leading-relaxed min-h-[140px]"
+              className="w-full px-3 py-2.5 rounded-xl bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-neutral-900 dark:text-white text-base sm:text-xs outline-none focus:border-neutral-400 dark:focus:border-neutral-600 resize-y leading-relaxed min-h-[140px]"
             />
           </div>
 

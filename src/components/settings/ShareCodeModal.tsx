@@ -263,7 +263,7 @@ export const ShareCodeModal: React.FC<ShareCodeModalProps> = ({
                   onChange={e => setInputCode(e.target.value)}
                   placeholder="Paste SYNC-... code or full link here"
                   rows={3}
-                  className="w-full p-3 font-mono text-xs bg-neutral-50 dark:bg-neutral-900 text-neutral-800 dark:text-neutral-200 rounded-lg border border-[#e9e9e7] dark:border-[#2e2e2e] outline-none focus:ring-1 focus:ring-neutral-400 resize-none leading-relaxed"
+                  className="w-full p-3 font-mono text-base sm:text-xs bg-neutral-50 dark:bg-neutral-900 text-neutral-800 dark:text-neutral-200 rounded-lg border border-[#e9e9e7] dark:border-[#2e2e2e] outline-none focus:ring-1 focus:ring-neutral-400 resize-none leading-relaxed"
                 />
               </div>
 

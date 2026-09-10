@@ -501,7 +501,7 @@ export const EventModal: React.FC<EventModalProps> = ({
                 value={location}
                 onChange={e => setLocation(e.target.value)}
                 placeholder="Empty"
-                className="flex-1 px-2.5 py-1.5 rounded bg-transparent hover:bg-neutral-50 dark:hover:bg-neutral-800/50 text-neutral-800 dark:text-neutral-200 text-xs border-none outline-none focus:bg-neutral-100 dark:focus:bg-neutral-800 transition-colors"
+                className="flex-1 px-2.5 py-1.5 rounded bg-transparent hover:bg-neutral-50 dark:hover:bg-neutral-800/50 text-neutral-800 dark:text-neutral-200 text-base sm:text-xs border-none outline-none focus:bg-neutral-100 dark:focus:bg-neutral-800 transition-colors"
               />
             </div>
 
@@ -516,7 +516,7 @@ export const EventModal: React.FC<EventModalProps> = ({
                 value={meetingUrl}
                 onChange={e => setMeetingUrl(e.target.value)}
                 placeholder="https://..."
-                className="flex-1 px-2.5 py-1.5 rounded bg-transparent hover:bg-neutral-50 dark:hover:bg-neutral-800/50 text-neutral-800 dark:text-neutral-200 text-xs border-none outline-none focus:bg-neutral-100 dark:focus:bg-neutral-800 text-blue-600 dark:text-blue-400 transition-colors"
+                className="flex-1 px-2.5 py-1.5 rounded bg-transparent hover:bg-neutral-50 dark:hover:bg-neutral-800/50 text-neutral-800 dark:text-neutral-200 text-base sm:text-xs border-none outline-none focus:bg-neutral-100 dark:focus:bg-neutral-800 text-blue-600 dark:text-blue-400 transition-colors"
               />
             </div>
 

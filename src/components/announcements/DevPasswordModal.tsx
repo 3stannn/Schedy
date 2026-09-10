@@ -128,7 +128,7 @@ export const DevPasswordModal: React.FC<DevPasswordModalProps> = ({
                   if (error) setError(null);
                 }}
                 placeholder="Enter password..."
-                className="w-full pl-3 pr-10 py-2 rounded-xl text-xs bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-neutral-900 dark:text-white outline-none focus:border-neutral-400 dark:focus:border-neutral-600 font-mono"
+                className="w-full pl-3 pr-10 py-2 rounded-xl text-base sm:text-xs bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-neutral-900 dark:text-white outline-none focus:border-neutral-400 dark:focus:border-neutral-600 font-mono"
               />
               <button
                 type="button"

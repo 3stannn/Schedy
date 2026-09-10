@@ -147,7 +147,7 @@ export const EventListView: React.FC<EventListViewProps> = ({
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Filter by keyword, title, notes..."
-              className="w-full h-8 pl-9 pr-3 text-xs rounded-xl bg-black/[0.04] dark:bg-white/[0.06] border border-black/[0.06] dark:border-white/[0.08] text-neutral-900 dark:text-neutral-100 placeholder-neutral-400 outline-none focus:ring-2 focus:ring-[#007aff] transition-all box-border"
+              className="w-full h-9 sm:h-8 pl-9 pr-3 text-base sm:text-xs rounded-xl bg-black/[0.04] dark:bg-white/[0.06] border border-black/[0.06] dark:border-white/[0.08] text-neutral-900 dark:text-neutral-100 placeholder-neutral-400 outline-none focus:ring-2 focus:ring-[#007aff] transition-all box-border"
             />
           </div>
 

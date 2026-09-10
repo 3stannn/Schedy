@@ -234,7 +234,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search tasks, events, and notes..."
-            className="w-full h-8 pl-9 pr-3 text-xs bg-black/[0.04] dark:bg-white/[0.06] border border-black/[0.06] dark:border-white/[0.08] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#007aff] text-neutral-900 dark:text-white placeholder:text-neutral-400 transition-all box-border"
+            className="w-full h-9 sm:h-8 pl-9 pr-3 text-base sm:text-xs bg-black/[0.04] dark:bg-white/[0.06] border border-black/[0.06] dark:border-white/[0.08] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#007aff] text-neutral-900 dark:text-white placeholder:text-neutral-400 transition-all box-border"
           />
         </div>
 
