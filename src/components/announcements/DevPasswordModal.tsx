@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Lock, X, Eye, EyeOff, AlertTriangle } from '../common/MovingIcon';
 import { verifyDevPassword } from '../../services/announcementService';
+import { useModalBehavior } from '../../hooks/useModalBehavior';
+import { ModalDragHandle } from '../common/ModalDragHandle';
 
 interface DevPasswordModalProps {
   isOpen: boolean;
@@ -21,6 +23,21 @@ export const DevPasswordModal: React.FC<DevPasswordModalProps> = ({
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const passwordInputRef = useRef<HTMLInputElement>(null);
+  const {
+    modalRef,
+    backdropRef,
+    dragHandleProps,
+    modalStyle,
+    isDragging,
+    handleBackdropClick,
+    handleBackdropTouchMove,
+  } = useModalBehavior({
+    isOpen,
+    onClose,
+    initialFocusRef: passwordInputRef,
+  });
+
   if (!isOpen) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -40,13 +57,24 @@ export const DevPasswordModal: React.FC<DevPasswordModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 sm:bg-black/40 backdrop-blur-xs animate-fade-in">
-      <div className="bg-white dark:bg-[#18181b] rounded-t-[28px] sm:rounded-2xl max-w-md w-full border border-black/[0.08] dark:border-white/[0.12] shadow-2xl transition-all text-neutral-900 dark:text-neutral-100 overflow-hidden">
+    <div
+      ref={backdropRef}
+      onClick={handleBackdropClick}
+      onTouchMove={handleBackdropTouchMove}
+      className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 sm:bg-black/40 backdrop-blur-xs animate-fade-in"
+      role="dialog"
+      aria-modal="true"
+      aria-label={actionTitle}
+    >
+      <div
+        ref={modalRef}
+        style={modalStyle}
+        onClick={e => e.stopPropagation()}
+        className="bg-white dark:bg-[#18181b] rounded-t-[28px] sm:rounded-2xl max-w-md w-full border border-black/[0.08] dark:border-white/[0.12] shadow-2xl transition-all text-neutral-900 dark:text-neutral-100 overflow-hidden"
+      >
         
         {/* iOS Sheet Grab Handle for Mobile */}
-        <div className="sm:hidden pt-2.5 pb-1 flex justify-center shrink-0">
-          <div className="ios-sheet-handle" />
-        </div>
+        <ModalDragHandle dragHandleProps={dragHandleProps} isDragging={isDragging} />
         
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-neutral-100 dark:border-neutral-800 text-xs shrink-0">
@@ -91,6 +119,7 @@ export const DevPasswordModal: React.FC<DevPasswordModalProps> = ({
             </label>
             <div className="relative">
               <input
+                ref={passwordInputRef}
                 type={showPassword ? 'text' : 'password'}
                 autoFocus
                 value={password}

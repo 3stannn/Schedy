@@ -17,6 +17,8 @@ import { format, parseISO, isSameDay } from 'date-fns';
 import { ConfirmModal } from '../common/ConfirmModal';
 import { FormattedNoteContent } from '../tasks/FormattedNoteContent';
 import { getEventAutoDeleteInfo } from '../../utils/autoDeleteUtils';
+import { useModalBehavior } from '../../hooks/useModalBehavior';
+import { ModalDragHandle } from '../common/ModalDragHandle';
 
 interface EventPreviewModalProps {
   isOpen: boolean;
@@ -86,21 +88,32 @@ export const EventPreviewModal: React.FC<EventPreviewModalProps> = ({
 }) => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-  // Close on Escape key or trigger Edit on 'e'
+  const {
+    modalRef,
+    backdropRef,
+    dragHandleProps,
+    modalStyle,
+    isDragging,
+    handleBackdropClick,
+    handleBackdropTouchMove,
+  } = useModalBehavior({
+    isOpen,
+    onClose,
+  });
+
+  // Keyboard shortcut: trigger Edit on 'e'
   useEffect(() => {
     if (!isOpen || !event) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onClose();
-      } else if ((e.key === 'e' || e.key === 'E') && !['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement).tagName)) {
+      if ((e.key === 'e' || e.key === 'E') && !['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement).tagName)) {
         onEdit(event);
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, event, onClose, onEdit]);
+  }, [isOpen, event, onEdit]);
 
   if (!isOpen || !event) return null;
 
@@ -141,17 +154,22 @@ export const EventPreviewModal: React.FC<EventPreviewModalProps> = ({
   return (
     <>
       <div 
+        ref={backdropRef}
+        onClick={handleBackdropClick}
+        onTouchMove={handleBackdropTouchMove}
         className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 sm:bg-black/40 backdrop-blur-xs animate-fade-in"
-        onClick={onClose}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Event Details"
       >
         <div
+          ref={modalRef}
+          style={modalStyle}
           className="rounded-t-[28px] sm:rounded-[24px] max-w-lg w-full max-h-[90vh] overflow-hidden border border-black/[0.08] dark:border-white/[0.12] shadow-2xl flex flex-col text-neutral-800 dark:text-neutral-100 bg-white dark:bg-[#1c1c1e]"
           onClick={e => e.stopPropagation()}
         >
           {/* iOS Sheet Grab Handle for Mobile */}
-          <div className="sm:hidden pt-2.5 pb-1 flex justify-center shrink-0">
-            <div className="ios-sheet-handle" />
-          </div>
+          <ModalDragHandle dragHandleProps={dragHandleProps} isDragging={isDragging} />
           {/* Header Row: Badges & Close Button */}
           <div className="flex items-center justify-between px-6 pt-5 pb-3 border-b border-black/[0.06] dark:border-white/[0.08] sticky top-0 bg-white/95 dark:bg-[#1c1c1e]/95 backdrop-blur-md z-10">
             <div className="flex items-center gap-1.5 flex-wrap">

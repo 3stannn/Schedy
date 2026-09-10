@@ -17,6 +17,8 @@ import {
   Check, 
   Eye 
 } from '../common/MovingIcon';
+import { useModalBehavior } from '../../hooks/useModalBehavior';
+import { ModalDragHandle } from '../common/ModalDragHandle';
 
 interface ExportImportModalProps {
   isOpen: boolean;
@@ -41,6 +43,19 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
   const [selectedFormat, setSelectedFormat] = useState<ExportFormat>('txt');
   const [copied, setCopied] = useState(false);
   const [importStatus, setImportStatus] = useState<{ success: boolean; message: string } | null>(null);
+
+  const {
+    modalRef,
+    backdropRef,
+    dragHandleProps,
+    modalStyle,
+    isDragging,
+    handleBackdropClick,
+    handleBackdropTouchMove,
+  } = useModalBehavior({
+    isOpen,
+    onClose,
+  });
 
   const previewData = useMemo(() => {
     if (!isOpen) {
@@ -170,14 +185,27 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
 
   const lineCount = previewData.content ? previewData.content.split('\n').length : 0;
 
+  if (!isOpen) return null;
+
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 sm:bg-black/40 backdrop-blur-xs animate-fade-in">
-      <div className="bg-white dark:bg-[#1c1c1e] rounded-t-[28px] sm:rounded-[24px] max-w-2xl w-full max-h-[92vh] flex flex-col border border-black/[0.08] dark:border-white/[0.12] shadow-2xl transition-all text-neutral-900 dark:text-neutral-100 overflow-hidden">
+    <div
+      ref={backdropRef}
+      onClick={handleBackdropClick}
+      onTouchMove={handleBackdropTouchMove}
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 sm:bg-black/40 backdrop-blur-xs animate-fade-in"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Export & Backup"
+    >
+      <div
+        ref={modalRef}
+        style={modalStyle}
+        onClick={e => e.stopPropagation()}
+        className="bg-white dark:bg-[#1c1c1e] rounded-t-[28px] sm:rounded-[24px] max-w-2xl w-full max-h-[92vh] flex flex-col border border-black/[0.08] dark:border-white/[0.12] shadow-2xl transition-all text-neutral-900 dark:text-neutral-100 overflow-hidden"
+      >
         
         {/* iOS Sheet Grab Handle for Mobile */}
-        <div className="sm:hidden pt-2.5 pb-1 flex justify-center shrink-0">
-          <div className="ios-sheet-handle" />
-        </div>
+        <ModalDragHandle dragHandleProps={dragHandleProps} isDragging={isDragging} />
 
         {/* Header */}
         <div className="flex items-center justify-between px-4 sm:px-6 py-3 border-b border-black/[0.06] dark:border-white/[0.08] text-xs shrink-0">

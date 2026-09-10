@@ -951,8 +951,14 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
 
       {/* Insert Link Modal */}
       {showLinkModal && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center p-3 bg-black/40 backdrop-blur-xs animate-fade-in">
-          <div className="bg-white dark:bg-[#1c1c1f] rounded-2xl max-w-sm w-full p-4 border border-neutral-200 dark:border-neutral-800 shadow-2xl space-y-3">
+        <div 
+          onClick={() => setShowLinkModal(false)}
+          className="fixed inset-0 z-[70] flex items-center justify-center p-3 bg-black/40 backdrop-blur-xs animate-fade-in"
+        >
+          <div 
+            onClick={e => e.stopPropagation()}
+            className="bg-white dark:bg-[#1c1c1f] rounded-2xl max-w-sm w-full p-4 border border-neutral-200 dark:border-neutral-800 shadow-2xl space-y-3"
+          >
             <div className="flex items-center justify-between">
               <h4 className="font-bold text-xs sm:text-sm text-neutral-900 dark:text-white">
                 Insert Link

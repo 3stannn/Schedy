@@ -23,6 +23,8 @@ import {
   Check,
   X
 } from 'lucide-react';
+import { useModalBehavior } from '../../hooks/useModalBehavior';
+import { ModalDragHandle } from './ModalDragHandle';
 
 export interface CustomDateTimePickerProps {
   value: string; // 'YYYY-MM-DD' or 'YYYY-MM-DDTHH:mm'
@@ -69,6 +71,19 @@ export const CustomDateTimePicker: React.FC<CustomDateTimePickerProps> = ({
   const popoverRef = useRef<HTMLDivElement>(null);
   const generatedId = useId();
   const inputId = id || generatedId;
+
+  const {
+    modalRef: mobileSheetRef,
+    backdropRef: mobileBackdropRef,
+    dragHandleProps: mobileDragHandleProps,
+    modalStyle: mobileModalStyle,
+    isDragging: isMobileDragging,
+    handleBackdropClick: handleMobileBackdropClick,
+    handleBackdropTouchMove: handleMobileBackdropTouchMove,
+  } = useModalBehavior({
+    isOpen: isOpen && isMobile,
+    onClose: () => setIsOpen(false),
+  });
 
   // Track viewport size for mobile vs desktop positioning
   useEffect(() => {
@@ -452,17 +467,24 @@ export const CustomDateTimePicker: React.FC<CustomDateTimePickerProps> = ({
             /* ========================================================================= */
             /* MOBILE VIEW: Bottom Sheet Modal with Backdrop                             */
             /* ========================================================================= */
-            <div className="fixed inset-0 z-[99999] flex items-end justify-center bg-black/60 backdrop-blur-xs animate-fade-in">
-              {/* Tap Backdrop to Dismiss */}
-              <div className="absolute inset-0" onClick={() => setIsOpen(false)} />
-
+            <div
+              ref={mobileBackdropRef}
+              onClick={handleMobileBackdropClick}
+              onTouchMove={handleMobileBackdropTouchMove}
+              className="fixed inset-0 z-[99999] flex items-end justify-center bg-black/60 backdrop-blur-xs animate-fade-in"
+              role="dialog"
+              aria-modal="true"
+              aria-label={mode === 'date' ? 'Select Date' : 'Select Date & Time'}
+            >
               {/* Mobile Card Container */}
               <div
-                ref={popoverRef}
+                ref={mobileSheetRef}
+                style={mobileModalStyle}
+                onClick={e => e.stopPropagation()}
                 className="relative w-full bg-white dark:bg-[#18181b] rounded-t-3xl border-t border-black/[0.08] dark:border-white/[0.12] shadow-2xl p-4 max-h-[85vh] overflow-y-auto z-10 flex flex-col select-none"
               >
                 {/* Drag Handle Indicator */}
-                <div className="w-10 h-1 rounded-full bg-neutral-300 dark:bg-neutral-700 mx-auto mb-3" />
+                <ModalDragHandle dragHandleProps={mobileDragHandleProps} isDragging={isMobileDragging} />
 
                 {/* Mobile Header */}
                 <div className="flex items-center justify-between pb-2.5 mb-2.5 border-b border-black/[0.06] dark:border-white/[0.08]">

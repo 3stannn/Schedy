@@ -23,6 +23,7 @@ import {
 } from '../common/MovingIcon';
 import { CustomSelect } from '../common/CustomSelect';
 import { CustomCheckbox } from '../common/CustomCheckbox';
+import { useModalBehavior } from '../../hooks/useModalBehavior';
 
 const AMBIENT_SOUND_OPTIONS = [
   { value: 'none', label: 'Off' },
@@ -289,6 +290,18 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
   });
 
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
+
+  const {
+    modalRef: settingsModalRef,
+    backdropRef: settingsBackdropRef,
+    modalStyle: settingsModalStyle,
+    handleBackdropClick: handleSettingsBackdropClick,
+    handleBackdropTouchMove: handleSettingsBackdropTouchMove,
+  } = useModalBehavior({
+    isOpen: isSettingsOpen,
+    onClose: () => setIsSettingsOpen(false),
+    enableDrag: false,
+  });
   const [selectedTaskId, setSelectedTaskId] = useState<string>(() => {
     return localStorage.getItem('schedy_pomodoro_task_id') || '';
   });
@@ -1076,8 +1089,18 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
 
         {/* Settings Modal */}
         {isSettingsOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-md animate-fade-in">
+          <div
+            ref={settingsBackdropRef}
+            onClick={handleSettingsBackdropClick}
+            onTouchMove={handleSettingsBackdropTouchMove}
+            className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-md animate-fade-in"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Timer Settings"
+          >
             <div
+              ref={settingsModalRef}
+              style={settingsModalStyle}
               className="bg-white/95 dark:bg-[#141418]/95 backdrop-blur-2xl rounded-3xl max-w-md w-full max-h-[90vh] overflow-y-auto border border-slate-200/90 dark:border-white/[0.09] shadow-2xl transition-all flex flex-col text-slate-800 dark:text-slate-100"
               onClick={(e) => e.stopPropagation()}
             >

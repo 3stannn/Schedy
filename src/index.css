@@ -17,6 +17,13 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+body.modal-open,
+html.modal-open {
+  overflow: hidden !important;
+  touch-action: none !important;
+  overscroll-behavior: none !important;
+}
+
 html.dark body,
 body.dark {
   background-color: #000000;
@@ -720,17 +727,19 @@ html.dark .ios-segmented-item-active {
   width: 36px;
   height: 5px;
   border-radius: 9999px;
-  background-color: rgba(60, 60, 67, 0.25);
+  background-color: rgba(60, 60, 67, 0.3);
   margin: 4px auto 6px;
   flex-shrink: 0;
+  touch-action: none;
+  transition: transform 0.15s ease, background-color 0.15s ease, opacity 0.15s ease;
 }
 
 html.dark .ios-sheet-handle {
-  background-color: rgba(235, 235, 245, 0.25);
+  background-color: rgba(235, 235, 245, 0.3);
 }
 
 html.pink .ios-sheet-handle {
-  background-color: rgba(255, 141, 161, 0.4);
+  background-color: rgba(255, 141, 161, 0.5);
 }
 
 /* iOS Buttons */

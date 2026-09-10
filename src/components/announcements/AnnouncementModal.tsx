@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import type { Announcement, AnnouncementPriority } from '../../types/announcement';
 import {
   X,
@@ -13,6 +13,8 @@ import {
 import { verifyDevPassword } from '../../services/announcementService';
 import { CustomCheckbox } from '../common/CustomCheckbox';
 import { CustomDateTimePicker } from '../common/CustomDateTimePicker';
+import { useModalBehavior } from '../../hooks/useModalBehavior';
+import { ModalDragHandle } from '../common/ModalDragHandle';
 
 
 
@@ -41,6 +43,21 @@ export const AnnouncementModal: React.FC<AnnouncementModalProps> = ({
   const [devPassword, setDevPassword] = useState('');
   const [showDevPassword, setShowDevPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const titleInputRef = useRef<HTMLInputElement>(null);
+  const {
+    modalRef,
+    backdropRef,
+    dragHandleProps,
+    modalStyle,
+    isDragging,
+    handleBackdropClick,
+    handleBackdropTouchMove,
+  } = useModalBehavior({
+    isOpen,
+    onClose,
+    initialFocusRef: titleInputRef,
+  });
 
   useEffect(() => {
     if (!isOpen) return;
@@ -106,13 +123,24 @@ export const AnnouncementModal: React.FC<AnnouncementModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 sm:bg-black/40 backdrop-blur-xs animate-fade-in">
-      <div className="bg-white dark:bg-[#1c1c1e] rounded-t-[28px] sm:rounded-[24px] max-w-lg w-full max-h-[90vh] flex flex-col border border-black/[0.08] dark:border-white/[0.12] shadow-2xl transition-all text-neutral-900 dark:text-neutral-100 overflow-hidden">
+    <div
+      ref={backdropRef}
+      onClick={handleBackdropClick}
+      onTouchMove={handleBackdropTouchMove}
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 sm:bg-black/40 backdrop-blur-xs animate-fade-in"
+      role="dialog"
+      aria-modal="true"
+      aria-label={initialAnnouncement ? 'Edit Notice' : 'New Notice'}
+    >
+      <div
+        ref={modalRef}
+        style={modalStyle}
+        onClick={e => e.stopPropagation()}
+        className="bg-white dark:bg-[#1c1c1e] rounded-t-[28px] sm:rounded-[24px] max-w-lg w-full max-h-[90vh] flex flex-col border border-black/[0.08] dark:border-white/[0.12] shadow-2xl transition-all text-neutral-900 dark:text-neutral-100 overflow-hidden"
+      >
         
         {/* iOS Sheet Grab Handle for Mobile */}
-        <div className="sm:hidden pt-2.5 pb-1 flex justify-center shrink-0">
-          <div className="ios-sheet-handle" />
-        </div>
+        <ModalDragHandle dragHandleProps={dragHandleProps} isDragging={isDragging} />
 
         {/* iOS Header */}
         <div className="flex items-center justify-between px-5 py-3 border-b border-black/[0.06] dark:border-white/[0.08] text-xs shrink-0">
@@ -218,6 +246,7 @@ export const AnnouncementModal: React.FC<AnnouncementModalProps> = ({
               Title *
             </label>
             <input
+              ref={titleInputRef}
               type="text"
               required
               value={title}

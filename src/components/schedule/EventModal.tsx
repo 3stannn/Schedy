@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import type { ScheduleEvent, PriorityLevel, EventCategory, EventStatus, RecurrenceRule, ScheduleItemType } from '../../types/schedule';
 import {
   X,
@@ -20,6 +20,9 @@ import { getEventAutoDeleteInfo } from '../../utils/autoDeleteUtils';
 import { CustomSelect } from '../common/CustomSelect';
 import { CustomCheckbox } from '../common/CustomCheckbox';
 import { CustomDateTimePicker } from '../common/CustomDateTimePicker';
+import { useModalBehavior } from '../../hooks/useModalBehavior';
+import { ModalDragHandle } from '../common/ModalDragHandle';
+import { ModalFocusButton } from '../common/ModalFocusButton';
 
 
 const ITEM_TYPE_OPTIONS = [
@@ -94,6 +97,23 @@ export const EventModal: React.FC<EventModalProps> = ({
   const [recurrenceRule, setRecurrenceRule] = useState<RecurrenceRule>('none');
   const [error, setError] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  const titleInputRef = useRef<HTMLInputElement>(null);
+  const {
+    modalRef,
+    backdropRef,
+    dragHandleProps,
+    modalStyle,
+    isDragging,
+    isFocusMode,
+    toggleFocusMode,
+    handleBackdropClick,
+    handleBackdropTouchMove,
+  } = useModalBehavior({
+    isOpen,
+    onClose,
+    initialFocusRef: titleInputRef,
+  });
 
   useEffect(() => {
     if (!isOpen) return;
@@ -201,7 +221,19 @@ export const EventModal: React.FC<EventModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 sm:bg-black/40 backdrop-blur-xs animate-fade-in">
+    <div
+      ref={backdropRef}
+      onClick={handleBackdropClick}
+      onTouchMove={handleBackdropTouchMove}
+      className={`fixed inset-0 z-50 flex items-end sm:items-center justify-center transition-all ${
+        isFocusMode
+          ? 'bg-black/85 backdrop-blur-md p-0 sm:p-4 md:p-6'
+          : 'bg-black/50 sm:bg-black/40 backdrop-blur-xs p-0 sm:p-4'
+      } animate-fade-in`}
+      role="dialog"
+      aria-modal="true"
+      aria-label={itemType === 'task' ? 'Task Details' : 'Event Details'}
+    >
       {showDeleteConfirm && (
         <ConfirmModal
           isOpen={showDeleteConfirm}
@@ -214,12 +246,19 @@ export const EventModal: React.FC<EventModalProps> = ({
           message={`Are you sure you want to delete "${initialEvent?.title}"? This action cannot be undone.`}
         />
       )}
-      <div className="bg-white dark:bg-[#1c1c1e] rounded-t-[28px] sm:rounded-[24px] max-w-3xl w-full max-h-[92vh] flex flex-col border border-black/[0.08] dark:border-white/[0.12] shadow-2xl transition-all text-neutral-900 dark:text-neutral-100 overflow-hidden">
+      <div
+        ref={modalRef}
+        style={modalStyle}
+        onClick={e => e.stopPropagation()}
+        className={`bg-white dark:bg-[#1c1c1e] flex flex-col border border-black/[0.08] dark:border-white/[0.12] shadow-2xl transition-all text-neutral-900 dark:text-neutral-100 overflow-hidden ${
+          isFocusMode
+            ? 'w-full h-full max-w-5xl rounded-none sm:rounded-[28px] max-h-none'
+            : 'rounded-t-[28px] sm:rounded-[24px] max-w-3xl w-full max-h-[92vh]'
+        }`}
+      >
 
         {/* iOS Sheet Grab Handle for Mobile */}
-        <div className="sm:hidden pt-2.5 pb-1 flex justify-center shrink-0">
-          <div className="ios-sheet-handle" />
-        </div>
+        <ModalDragHandle dragHandleProps={dragHandleProps} isDragging={isDragging} />
 
         {/* iOS Modal Navigation Bar */}
         <div className="flex items-center justify-between px-4 sm:px-6 py-3 border-b border-black/[0.06] dark:border-white/[0.08] text-xs shrink-0">
@@ -244,7 +283,8 @@ export const EventModal: React.FC<EventModalProps> = ({
             </span>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <ModalFocusButton isFocusMode={isFocusMode} onToggle={toggleFocusMode} />
             {initialEvent && onDelete && (
               <button
                 type="button"
@@ -256,6 +296,7 @@ export const EventModal: React.FC<EventModalProps> = ({
               </button>
             )}
             <button
+              type="button"
               onClick={onClose}
               className="p-1.5 rounded-full text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer"
             >
@@ -310,6 +351,7 @@ export const EventModal: React.FC<EventModalProps> = ({
           {/* Large Clean Notion Title */}
           <div>
             <input
+              ref={titleInputRef}
               type="text"
               required
               autoFocus

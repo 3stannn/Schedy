@@ -1,5 +1,6 @@
 import React from 'react';
 import { AlertTriangle } from './MovingIcon';
+import { useModalBehavior } from '../../hooks/useModalBehavior';
 
 export interface ConfirmModalProps {
   isOpen: boolean;
@@ -22,11 +23,33 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
   cancelText = 'Cancel',
   isDanger = true,
 }) => {
+  const {
+    modalRef,
+    backdropRef,
+    modalStyle,
+    handleBackdropClick,
+    handleBackdropTouchMove,
+  } = useModalBehavior({
+    isOpen,
+    onClose,
+    enableDrag: false,
+  });
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-fade-in">
+    <div
+      ref={backdropRef}
+      onClick={handleBackdropClick}
+      onTouchMove={handleBackdropTouchMove}
+      className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-fade-in"
+      role="alertdialog"
+      aria-modal="true"
+      aria-label={title}
+    >
       <div 
+        ref={modalRef}
+        style={modalStyle}
         className="bg-white/95 dark:bg-[#1c1c1e]/95 backdrop-blur-2xl rounded-[20px] max-w-[320px] w-full border border-black/[0.08] dark:border-white/[0.12] shadow-2xl text-neutral-900 dark:text-neutral-100 overflow-hidden text-center"
         onClick={e => e.stopPropagation()}
       >

@@ -1,8 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import type { Note, NoteColor } from '../../types/note';
 import { X, Pin, Trash2, FileText } from '../common/MovingIcon';
 import { RichTextEditor } from './RichTextEditor';
 import { stripHtml } from './noteFormattingUtils';
+import { useModalBehavior } from '../../hooks/useModalBehavior';
+import { ModalDragHandle } from '../common/ModalDragHandle';
+import { ModalFocusButton } from '../common/ModalFocusButton';
 
 interface NoteModalProps {
   isOpen: boolean;
@@ -33,6 +36,23 @@ export const NoteModal: React.FC<NoteModalProps> = ({
   const [color, setColor] = useState<NoteColor>('default');
   const [isPinned, setIsPinned] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const titleInputRef = useRef<HTMLInputElement>(null);
+  const {
+    modalRef,
+    backdropRef,
+    dragHandleProps,
+    modalStyle,
+    isDragging,
+    isFocusMode,
+    toggleFocusMode,
+    handleBackdropClick,
+    handleBackdropTouchMove,
+  } = useModalBehavior({
+    isOpen,
+    onClose,
+    initialFocusRef: titleInputRef,
+  });
 
   useEffect(() => {
     if (!isOpen) return;
@@ -76,15 +96,31 @@ export const NoteModal: React.FC<NoteModalProps> = ({
   const charCount = plainText.length;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 md:p-6 bg-black/50 sm:bg-black/40 backdrop-blur-xs animate-fade-in">
+    <div
+      ref={backdropRef}
+      onClick={handleBackdropClick}
+      onTouchMove={handleBackdropTouchMove}
+      className={`fixed inset-0 z-50 flex items-end sm:items-center justify-center transition-all ${
+        isFocusMode
+          ? 'bg-black/85 backdrop-blur-md p-0 sm:p-4 md:p-6'
+          : 'bg-black/50 sm:bg-black/40 backdrop-blur-xs p-0 sm:p-4 md:p-6'
+      } animate-fade-in`}
+      role="dialog"
+      aria-modal="true"
+      aria-label={initialNote ? 'Edit Note' : 'New Note'}
+    >
       <div 
-        className="bg-white dark:bg-[#1c1c1e] rounded-t-[28px] sm:rounded-[24px] w-full max-w-3xl lg:max-w-4xl h-[90vh] sm:h-[88vh] max-h-[820px] flex flex-col overflow-hidden border border-black/[0.08] dark:border-white/[0.12] shadow-2xl transition-all text-neutral-900 dark:text-neutral-100"
+        ref={modalRef}
+        style={modalStyle}
+        className={`bg-white dark:bg-[#1c1c1e] flex flex-col overflow-hidden border border-black/[0.08] dark:border-white/[0.12] shadow-2xl transition-all text-neutral-900 dark:text-neutral-100 ${
+          isFocusMode
+            ? 'w-full h-full max-w-5xl rounded-none sm:rounded-[28px] max-h-none'
+            : 'rounded-t-[28px] sm:rounded-[24px] w-full max-w-3xl lg:max-w-4xl h-[90vh] sm:h-[88vh] max-h-[820px]'
+        }`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* iOS Sheet Grab Handle for Mobile */}
-        <div className="sm:hidden pt-2.5 pb-1 flex justify-center shrink-0">
-          <div className="ios-sheet-handle" />
-        </div>
+        <ModalDragHandle dragHandleProps={dragHandleProps} isDragging={isDragging} />
 
         {/* Header */}
         <div className="flex items-center justify-between px-4 sm:px-6 py-3 border-b border-black/[0.06] dark:border-white/[0.08] shrink-0">
@@ -102,6 +138,8 @@ export const NoteModal: React.FC<NoteModalProps> = ({
           </div>
 
           <div className="flex items-center gap-1.5">
+            <ModalFocusButton isFocusMode={isFocusMode} onToggle={toggleFocusMode} />
+
             {/* Pin Toggle */}
             <button
               type="button"
@@ -118,6 +156,7 @@ export const NoteModal: React.FC<NoteModalProps> = ({
 
             {/* Close */}
             <button
+              type="button"
               onClick={onClose}
               className="p-1.5 rounded-full text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer"
             >
@@ -138,6 +177,7 @@ export const NoteModal: React.FC<NoteModalProps> = ({
           {/* Title Input */}
           <div className="px-4 sm:px-6 pt-3.5 pb-2 shrink-0">
             <input
+              ref={titleInputRef}
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
