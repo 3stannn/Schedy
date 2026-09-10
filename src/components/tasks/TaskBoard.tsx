@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import type { ScheduleEvent, EventStatus } from '../../types/schedule';
 import type { Note, NoteColor } from '../../types/note';
 import {
@@ -120,12 +120,28 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
   // Drag and drop states
   const [draggingEventId, setDraggingEventId] = useState<string | null>(null);
   const [dragOverColumn, setDragOverColumn] = useState<EventStatus | null>(null);
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
+  const [touchPosition, setTouchPosition] = useState<{ x: number; y: number } | null>(null);
   const isDraggingRef = useRef(false);
   const dragEnterCounters = useRef<Record<string, number>>({
     pending: 0,
     in_progress: 0,
     completed: 0,
   });
+
+  // Detect touch screen device to disable native HTML5 drag and use pure touch drag
+  useEffect(() => {
+    const checkTouch = () => {
+      setIsTouchDevice('ontouchstart' in window || navigator.maxTouchPoints > 0);
+    };
+    checkTouch();
+  }, []);
+
+  // Active event being dragged (for mobile floating preview)
+  const activeDraggingEvent = useMemo(() => {
+    if (!draggingEventId) return null;
+    return events.find((e) => e.id === draggingEventId) || null;
+  }, [draggingEventId, events]);
 
   // Touch tracking for mobile/tablet devices
   const touchStartRef = useRef<{ x: number; y: number; eventId: string } | null>(null);
@@ -202,10 +218,11 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
     const dx = Math.abs(touch.clientX - touchStartRef.current.x);
     const dy = Math.abs(touch.clientY - touchStartRef.current.y);
 
-    if (dx > 12 || dy > 12) {
+    if (dx > 10 || dy > 10) {
       isTouchDraggingRef.current = true;
       isDraggingRef.current = true;
       setDraggingEventId(touchStartRef.current.eventId);
+      setTouchPosition({ x: touch.clientX, y: touch.clientY });
 
       const elem = document.elementFromPoint(touch.clientX, touch.clientY);
       const col = elem?.closest('[data-column-status]');
@@ -236,6 +253,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
 
     touchStartRef.current = null;
     isTouchDraggingRef.current = false;
+    setTouchPosition(null);
     setDraggingEventId(null);
     setDragOverColumn(null);
     setTimeout(() => {
@@ -473,7 +491,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
                 return (
                   <div
                     key={evt.id}
-                    draggable
+                    draggable={!isTouchDevice}
                     onDragStart={(e) => handleDragStart(e, evt.id)}
                     onDragEnd={handleDragEnd}
                     onTouchStart={(e) => handleTouchStart(e, evt.id)}
@@ -634,7 +652,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
                 return (
                   <div
                     key={evt.id}
-                    draggable
+                    draggable={!isTouchDevice}
                     onDragStart={(e) => handleDragStart(e, evt.id)}
                     onDragEnd={handleDragEnd}
                     onTouchStart={(e) => handleTouchStart(e, evt.id)}
@@ -788,7 +806,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
                 return (
                   <div
                     key={evt.id}
-                    draggable
+                    draggable={!isTouchDevice}
                     onDragStart={(e) => handleDragStart(e, evt.id)}
                     onDragEnd={handleDragEnd}
                     onTouchStart={(e) => handleTouchStart(e, evt.id)}
@@ -980,6 +998,83 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
         </div>
 
       </div>
+
+      {/* ========================================================================= */}
+      {/* MOBILE FLOATING TOUCH DRAG PREVIEW (Follows touch point)                  */}
+      {/* ========================================================================= */}
+      {touchPosition && activeDraggingEvent && (
+        <div
+          className="fixed pointer-events-none z-[9999] w-[260px] p-3 rounded-2xl bg-white/95 dark:bg-[#18181b]/95 backdrop-blur-xl shadow-2xl border-2 border-[#007aff] dark:border-[#0a84ff] rotate-2 select-none -translate-x-1/2 -translate-y-[85%]"
+          style={{
+            left: `${touchPosition.x}px`,
+            top: `${touchPosition.y}px`,
+          }}
+        >
+          <div className="flex items-start justify-between gap-1.5 mb-1">
+            <div className="flex items-center gap-1.5 min-w-0 flex-1">
+              <GripVertical className="w-3.5 h-3.5 text-[#007aff] dark:text-[#0a84ff] shrink-0" />
+              <h4 className="font-bold text-xs text-[#1c1917] dark:text-white truncate">
+                {activeDraggingEvent.title}
+              </h4>
+            </div>
+            {getItemTypeBadge(activeDraggingEvent)}
+          </div>
+          <div className="flex items-center justify-between text-[10px] text-neutral-500 dark:text-neutral-400 mt-1">
+            <span className="capitalize font-medium">{activeDraggingEvent.category}</span>
+            <span className="text-[#007aff] dark:text-[#0a84ff] font-bold text-[9px] uppercase tracking-wider">
+              {dragOverColumn ? `Move to ${dragOverColumn.replace('_', ' ')}` : 'Dragging...'}
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* MOBILE QUICK DROP DOCK: Bottom floating action shelf                      */}
+      {/* ========================================================================= */}
+      {draggingEventId && (
+        <div className="md:hidden fixed bottom-6 inset-x-3 z-[9998] animate-in fade-in slide-in-from-bottom-5 duration-200">
+          <div className="bg-white/90 dark:bg-[#18181b]/90 backdrop-blur-2xl border border-black/10 dark:border-white/10 rounded-2xl p-2 shadow-2xl flex items-stretch gap-2">
+            {/* Upcoming Dock Zone */}
+            <div
+              data-column-status="pending"
+              className={`flex-1 py-2.5 px-2 rounded-xl flex flex-col items-center justify-center gap-1 transition-all ${
+                dragOverColumn === 'pending'
+                  ? 'bg-blue-500 text-white shadow-md scale-[1.03] ring-2 ring-blue-300'
+                  : 'bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-500/20'
+              }`}
+            >
+              <span className={`w-2 h-2 rounded-full ${dragOverColumn === 'pending' ? 'bg-white' : 'bg-blue-500'}`} />
+              <span className="text-[10px] font-bold">Upcoming</span>
+            </div>
+
+            {/* In Progress Dock Zone */}
+            <div
+              data-column-status="in_progress"
+              className={`flex-1 py-2.5 px-2 rounded-xl flex flex-col items-center justify-center gap-1 transition-all ${
+                dragOverColumn === 'in_progress'
+                  ? 'bg-amber-500 text-white shadow-md scale-[1.03] ring-2 ring-amber-300'
+                  : 'bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20'
+              }`}
+            >
+              <span className={`w-2 h-2 rounded-full ${dragOverColumn === 'in_progress' ? 'bg-white' : 'bg-amber-500'}`} />
+              <span className="text-[10px] font-bold">In Progress</span>
+            </div>
+
+            {/* Done Dock Zone */}
+            <div
+              data-column-status="completed"
+              className={`flex-1 py-2.5 px-2 rounded-xl flex flex-col items-center justify-center gap-1 transition-all ${
+                dragOverColumn === 'completed'
+                  ? 'bg-emerald-500 text-white shadow-md scale-[1.03] ring-2 ring-emerald-300'
+                  : 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20'
+              }`}
+            >
+              <span className={`w-2 h-2 rounded-full ${dragOverColumn === 'completed' ? 'bg-white' : 'bg-emerald-500'}`} />
+              <span className="text-[10px] font-bold">Done</span>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
