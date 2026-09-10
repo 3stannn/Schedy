@@ -129,12 +129,65 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
     completed: 0,
   });
 
-  // Detect touch screen device to disable native HTML5 drag and use pure touch drag
+  // Auto-scroll while gliding near screen edges
+  const autoScrollRafRef = useRef<number | null>(null);
+  const currentTouchYRef = useRef<number | null>(null);
+
+  const stopAutoScroll = () => {
+    if (autoScrollRafRef.current !== null) {
+      cancelAnimationFrame(autoScrollRafRef.current);
+      autoScrollRafRef.current = null;
+    }
+    currentTouchYRef.current = null;
+  };
+
+  const startAutoScroll = () => {
+    if (autoScrollRafRef.current !== null) return;
+    const step = () => {
+      if (currentTouchYRef.current !== null) {
+        const y = currentTouchYRef.current;
+        const topZone = 120;
+        const bottomZone = window.innerHeight - 130;
+
+        if (y < topZone && window.scrollY > 0) {
+          const speed = Math.min(22, Math.max(4, Math.round((topZone - y) / 3)));
+          window.scrollBy({ top: -speed, behavior: 'auto' });
+        } else if (y > bottomZone) {
+          const speed = Math.min(22, Math.max(4, Math.round((y - bottomZone) / 3)));
+          window.scrollBy({ top: speed, behavior: 'auto' });
+        }
+      }
+      autoScrollRafRef.current = requestAnimationFrame(step);
+    };
+    autoScrollRafRef.current = requestAnimationFrame(step);
+  };
+
+  // Detect touch screen device and block multi-finger pinch zoom
   useEffect(() => {
     const checkTouch = () => {
       setIsTouchDevice('ontouchstart' in window || navigator.maxTouchPoints > 0);
     };
     checkTouch();
+
+    const preventPinchZoom = (e: TouchEvent) => {
+      if (e.touches.length > 1 && e.cancelable) {
+        e.preventDefault();
+      }
+    };
+    const preventGesture = (e: Event) => {
+      e.preventDefault();
+    };
+
+    document.addEventListener('touchmove', preventPinchZoom, { passive: false });
+    document.addEventListener('gesturestart', preventGesture);
+    document.addEventListener('gesturechange', preventGesture);
+
+    return () => {
+      stopAutoScroll();
+      document.removeEventListener('touchmove', preventPinchZoom);
+      document.removeEventListener('gesturestart', preventGesture);
+      document.removeEventListener('gesturechange', preventGesture);
+    };
   }, []);
 
   // Active event being dragged (for mobile floating preview)
@@ -144,8 +197,26 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
   }, [draggingEventId, events]);
 
   // Touch tracking for mobile/tablet devices
-  const touchStartRef = useRef<{ x: number; y: number; eventId: string } | null>(null);
+  const touchStartRef = useRef<{ x: number; y: number; eventId: string; identifier: number } | null>(null);
   const isTouchDraggingRef = useRef(false);
+
+  // Immediate status change when pressing a bottom dock choice card
+  const handleMoveToStatus = (status: EventStatus) => {
+    const eventId = draggingEventId || touchStartRef.current?.eventId;
+    const targetEvent = events.find((ev) => ev.id === eventId);
+    if (targetEvent && targetEvent.status !== status) {
+      onStatusChange(targetEvent, status);
+    }
+    touchStartRef.current = null;
+    isTouchDraggingRef.current = false;
+    setTouchPosition(null);
+    setDraggingEventId(null);
+    setDragOverColumn(null);
+    stopAutoScroll();
+    setTimeout(() => {
+      isDraggingRef.current = false;
+    }, 100);
+  };
 
   const handleDragStart = (e: React.DragEvent, eventId: string) => {
     e.dataTransfer.setData('text/plain', eventId);
@@ -160,6 +231,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
   const handleDragEnd = () => {
     setDraggingEventId(null);
     setDragOverColumn(null);
+    stopAutoScroll();
     dragEnterCounters.current = { pending: 0, in_progress: 0, completed: 0 };
     setTimeout(() => {
       isDraggingRef.current = false;
@@ -193,6 +265,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
     const eventId = e.dataTransfer.getData('text/plain') || draggingEventId;
     setDragOverColumn(null);
     setDraggingEventId(null);
+    stopAutoScroll();
     dragEnterCounters.current = { pending: 0, in_progress: 0, completed: 0 };
     setTimeout(() => {
       isDraggingRef.current = false;
@@ -207,22 +280,44 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
 
   // Touch drag handlers
   const handleTouchStart = (e: React.TouchEvent, eventId: string) => {
+    // If already actively dragging, ignore new touch starts on other cards
+    if (isTouchDraggingRef.current) return;
     const touch = e.touches[0];
-    touchStartRef.current = { x: touch.clientX, y: touch.clientY, eventId };
+    touchStartRef.current = { x: touch.clientX, y: touch.clientY, eventId, identifier: touch.identifier };
     isTouchDraggingRef.current = false;
+    currentTouchYRef.current = touch.clientY;
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
+    // Block pinch-to-zoom on multi-finger touch
+    if (e.touches.length > 1 && e.cancelable) {
+      e.preventDefault();
+    }
+
     if (!touchStartRef.current) return;
-    const touch = e.touches[0];
+
+    // Track the primary dragging finger by touch identifier
+    const touch =
+      Array.from(e.touches).find((t) => t.identifier === touchStartRef.current?.identifier) || e.touches[0];
+    if (!touch) return;
+
     const dx = Math.abs(touch.clientX - touchStartRef.current.x);
     const dy = Math.abs(touch.clientY - touchStartRef.current.y);
+    currentTouchYRef.current = touch.clientY;
 
-    if (dx > 10 || dy > 10) {
+    if (dx > 8 || dy > 8 || isTouchDraggingRef.current) {
       isTouchDraggingRef.current = true;
       isDraggingRef.current = true;
       setDraggingEventId(touchStartRef.current.eventId);
       setTouchPosition({ x: touch.clientX, y: touch.clientY });
+
+      // Edge auto-scroller: glide up/down smoothly when near screen edges
+      startAutoScroll();
+
+      // Prevent native pan fighting with drag (guarantees card directly tracks finger)
+      if (e.cancelable) {
+        e.preventDefault();
+      }
 
       const elem = document.elementFromPoint(touch.clientX, touch.clientY);
       const col = elem?.closest('[data-column-status]');
@@ -236,17 +331,27 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
-    if (isTouchDraggingRef.current && touchStartRef.current) {
-      const touch = e.changedTouches[0];
-      const elem = document.elementFromPoint(touch.clientX, touch.clientY);
-      const col = elem?.closest('[data-column-status]');
-      const status = col?.getAttribute('data-column-status') as EventStatus | null;
-      const eventId = touchStartRef.current.eventId;
+    // If multiple fingers are active and our drag finger is not among changedTouches, keep dragging active
+    const endedTouch = Array.from(e.changedTouches).find((t) => t.identifier === touchStartRef.current?.identifier);
+    if (e.touches.length > 0 && !endedTouch) {
+      return;
+    }
 
-      if (status && (status === 'pending' || status === 'in_progress' || status === 'completed')) {
-        const targetEvent = events.find(ev => ev.id === eventId);
-        if (targetEvent && targetEvent.status !== status) {
-          onStatusChange(targetEvent, status);
+    stopAutoScroll();
+
+    if (isTouchDraggingRef.current && touchStartRef.current) {
+      const touch = endedTouch || e.changedTouches[0];
+      if (touch) {
+        const elem = document.elementFromPoint(touch.clientX, touch.clientY);
+        const col = elem?.closest('[data-column-status]');
+        const status = col?.getAttribute('data-column-status') as EventStatus | null;
+        const eventId = touchStartRef.current.eventId;
+
+        if (status && (status === 'pending' || status === 'in_progress' || status === 'completed')) {
+          const targetEvent = events.find((ev) => ev.id === eventId);
+          if (targetEvent && targetEvent.status !== status) {
+            onStatusChange(targetEvent, status);
+          }
         }
       }
     }
@@ -1000,11 +1105,11 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
       </div>
 
       {/* ========================================================================= */}
-      {/* MOBILE FLOATING TOUCH DRAG PREVIEW (Follows touch point)                  */}
+      {/* MOBILE FLOATING TOUCH DRAG PREVIEW (Follows touch point directly)          */}
       {/* ========================================================================= */}
       {touchPosition && activeDraggingEvent && (
         <div
-          className="fixed pointer-events-none z-[9999] w-[260px] p-3 rounded-2xl bg-white/95 dark:bg-[#18181b]/95 backdrop-blur-xl shadow-2xl border-2 border-[#007aff] dark:border-[#0a84ff] rotate-2 select-none -translate-x-1/2 -translate-y-[85%]"
+          className="fixed pointer-events-none z-[9999] w-[260px] p-3 rounded-2xl bg-white/95 dark:bg-[#18181b]/95 backdrop-blur-xl shadow-2xl border-2 border-[#007aff] dark:border-[#0a84ff] rotate-1 select-none -translate-x-1/2 -translate-y-1/2"
           style={{
             left: `${touchPosition.x}px`,
             top: `${touchPosition.y}px`,
@@ -1033,45 +1138,96 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
       {/* ========================================================================= */}
       {draggingEventId && (
         <div className="md:hidden fixed bottom-6 inset-x-3 z-[9998] animate-in fade-in slide-in-from-bottom-5 duration-200">
-          <div className="bg-white/90 dark:bg-[#18181b]/90 backdrop-blur-2xl border border-black/10 dark:border-white/10 rounded-2xl p-2 shadow-2xl flex items-stretch gap-2">
+          <div className="bg-white/95 dark:bg-[#18181b]/95 backdrop-blur-2xl border border-black/10 dark:border-white/10 rounded-2xl p-2 shadow-2xl flex items-stretch gap-2">
             {/* Upcoming Dock Zone */}
-            <div
+            <button
+              type="button"
               data-column-status="pending"
-              className={`flex-1 py-2.5 px-2 rounded-xl flex flex-col items-center justify-center gap-1 transition-all ${
+              onPointerDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleMoveToStatus('pending');
+              }}
+              onTouchStart={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleMoveToStatus('pending');
+              }}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleMoveToStatus('pending');
+              }}
+              className={`flex-1 py-3 px-2 rounded-xl flex flex-col items-center justify-center gap-1 transition-all cursor-pointer active:scale-95 touch-manipulation select-none ${
                 dragOverColumn === 'pending'
                   ? 'bg-blue-500 text-white shadow-md scale-[1.03] ring-2 ring-blue-300'
-                  : 'bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-500/20'
+                  : 'bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-500/20 active:bg-blue-500 active:text-white'
               }`}
             >
               <span className={`w-2 h-2 rounded-full ${dragOverColumn === 'pending' ? 'bg-white' : 'bg-blue-500'}`} />
-              <span className="text-[10px] font-bold">Upcoming</span>
-            </div>
+              <span className="text-[11px] font-bold">Upcoming</span>
+              <span className="text-[8.5px] opacity-75 font-medium">Tap to move</span>
+            </button>
 
             {/* In Progress Dock Zone */}
-            <div
+            <button
+              type="button"
               data-column-status="in_progress"
-              className={`flex-1 py-2.5 px-2 rounded-xl flex flex-col items-center justify-center gap-1 transition-all ${
+              onPointerDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleMoveToStatus('in_progress');
+              }}
+              onTouchStart={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleMoveToStatus('in_progress');
+              }}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleMoveToStatus('in_progress');
+              }}
+              className={`flex-1 py-3 px-2 rounded-xl flex flex-col items-center justify-center gap-1 transition-all cursor-pointer active:scale-95 touch-manipulation select-none ${
                 dragOverColumn === 'in_progress'
                   ? 'bg-amber-500 text-white shadow-md scale-[1.03] ring-2 ring-amber-300'
-                  : 'bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20'
+                  : 'bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20 active:bg-amber-500 active:text-white'
               }`}
             >
               <span className={`w-2 h-2 rounded-full ${dragOverColumn === 'in_progress' ? 'bg-white' : 'bg-amber-500'}`} />
-              <span className="text-[10px] font-bold">In Progress</span>
-            </div>
+              <span className="text-[11px] font-bold">In Progress</span>
+              <span className="text-[8.5px] opacity-75 font-medium">Tap to move</span>
+            </button>
 
             {/* Done Dock Zone */}
-            <div
+            <button
+              type="button"
               data-column-status="completed"
-              className={`flex-1 py-2.5 px-2 rounded-xl flex flex-col items-center justify-center gap-1 transition-all ${
+              onPointerDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleMoveToStatus('completed');
+              }}
+              onTouchStart={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleMoveToStatus('completed');
+              }}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleMoveToStatus('completed');
+              }}
+              className={`flex-1 py-3 px-2 rounded-xl flex flex-col items-center justify-center gap-1 transition-all cursor-pointer active:scale-95 touch-manipulation select-none ${
                 dragOverColumn === 'completed'
                   ? 'bg-emerald-500 text-white shadow-md scale-[1.03] ring-2 ring-emerald-300'
-                  : 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20'
+                  : 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 active:bg-emerald-500 active:text-white'
               }`}
             >
               <span className={`w-2 h-2 rounded-full ${dragOverColumn === 'completed' ? 'bg-white' : 'bg-emerald-500'}`} />
-              <span className="text-[10px] font-bold">Done</span>
-            </div>
+              <span className="text-[11px] font-bold">Done</span>
+              <span className="text-[8.5px] opacity-75 font-medium">Tap to move</span>
+            </button>
           </div>
         </div>
       )}
