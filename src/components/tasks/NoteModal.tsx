@@ -182,7 +182,7 @@ export const NoteModal: React.FC<NoteModalProps> = ({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Note Title..."
-              className="w-full px-3.5 py-2 text-base sm:text-lg font-bold bg-black/[0.03] dark:bg-white/[0.05] border border-black/[0.08] dark:border-white/[0.1] rounded-[14px] focus:outline-none focus:ring-2 focus:ring-[#007aff] text-neutral-900 dark:text-white placeholder:text-neutral-400 transition-all"
+              className="w-full px-3.5 py-2 text-lg sm:text-xl font-bold bg-black/[0.03] dark:bg-white/[0.05] border border-black/[0.08] dark:border-white/[0.1] rounded-[14px] focus:outline-none focus:ring-2 focus:ring-[#007aff] text-neutral-900 dark:text-white placeholder:text-neutral-400 transition-all"
               autoFocus
             />
           </div>

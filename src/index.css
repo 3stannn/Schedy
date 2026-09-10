@@ -884,18 +884,35 @@ html.dark .ios-input:focus {
 
 /* ==========================================================================
    Mobile Auto-Zoom Prevention (iOS Safari & Mobile WebKit)
-   Enforces min 16px font-size on all text inputs, textareas, selects, and
+   Enforces min 16px font-size on form text inputs, textareas, selects, and
    contenteditable elements on mobile viewports (<= 768px) and touch devices
    to prevent unwanted automatic zooming on focus.
+   Title and heading inputs with larger font sizes are excluded to preserve visual hierarchy.
    ========================================================================== */
 @media screen and (max-width: 768px), (hover: none) and (pointer: coarse) {
-  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="file"]),
-  textarea,
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="file"]):not(.notion-title-input):not(.modal-title-input):not([class*="text-lg"]):not([class*="text-xl"]):not([class*="text-2xl"]):not([class*="text-3xl"]):not([class*="text-4xl"]),
+  textarea:not(.notion-title-input):not(.modal-title-input):not([class*="text-lg"]):not([class*="text-xl"]):not([class*="text-2xl"]):not([class*="text-3xl"]):not([class*="text-4xl"]),
   select,
   .ios-input,
-  [contenteditable="true"],
+  [contenteditable="true"]:not(.notion-title-input):not(.modal-title-input):not([class*="text-lg"]):not([class*="text-xl"]):not([class*="text-2xl"]):not([class*="text-3xl"]):not([class*="text-4xl"]),
   .notion-editor {
     font-size: 16px !important;
+  }
+}
+
+/* Notion / Modal Large Title Inputs */
+.notion-title-input,
+.modal-title-input {
+  font-size: 1.5rem !important; /* 24px (text-2xl) on mobile */
+  line-height: 2rem !important;
+  font-weight: 700 !important;
+}
+
+@media (min-width: 640px) {
+  .notion-title-input,
+  .modal-title-input {
+    font-size: 1.875rem !important; /* 30px (text-3xl) on tablet / desktop */
+    line-height: 2.25rem !important;
   }
 }
 

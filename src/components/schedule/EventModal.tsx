@@ -358,7 +358,7 @@ export const EventModal: React.FC<EventModalProps> = ({
               value={title}
               onChange={e => setTitle(e.target.value)}
               placeholder={itemType === 'task' ? 'Untitled Task' : 'Untitled Event'}
-              className="w-full text-2xl sm:text-3xl font-bold text-[#37352f] dark:text-[#e6e6e6] placeholder-neutral-300 dark:placeholder-neutral-600 bg-transparent border-none outline-none focus:ring-0 p-0 tracking-tight"
+              className="notion-title-input w-full text-2xl sm:text-3xl font-bold text-[#37352f] dark:text-[#e6e6e6] placeholder-neutral-300 dark:placeholder-neutral-600 bg-transparent border-none outline-none focus:ring-0 p-0 tracking-tight"
             />
           </div>
 
