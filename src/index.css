@@ -17,8 +17,15 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+html,
+body {
+  overscroll-behavior-y: none;
+}
+
 body.modal-open,
-html.modal-open {
+html.modal-open,
+body.dragging-active,
+html.dragging-active {
   overflow: hidden !important;
   touch-action: none !important;
   overscroll-behavior: none !important;

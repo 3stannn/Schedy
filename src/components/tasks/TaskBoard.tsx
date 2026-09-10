@@ -129,37 +129,35 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
     completed: 0,
   });
 
-  // Auto-scroll while gliding near screen edges
-  const autoScrollRafRef = useRef<number | null>(null);
-  const currentTouchYRef = useRef<number | null>(null);
-
-  const stopAutoScroll = () => {
-    if (autoScrollRafRef.current !== null) {
-      cancelAnimationFrame(autoScrollRafRef.current);
-      autoScrollRafRef.current = null;
+  // Prevent page scroll and overscroll rubber-banding during active drag
+  useEffect(() => {
+    if (draggingEventId) {
+      document.body.classList.add('dragging-active');
+      document.documentElement.classList.add('dragging-active');
+    } else {
+      document.body.classList.remove('dragging-active');
+      document.documentElement.classList.remove('dragging-active');
     }
-    currentTouchYRef.current = null;
-  };
-
-  const startAutoScroll = () => {
-    if (autoScrollRafRef.current !== null) return;
-    const step = () => {
-      if (currentTouchYRef.current !== null) {
-        const y = currentTouchYRef.current;
-        const topZone = 120;
-        const bottomZone = window.innerHeight - 130;
-
-        if (y < topZone && window.scrollY > 0) {
-          const speed = Math.min(22, Math.max(4, Math.round((topZone - y) / 3)));
-          window.scrollBy({ top: -speed, behavior: 'auto' });
-        } else if (y > bottomZone) {
-          const speed = Math.min(22, Math.max(4, Math.round((y - bottomZone) / 3)));
-          window.scrollBy({ top: speed, behavior: 'auto' });
-        }
-      }
-      autoScrollRafRef.current = requestAnimationFrame(step);
+    return () => {
+      document.body.classList.remove('dragging-active');
+      document.documentElement.classList.remove('dragging-active');
     };
-    autoScrollRafRef.current = requestAnimationFrame(step);
+  }, [draggingEventId]);
+
+  // Touch tracking for mobile/tablet devices
+  const touchStartRef = useRef<{ x: number; y: number; eventId: string; identifier: number } | null>(null);
+  const isTouchDraggingRef = useRef(false);
+
+  // Helper to cleanly reset all drag states
+  const resetDragState = () => {
+    touchStartRef.current = null;
+    isTouchDraggingRef.current = false;
+    setTouchPosition(null);
+    setDraggingEventId(null);
+    setDragOverColumn(null);
+    setTimeout(() => {
+      isDraggingRef.current = false;
+    }, 100);
   };
 
   // Detect touch screen device and block multi-finger pinch zoom
@@ -183,7 +181,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
     document.addEventListener('gesturechange', preventGesture);
 
     return () => {
-      stopAutoScroll();
+      resetDragState();
       document.removeEventListener('touchmove', preventPinchZoom);
       document.removeEventListener('gesturestart', preventGesture);
       document.removeEventListener('gesturechange', preventGesture);
@@ -196,10 +194,6 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
     return events.find((e) => e.id === draggingEventId) || null;
   }, [draggingEventId, events]);
 
-  // Touch tracking for mobile/tablet devices
-  const touchStartRef = useRef<{ x: number; y: number; eventId: string; identifier: number } | null>(null);
-  const isTouchDraggingRef = useRef(false);
-
   // Immediate status change when pressing a bottom dock choice card
   const handleMoveToStatus = (status: EventStatus) => {
     const eventId = draggingEventId || touchStartRef.current?.eventId;
@@ -207,15 +201,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
     if (targetEvent && targetEvent.status !== status) {
       onStatusChange(targetEvent, status);
     }
-    touchStartRef.current = null;
-    isTouchDraggingRef.current = false;
-    setTouchPosition(null);
-    setDraggingEventId(null);
-    setDragOverColumn(null);
-    stopAutoScroll();
-    setTimeout(() => {
-      isDraggingRef.current = false;
-    }, 100);
+    resetDragState();
   };
 
   const handleDragStart = (e: React.DragEvent, eventId: string) => {
@@ -229,13 +215,8 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
   };
 
   const handleDragEnd = () => {
-    setDraggingEventId(null);
-    setDragOverColumn(null);
-    stopAutoScroll();
+    resetDragState();
     dragEnterCounters.current = { pending: 0, in_progress: 0, completed: 0 };
-    setTimeout(() => {
-      isDraggingRef.current = false;
-    }, 100);
   };
 
   const handleDragEnter = (e: React.DragEvent, status: EventStatus) => {
@@ -263,16 +244,11 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
   const handleDrop = (e: React.DragEvent, status: EventStatus) => {
     e.preventDefault();
     const eventId = e.dataTransfer.getData('text/plain') || draggingEventId;
-    setDragOverColumn(null);
-    setDraggingEventId(null);
-    stopAutoScroll();
+    resetDragState();
     dragEnterCounters.current = { pending: 0, in_progress: 0, completed: 0 };
-    setTimeout(() => {
-      isDraggingRef.current = false;
-    }, 100);
 
     if (!eventId) return;
-    const targetEvent = events.find(ev => ev.id === eventId);
+    const targetEvent = events.find((ev) => ev.id === eventId);
     if (targetEvent && targetEvent.status !== status) {
       onStatusChange(targetEvent, status);
     }
@@ -285,7 +261,6 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
     const touch = e.touches[0];
     touchStartRef.current = { x: touch.clientX, y: touch.clientY, eventId, identifier: touch.identifier };
     isTouchDraggingRef.current = false;
-    currentTouchYRef.current = touch.clientY;
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
@@ -303,7 +278,6 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
 
     const dx = Math.abs(touch.clientX - touchStartRef.current.x);
     const dy = Math.abs(touch.clientY - touchStartRef.current.y);
-    currentTouchYRef.current = touch.clientY;
 
     if (dx > 8 || dy > 8 || isTouchDraggingRef.current) {
       isTouchDraggingRef.current = true;
@@ -311,10 +285,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
       setDraggingEventId(touchStartRef.current.eventId);
       setTouchPosition({ x: touch.clientX, y: touch.clientY });
 
-      // Edge auto-scroller: glide up/down smoothly when near screen edges
-      startAutoScroll();
-
-      // Prevent native pan fighting with drag (guarantees card directly tracks finger)
+      // Always prevent native pan / scroll fighting with drag
       if (e.cancelable) {
         e.preventDefault();
       }
@@ -337,8 +308,6 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
       return;
     }
 
-    stopAutoScroll();
-
     if (isTouchDraggingRef.current && touchStartRef.current) {
       const touch = endedTouch || e.changedTouches[0];
       if (touch) {
@@ -356,14 +325,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
       }
     }
 
-    touchStartRef.current = null;
-    isTouchDraggingRef.current = false;
-    setTouchPosition(null);
-    setDraggingEventId(null);
-    setDragOverColumn(null);
-    setTimeout(() => {
-      isDraggingRef.current = false;
-    }, 100);
+    resetDragState();
   };
 
   // Filter events
