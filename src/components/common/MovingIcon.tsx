@@ -92,6 +92,7 @@ const ICON_ANIMATION_MAP: Record<string, MovingAnimation> = {
   ArrowLeft: 'nudge',
   ArrowRight: 'nudge',
   ExternalLink: 'nudge',
+  GripVertical: 'nudge',
 
   // Shake / Security / Warnings
   Lock: 'shake',
@@ -257,3 +258,4 @@ export const Quote = createMovingIcon('Quote', 'pop');
 export const Code = createMovingIcon('Code', 'pop');
 export const Minus = createMovingIcon('Minus', 'pop');
 export const HelpCircle = createMovingIcon('HelpCircle', 'pulse');
+export const GripVertical = createMovingIcon('GripVertical', 'nudge');
