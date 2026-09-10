@@ -549,7 +549,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
             {isAdmin && (
               <button
                 onClick={() => onAddEventForDate(selectedDate)}
-                className="h-8 min-h-[32px] px-3 text-xs font-semibold text-white bg-[#007aff] hover:bg-[#0071e3] dark:bg-[#0a84ff] rounded-xl shadow-xs active:scale-[0.98] cursor-pointer flex items-center gap-1.5 box-border"
+                className="h-8 min-h-[32px] px-3 text-xs font-semibold text-white bg-[#007aff] hover:bg-[#0071e3] dark:bg-[#0a84ff] rounded-xl active:scale-[0.98] cursor-pointer flex items-center gap-1.5 box-border"
               >
                 <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
                 <span>New</span>
@@ -629,7 +629,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                                 <span
                                   className={`text-[11px] sm:text-xs font-bold w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center rounded-full ${
                                     isCurrentDay
-                                      ? 'bg-[#ff3b30] text-white shadow-xs'
+                                      ? 'bg-[#ff3b30] text-white'
                                       : isSelected
                                       ? 'text-[#007aff]'
                                       : 'text-neutral-700 dark:text-neutral-300'
@@ -661,7 +661,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                                     e.stopPropagation();
                                     onSelectEvent(seg.event);
                                   }}
-                                  className={`h-5 sm:h-6 px-1.5 sm:px-2 rounded-lg border text-[10px] sm:text-[11px] font-semibold flex items-center justify-between gap-1 shadow-2xs truncate cursor-pointer transition-all hover:scale-[1.01] active:scale-[0.99] ${
+                                  className={`h-5 sm:h-6 px-1.5 sm:px-2 rounded-lg border text-[10px] sm:text-[11px] font-semibold flex items-center justify-between gap-1 truncate cursor-pointer transition-all hover:scale-[1.01] active:scale-[0.99] ${
                                     seg.isStart ? 'rounded-l-lg' : 'rounded-l-none border-l-0 pl-1'
                                   } ${
                                     seg.isEnd ? 'rounded-r-lg' : 'rounded-r-none border-r-0 pr-1'

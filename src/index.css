@@ -81,7 +81,7 @@ html.pink ::-webkit-scrollbar-thumb:hover {
 html.pink .ios-card {
   background-color: rgba(255, 255, 255, 0.94) !important;
   border: 0.5px solid rgba(255, 141, 161, 0.28) !important;
-  box-shadow: 0 4px 20px -2px rgba(255, 141, 161, 0.1), 0 1px 3px rgba(0, 0, 0, 0.02) !important;
+  box-shadow: none !important;
 }
 
 html.pink .ios-card:hover {
@@ -821,14 +821,14 @@ html.dark .ios-btn-plain {
 .ios-card {
   background-color: #ffffff;
   border-radius: 16px;
-  border: 0.5px solid rgba(60, 60, 67, 0.1);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  border: 0.5px solid rgba(60, 60, 67, 0.12);
+  box-shadow: none;
 }
 
 html.dark .ios-card {
   background-color: #1c1c1e;
   border: 0.5px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  box-shadow: none;
 }
 
 /* iOS Form Inset Containers */

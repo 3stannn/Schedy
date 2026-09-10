@@ -90,7 +90,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               <img
                 src={schedyLogo}
                 alt="Schedy"
-                className="w-7 h-7 object-contain rounded-[8px] shrink-0 shadow-xs"
+                className="w-7 h-7 object-contain rounded-[8px] shrink-0"
               />
               <div className="flex flex-col justify-center min-w-0">
                 <span className="font-bold text-sm tracking-tight text-neutral-900 dark:text-white leading-tight">
@@ -115,7 +115,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Primary "+ New" Action Button - iOS Filled Button */}
           <button
             onClick={handlePrimaryNewAction}
-            className="w-full flex items-center justify-center gap-2 px-3 py-1.5 text-xs font-semibold text-white bg-[#007aff] hover:bg-[#0071e3] dark:bg-[#0a84ff] dark:hover:bg-[#0077ed] rounded-xl shadow-xs hover:shadow-sm transition-all active:scale-[0.98] cursor-pointer min-h-[32px] h-8"
+            className="w-full flex items-center justify-center gap-2 px-3 py-1.5 text-xs font-semibold text-white bg-[#007aff] hover:bg-[#0071e3] dark:bg-[#0a84ff] dark:hover:bg-[#0077ed] rounded-xl transition-all active:scale-[0.98] cursor-pointer min-h-[32px] h-8"
             title="Create New Item"
           >
             <Plus className="w-4 h-4 stroke-[2.5]" />
@@ -315,7 +315,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               {/* "+ New" Action Button - iOS Pill */}
               <button
                 onClick={handlePrimaryNewAction}
-                className="flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-white bg-[#007aff] hover:bg-[#0071e3] dark:bg-[#0a84ff] rounded-full shadow-xs transition-all active:scale-95 cursor-pointer min-h-[28px] h-7"
+                className="flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-white bg-[#007aff] hover:bg-[#0071e3] dark:bg-[#0a84ff] rounded-full transition-all active:scale-95 cursor-pointer min-h-[28px] h-7"
                 title="Create New Item"
               >
                 <Plus className="w-3.5 h-3.5 stroke-[2.5]" />

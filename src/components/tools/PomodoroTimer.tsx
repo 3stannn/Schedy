@@ -692,9 +692,7 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 w-full">
           <div>
             <h2 className="text-xl sm:text-2xl font-bold text-neutral-900 dark:text-white tracking-tight flex items-center gap-2 sm:gap-2.5">
-              <span className="p-1.5 sm:p-2 rounded-[14px] bg-[#007aff]/10 text-[#007aff] dark:text-[#0a84ff] shrink-0">
-                <Clock className="w-4 h-4 sm:w-5 sm:h-5" />
-              </span>
+              <Clock className="w-5 h-5 sm:w-6 sm:h-6 text-[#007aff] dark:text-[#0a84ff] shrink-0" />
               <span>Pomodoro Focus Timer</span>
             </h2>
             <p className="text-[11px] sm:text-xs text-neutral-400 font-medium mt-0.5">
@@ -887,7 +885,7 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
               {/* Main Play / Pause Button */}
               <button
                 onClick={toggleRunning}
-                className={`ios-btn-filled flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 sm:px-7 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-bold text-white shadow-xs transition-all active:scale-95 cursor-pointer min-w-[110px] sm:min-w-[140px] h-9 sm:h-10 min-h-[36px] box-border ${
+                className={`ios-btn-filled flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 sm:px-7 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-bold text-white transition-all active:scale-95 cursor-pointer min-w-[110px] sm:min-w-[140px] h-9 sm:h-10 min-h-[36px] box-border ${
                   isRunning
                     ? 'bg-[#ff9500] hover:bg-[#e08500]'
                     : 'bg-[#007aff] hover:bg-[#0071e3] dark:bg-[#0a84ff]'
@@ -954,7 +952,7 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           
           {/* Left (2 Cols): Active Focus Task */}
-          <div className="md:col-span-2 p-4 sm:p-5 rounded-2xl bg-white/80 dark:bg-[#121216]/80 backdrop-blur-xl border border-slate-200/80 dark:border-white/[0.08] shadow-xs space-y-3">
+          <div className="md:col-span-2 p-4 sm:p-5 rounded-2xl bg-white/80 dark:bg-[#121216]/80 backdrop-blur-xl border border-slate-200/80 dark:border-white/[0.08] space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <span className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-1.5">
                 <Target className="w-3.5 h-3.5 text-blue-500" />
@@ -1033,7 +1031,7 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
           </div>
 
           {/* Right (1 Col): Today's Focus Stats */}
-          <div className="p-4 sm:p-5 rounded-2xl bg-white/80 dark:bg-[#121216]/80 backdrop-blur-xl border border-slate-200/80 dark:border-white/[0.08] shadow-xs flex flex-col justify-between space-y-3">
+          <div className="p-4 sm:p-5 rounded-2xl bg-white/80 dark:bg-[#121216]/80 backdrop-blur-xl border border-slate-200/80 dark:border-white/[0.08] flex flex-col justify-between space-y-3">
             <span className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-1.5">
               <Flame className="w-3.5 h-3.5 text-amber-500" />
               <span>Today's Activity</span>

@@ -627,14 +627,14 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
 
   const btnClass = (isActive: boolean) =>
     `p-1.5 rounded-lg transition-all text-xs font-medium flex items-center justify-center ${isActive
-      ? 'bg-[#2383e2]/15 text-[#2383e2] dark:bg-[#2383e2]/25 dark:text-sky-300 font-bold shadow-2xs'
+      ? 'bg-[#2383e2]/15 text-[#2383e2] dark:bg-[#2383e2]/25 dark:text-sky-300 font-bold'
       : 'text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-200/60 dark:hover:bg-neutral-800'
     }`;
 
   return (
     <div className={`flex flex-col h-full ${className}`}>
       {/* Notion Style Top Toolbar */}
-      <div className="border border-neutral-200/80 dark:border-neutral-800/80 bg-neutral-50/90 dark:bg-neutral-900/80 rounded-xl p-1 mb-2.5 flex items-center justify-between gap-1 flex-wrap text-xs select-none shrink-0 shadow-2xs">
+      <div className="border border-neutral-200/80 dark:border-neutral-800/80 bg-neutral-50/90 dark:bg-neutral-900/80 rounded-xl p-1 mb-2.5 flex items-center justify-between gap-1 flex-wrap text-xs select-none shrink-0">
         <div className="flex items-center gap-0.5 flex-wrap">
           {/* Undo */}
           <button
@@ -934,7 +934,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
       </div>
 
       {/* WYSIWYG ContentEditable Container */}
-      <div className="flex-1 min-h-[180px] sm:min-h-[220px] bg-neutral-50/70 dark:bg-neutral-900/60 border border-neutral-200/80 dark:border-neutral-800/80 rounded-xl p-4 sm:p-5 overflow-y-auto shadow-2xs">
+      <div className="flex-1 min-h-[180px] sm:min-h-[220px] bg-neutral-50/70 dark:bg-neutral-900/60 border border-neutral-200/80 dark:border-neutral-800/80 rounded-xl p-4 sm:p-5 overflow-y-auto">
         <div
           ref={editorRef}
           contentEditable={true}
@@ -1003,7 +1003,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
               <button
                 type="button"
                 onClick={handleSaveLink}
-                className="flex items-center gap-1 px-4 py-1.5 text-xs font-semibold text-white bg-[#2383e2] hover:bg-[#1a73e8] rounded-xl shadow-xs"
+                className="flex items-center gap-1 px-4 py-1.5 text-xs font-semibold text-white bg-[#2383e2] hover:bg-[#1a73e8] rounded-xl"
               >
                 <Check className="w-3.5 h-3.5" />
                 <span>Add Link</span>

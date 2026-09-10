@@ -11,10 +11,9 @@ import {
   Video, 
   Pin, 
   Square,
-  Clock,
   Plus
 } from './MovingIcon';
-import { isToday, parseISO, format, startOfDay, endOfDay } from 'date-fns';
+import { isToday, parseISO, format, startOfDay, endOfDay, isAfter } from 'date-fns';
 
 interface OverviewDashboardProps {
   events: ScheduleEvent[];
@@ -112,6 +111,19 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
   const safeEvents = Array.isArray(events) ? events : [];
   const safeAnnos = Array.isArray(announcements) ? announcements : [];
 
+  const sortedAnnos = useMemo(() => {
+    return [...safeAnnos].sort((a, b) => {
+      // 1. Pinned notices ALWAYS on top
+      if (!!a.isPinned !== !!b.isPinned) return a.isPinned ? -1 : 1;
+      // 2. Dev broadcast next
+      if ((a.priority === 'dev') !== (b.priority === 'dev')) return a.priority === 'dev' ? -1 : 1;
+      // 3. Newest first
+      const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return timeB - timeA;
+    });
+  }, [safeAnnos]);
+
   // Strictly events scheduled for today (itemType === 'event' or default)
   const todayEventsList = useMemo(() => {
     return safeEvents
@@ -145,13 +157,8 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
     return todayTasksList.filter(t => t.status === 'completed').length;
   }, [todayTasksList]);
 
-  const inProgressTasks = useMemo(() => {
-    return safeEvents.filter(e => e && e.status === 'in_progress');
-  }, [safeEvents]);
-
   const urgentTasks = useMemo(() => safeEvents.filter(e => e && e.priority === 'urgent' && e.status !== 'completed'), [safeEvents]);
   const unreadAnnouncements = useMemo(() => safeAnnos.filter(a => a && !a.isRead), [safeAnnos]);
-  const pinnedAnnouncements = useMemo(() => safeAnnos.filter(a => a && a.isPinned), [safeAnnos]);
 
   const handleCreateTask = () => {
     if (onNewTask) {
@@ -161,75 +168,180 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
     }
   };
 
+  const nextUpcomingEvent = useMemo(() => {
+    const now = new Date();
+    return todayEventsList.find(e => {
+      if (e.status === 'completed') return false;
+      if (e.endTime) {
+        const end = parseEventDate(e.endTime);
+        if (end && isAfter(end, now)) return true;
+      }
+      if (e.startTime) {
+        const start = parseEventDate(e.startTime);
+        if (start && isAfter(start, now)) return true;
+      }
+      return true;
+    });
+  }, [todayEventsList]);
+
+  const taskCompletionPercent = todayTasksList.length > 0
+    ? Math.round((todayTasksCompletedCount / todayTasksList.length) * 100)
+    : 0;
+
   return (
-    <div className="space-y-4 text-[#1c1917] dark:text-[#f4f4f5]">
+    <div className="space-y-5 text-[#1c1917] dark:text-[#f4f4f5]">
       
-      {/* Metrics Row */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <StatCard
-          title="Events Today"
-          value={todayEventsList.length}
-          subtitle={
-            todayEventsList.length > 0
-              ? `${todayEventsList.filter(e => !e.isAllDay).length} timed • ${todayEventsList.filter(e => e.isAllDay).length} all-day`
-              : 'No events scheduled'
-          }
-          icon={<Calendar className="w-4 h-4 text-[#007aff]" />}
-          onClick={() => onNavigateTab('schedule')}
-        />
+      {/* ========================================================================= */}
+      {/* 1. HIERARCHICAL METRICS & FOCUS HERO (Broken uniform size and weights)    */}
+      {/* ========================================================================= */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-3.5 items-stretch">
+        
+        {/* LEVEL 1: Dominant Focus & Today's Agenda Hero Card (Spans 6 cols on desktop) */}
+        <div className="lg:col-span-6 ios-card p-4 sm:p-5 rounded-2xl flex flex-col justify-between border-black/[0.08] dark:border-white/[0.1] bg-white dark:bg-[#1c1c1e] transition-all">
+          <div>
+            <div className="flex items-center justify-between gap-2 pb-2">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-[#007aff]/10 text-[#007aff] dark:text-[#0a84ff]">
+                  Today's Focus
+                </span>
+                <span className="text-xs text-neutral-400 font-medium">
+                  {format(new Date(), 'EEEE, MMMM d')}
+                </span>
+              </div>
 
-        <StatCard
-          title="Tasks Today"
-          value={todayTasksList.length}
-          subtitle={
-            todayTasksList.length > 0
-              ? `${todayTasksCompletedCount} of ${todayTasksList.length} completed`
-              : 'No tasks due'
-          }
-          icon={<CheckSquare className="w-4 h-4 text-emerald-500" />}
-          onClick={() => onNavigateTab('tasks')}
-        />
+              <div className="flex items-center gap-1">
+                {isAdmin && (
+                  <button
+                    onClick={onNewEvent}
+                    className="text-xs font-semibold text-[#007aff] dark:text-[#0a84ff] hover:bg-[#007aff]/10 px-2 py-1 rounded-lg transition-colors cursor-pointer flex items-center gap-1"
+                    title="Quick add event"
+                  >
+                    <Plus className="w-3 h-3" />
+                    <span>Event</span>
+                  </button>
+                )}
+                {isAdmin && (
+                  <button
+                    onClick={handleCreateTask}
+                    className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 px-2 py-1 rounded-lg transition-colors cursor-pointer flex items-center gap-1"
+                    title="Quick add task"
+                  >
+                    <Plus className="w-3 h-3" />
+                    <span>Task</span>
+                  </button>
+                )}
+              </div>
+            </div>
 
-        <StatCard
-          title="Urgent"
-          value={urgentTasks.length}
-          subtitle={inProgressTasks.length > 0 ? `${inProgressTasks.length} in progress on board` : 'Priority items pending'}
-          icon={<AlertTriangle className="w-4 h-4 text-amber-500" />}
-          onClick={() => onNavigateTab('tasks')}
-        />
+            {/* Next Up Scheduled Item Highlight (Flat, unboxed row) */}
+            {nextUpcomingEvent ? (
+              <div
+                onClick={() => onSelectEvent?.(nextUpcomingEvent)}
+                className="mt-3 flex items-center justify-between gap-3 py-2 px-2.5 rounded-xl hover:bg-black/[0.03] dark:hover:bg-white/[0.04] transition-colors cursor-pointer group"
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <span className="shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#007aff]/10 text-[#007aff] dark:text-[#0a84ff] uppercase tracking-wider">
+                    Next Up
+                  </span>
+                  <h4 className="text-sm font-semibold text-neutral-900 dark:text-white truncate group-hover:text-[#007aff] dark:group-hover:text-[#0a84ff] transition-colors">
+                    {nextUpcomingEvent.title}
+                  </h4>
+                  {nextUpcomingEvent.location && (
+                    <span className="text-xs text-neutral-400 truncate hidden sm:inline">
+                      • {nextUpcomingEvent.location}
+                    </span>
+                  )}
+                </div>
+                <span className="text-xs font-mono font-medium text-neutral-500 dark:text-neutral-400 shrink-0">
+                  {formatEventTime(nextUpcomingEvent.startTime, nextUpcomingEvent.isAllDay)}
+                </span>
+              </div>
+            ) : (
+              <div className="mt-3 py-2 px-2.5 text-neutral-400 text-xs font-medium">
+                {todayEventsList.length === 0 ? 'No events on your calendar today.' : 'All scheduled events for today are finished!'}
+              </div>
+            )}
+          </div>
 
-        <StatCard
-          title="Notices"
-          value={unreadAnnouncements.length}
-          subtitle={`${pinnedAnnouncements.length} pinned`}
-          icon={<Megaphone className="w-4 h-4 text-indigo-500" />}
-          onClick={() => onNavigateTab('announcements')}
-        />
+          {/* Daily Task Completion Progress Bar */}
+          <div className="mt-4 pt-3 border-t border-black/[0.06] dark:border-white/[0.08]">
+            <div className="flex items-center justify-between text-xs mb-1.5">
+              <span className="font-semibold text-neutral-600 dark:text-neutral-300">
+                Daily Task Progress
+              </span>
+              <span className="font-mono text-[11px] font-bold text-neutral-700 dark:text-neutral-300">
+                {todayTasksCompletedCount} of {todayTasksList.length} completed ({taskCompletionPercent}%)
+              </span>
+            </div>
+            <div className="w-full h-2 rounded-full bg-black/[0.06] dark:bg-white/[0.08] overflow-hidden">
+              <div
+                className="h-full rounded-full bg-emerald-500 transition-all duration-500 ease-out"
+                style={{ width: `${taskCompletionPercent}%` }}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* LEVEL 2: Urgent / Attention Card (Spans 3 cols on desktop - distinct weight) */}
+        <div className="lg:col-span-3 flex flex-col">
+          <StatCard
+            variant={urgentTasks.length > 0 ? 'urgent' : 'default'}
+            title="Urgent Attention"
+            value={urgentTasks.length}
+            subtitle={
+              urgentTasks.length > 0
+                ? `${urgentTasks.length} critical ${urgentTasks.length === 1 ? 'item' : 'items'} pending`
+                : 'All clear • No urgent items'
+            }
+            icon={<AlertTriangle className="w-4 h-4" />}
+            className="flex-1 flex flex-col justify-between"
+            onClick={() => onNavigateTab('tasks')}
+          />
+        </div>
+
+        {/* LEVEL 3: Supporting Compact Metrics (Spans 3 cols on desktop - stacked) */}
+        <div className="lg:col-span-3 grid grid-cols-2 lg:grid-cols-1 gap-3.5">
+          <StatCard
+            variant="compact"
+            title="Events Today"
+            value={todayEventsList.length}
+            subtitle={`${todayEventsList.filter(e => !e.isAllDay).length} timed • ${todayEventsList.filter(e => e.isAllDay).length} all-day`}
+            icon={<Calendar className="w-3.5 h-3.5" />}
+            onClick={() => onNavigateTab('schedule')}
+          />
+
+          <StatCard
+            variant="compact"
+            title="Notices & Alerts"
+            value={unreadAnnouncements.length}
+            subtitle={unreadAnnouncements.length > 0 ? `${unreadAnnouncements.length} unread bulletin${unreadAnnouncements.length > 1 ? 's' : ''}` : 'All bulletins read'}
+            icon={<Megaphone className="w-3.5 h-3.5" />}
+            onClick={() => onNavigateTab('announcements')}
+          />
+        </div>
+
       </div>
 
-      {/* Main Dual Columns: Today's Events (Left) & Today's Tasks (Right) */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      {/* ========================================================================= */}
+      {/* 2. MAIN DUAL SECTION: SCHEDULE (7 COLS) & ACTION TASKS (5 COLS)           */}
+      {/* ========================================================================= */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
         
-        {/* COLUMN 1: Today's Events */}
-        <div className="ios-card rounded-2xl p-4 sm:p-5 space-y-3.5 flex flex-col">
+        {/* COLUMN 1: Today's Schedule Agenda (Dominant 7 columns) */}
+        <div className="lg:col-span-7 ios-card rounded-2xl p-4 sm:p-5 space-y-3.5 flex flex-col">
           <div className="flex items-center justify-between border-b border-black/[0.06] dark:border-white/[0.08] pb-3 shrink-0">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-[12px] bg-[#007aff]/10 text-[#007aff] dark:text-[#0a84ff] flex items-center justify-center shrink-0">
-                <Calendar className="w-4 h-4" />
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-bold text-neutral-900 dark:text-white">
+                  Today's Schedule
+                </h3>
+                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-700 dark:text-blue-300">
+                  {todayEventsList.length}
+                </span>
               </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="text-xs font-bold text-neutral-900 dark:text-white">
-                    Today's Events
-                  </h3>
-                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-700 dark:text-blue-300">
-                    {todayEventsList.length}
-                  </span>
-                </div>
-                <p className="text-[11px] text-neutral-400 font-medium">
-                  {format(new Date(), 'EEEE, MMMM d, yyyy')}
-                </p>
-              </div>
+              <p className="text-[11px] text-neutral-400 font-medium mt-0.5">
+                Timeline and scheduled appointments
+              </p>
             </div>
 
             <div className="flex items-center gap-1">
@@ -254,12 +366,10 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
             </div>
           </div>
 
-          <div className="space-y-2 max-h-[360px] overflow-y-auto pr-0.5 flex-1">
+          <div className="divide-y divide-black/[0.06] dark:divide-white/[0.08] max-h-[380px] overflow-y-auto pr-0.5 flex-1">
             {todayEventsList.length === 0 ? (
-              <div className="text-center py-10 text-neutral-400 text-xs">
-                <div className="w-10 h-10 rounded-[14px] bg-black/5 dark:bg-white/5 flex items-center justify-center mx-auto mb-2 opacity-50">
-                  <Calendar className="w-5 h-5" />
-                </div>
+              <div className="text-center py-12 text-neutral-400 text-xs">
+                <Calendar className="w-7 h-7 mx-auto mb-2 opacity-30 text-neutral-500" />
                 <p className="font-medium">No events scheduled for today.</p>
                 {isAdmin && (
                   <button
@@ -273,39 +383,39 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
             ) : (
               todayEventsList.map(evt => {
                 const isCompleted = evt.status === 'completed';
+                const isNextUp = nextUpcomingEvent?.id === evt.id;
+
                 return (
                   <div
                     key={evt.id}
                     onClick={() => onSelectEvent?.(evt)}
-                    className={`p-3 rounded-[14px] border border-black/[0.06] dark:border-white/[0.08] transition-all flex items-start justify-between gap-3 cursor-pointer active:scale-[0.99] ${
-                      isCompleted
-                        ? 'bg-black/[0.02] dark:bg-white/[0.02] opacity-60 hover:opacity-100 hover:border-black/20 dark:hover:border-white/20'
-                        : 'bg-black/[0.02] dark:bg-white/[0.03] hover:border-[#007aff]/40 shadow-2xs'
+                    className={`py-3 px-2 rounded-xl transition-all flex items-start justify-between gap-3 cursor-pointer hover:bg-black/[0.025] dark:hover:bg-white/[0.035] active:scale-[0.99] ${
+                      isCompleted ? 'opacity-50 hover:opacity-90' : ''
                     }`}
                   >
-                    <div className="flex items-start gap-2.5 flex-1 min-w-0">
-                      <div className="w-7 h-7 rounded-[10px] bg-blue-500/10 text-[#007aff] dark:text-[#0a84ff] flex items-center justify-center shrink-0 mt-0.5">
-                        <Clock className="w-3.5 h-3.5" />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {isNextUp && (
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-blue-500/15 text-blue-700 dark:text-blue-300 uppercase tracking-wider">
+                            Next Up
+                          </span>
+                        )}
+                        <h4 className={`text-xs font-semibold leading-snug truncate ${isCompleted ? 'line-through text-neutral-400' : 'text-neutral-900 dark:text-neutral-100'}`}>
+                          {evt.title}
+                        </h4>
+                        {evt.priority === 'urgent' && (
+                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-red-500/15 text-red-600 dark:text-red-400 border border-red-500/20">
+                            Urgent
+                          </span>
+                        )}
                       </div>
 
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <h4 className={`text-xs font-semibold leading-snug truncate ${isCompleted ? 'line-through text-neutral-400' : 'text-neutral-900 dark:text-neutral-100'}`}>
-                            {evt.title}
-                          </h4>
-                          {evt.priority === 'urgent' && (
-                            <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-red-500/15 text-red-600 dark:text-red-400 border border-red-500/20">
-                              Urgent
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-2 text-[11px] text-neutral-400 mt-1 flex-wrap">
-                          <span className="font-semibold text-neutral-600 dark:text-neutral-300">
-                            {formatEventTime(evt.startTime, evt.isAllDay)}
-                          </span>
-                          {evt.category && <span className="capitalize">• {evt.category}</span>}
-                          {evt.location && <span className="truncate">• {evt.location}</span>}
-                        </div>
+                      <div className="flex items-center gap-2 text-[11px] text-neutral-400 mt-1 flex-wrap">
+                        <span className="font-semibold font-mono text-neutral-700 dark:text-neutral-300">
+                          {formatEventTime(evt.startTime, evt.isAllDay)}
+                        </span>
+                        {evt.category && <span className="capitalize">• {evt.category}</span>}
+                        {evt.location && <span className="truncate">• {evt.location}</span>}
                       </div>
                     </div>
 
@@ -315,7 +425,7 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
                         target="_blank"
                         rel="noreferrer"
                         onClick={e => e.stopPropagation()}
-                        className="p-1.5 rounded-[8px] text-[#007aff] dark:text-[#0a84ff] hover:bg-[#007aff]/10 text-xs shrink-0 transition-colors"
+                        className="p-1.5 rounded-lg text-[#007aff] dark:text-[#0a84ff] hover:bg-[#007aff]/10 text-xs shrink-0 transition-colors"
                         title="Join Meeting"
                       >
                         <Video className="w-3.5 h-3.5" />
@@ -328,28 +438,21 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
           </div>
         </div>
 
-        {/* COLUMN 2: Today's Tasks */}
-        <div className="ios-card rounded-2xl p-4 sm:p-5 space-y-3.5 flex flex-col">
+        {/* COLUMN 2: Today's Tasks (Focused 5 columns checklist) */}
+        <div className="lg:col-span-5 ios-card rounded-2xl p-4 sm:p-5 space-y-3.5 flex flex-col">
           <div className="flex items-center justify-between border-b border-black/[0.06] dark:border-white/[0.08] pb-3 shrink-0">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-[12px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
-                <CheckSquare className="w-4 h-4" />
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-bold text-neutral-900 dark:text-white">
+                  Today's Tasks
+                </h3>
+                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-300">
+                  {todayTasksCompletedCount}/{todayTasksList.length}
+                </span>
               </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="text-xs font-bold text-neutral-900 dark:text-white">
-                    Today's Tasks
-                  </h3>
-                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-300">
-                    {todayTasksCompletedCount}/{todayTasksList.length}
-                  </span>
-                </div>
-                <p className="text-[11px] text-neutral-400 font-medium">
-                  {todayTasksList.length > 0 
-                    ? `${Math.round((todayTasksCompletedCount / todayTasksList.length) * 100)}% completed today`
-                    : 'To-dos and action items'}
-                </p>
-              </div>
+              <p className="text-[11px] text-neutral-400 font-medium mt-0.5">
+                Action items and to-dos
+              </p>
             </div>
 
             <div className="flex items-center gap-1">
@@ -368,18 +471,16 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
                 className="h-8 min-h-[32px] text-xs font-semibold text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white flex items-center gap-1 px-2.5 rounded-[10px] hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer box-border"
                 title="View Task Board"
               >
-                <span>Task Board</span>
+                <span>Board</span>
                 <ArrowRight className="w-3 h-3" />
               </button>
             </div>
           </div>
 
-          <div className="space-y-2 max-h-[360px] overflow-y-auto pr-0.5 flex-1">
+          <div className="divide-y divide-black/[0.06] dark:divide-white/[0.08] max-h-[380px] overflow-y-auto pr-0.5 flex-1">
             {todayTasksList.length === 0 ? (
-              <div className="text-center py-10 text-neutral-400 text-xs">
-                <div className="w-10 h-10 rounded-[14px] bg-black/5 dark:bg-white/5 flex items-center justify-center mx-auto mb-2 opacity-50">
-                  <CheckSquare className="w-5 h-5" />
-                </div>
+              <div className="text-center py-12 text-neutral-400 text-xs">
+                <CheckSquare className="w-7 h-7 mx-auto mb-2 opacity-30 text-neutral-500" />
                 <p className="font-medium">No tasks due today.</p>
                 {isAdmin && (
                   <button
@@ -394,16 +495,14 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
               todayTasksList.map(task => {
                 const isCompleted = task.status === 'completed';
                 const isInProgress = task.status === 'in_progress';
+                const isUrgent = task.priority === 'urgent' && !isCompleted;
+
                 return (
                   <div
                     key={task.id}
                     onClick={() => onSelectEvent?.(task)}
-                    className={`p-3 rounded-[14px] border border-black/[0.06] dark:border-white/[0.08] transition-all flex items-start justify-between gap-3 cursor-pointer active:scale-[0.99] ${
-                      isCompleted
-                        ? 'bg-black/[0.02] dark:bg-white/[0.02] opacity-60 hover:opacity-100 hover:border-black/20 dark:hover:border-white/20'
-                        : isInProgress
-                        ? 'bg-amber-500/[0.04] border-amber-500/30 hover:border-amber-500/60 shadow-2xs'
-                        : 'bg-black/[0.02] dark:bg-white/[0.03] hover:border-emerald-500/40 shadow-2xs'
+                    className={`py-2.5 px-2 rounded-xl transition-all flex items-start justify-between gap-2.5 cursor-pointer hover:bg-black/[0.025] dark:hover:bg-white/[0.035] active:scale-[0.99] ${
+                      isCompleted ? 'opacity-50 hover:opacity-90' : ''
                     }`}
                   >
                     <div className="flex items-start gap-2.5 flex-1 min-w-0">
@@ -429,12 +528,12 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
                             {task.title}
                           </h4>
                           {isInProgress && (
-                            <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-amber-500/15 text-amber-600 dark:text-amber-400">
                               In Progress
                             </span>
                           )}
-                          {task.priority === 'urgent' && !isCompleted && (
-                            <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-red-500/15 text-red-600 dark:text-red-400 border border-red-500/20">
+                          {isUrgent && (
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-red-500/15 text-red-600 dark:text-red-400 border border-red-500/20">
                               Urgent
                             </span>
                           )}
@@ -442,7 +541,6 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
                         <div className="flex items-center gap-2 text-[11px] text-neutral-400 mt-1 flex-wrap">
                           <span>Due: {formatEventTime(task.startTime, task.isAllDay)}</span>
                           {task.category && <span className="capitalize">• {task.category}</span>}
-                          {task.priority && <span className="capitalize">• {task.priority}</span>}
                         </div>
                       </div>
                     </div>
@@ -455,21 +553,25 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
 
       </div>
 
-      {/* Row Below: Broadcast & Announcements Bulletin */}
-      <div className="ios-card rounded-2xl p-4 sm:p-5 space-y-3.5">
+      {/* ========================================================================= */}
+      {/* 3. ROW BELOW: NOTICE BULLETIN (Secondary utility weight)                  */}
+      {/* ========================================================================= */}
+      <div className="ios-card rounded-2xl p-4 sm:p-5 space-y-3">
         <div className="flex items-center justify-between border-b border-black/[0.06] dark:border-white/[0.08] pb-3">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-[12px] bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0">
-              <Megaphone className="w-4 h-4" />
-            </div>
-            <div>
-              <h3 className="text-xs font-bold text-neutral-900 dark:text-white">
+          <div>
+            <div className="flex items-center gap-2">
+              <h3 className="text-xs font-bold text-neutral-900 dark:text-white uppercase tracking-wider">
                 Notice Bulletin
               </h3>
-              <p className="text-[11px] text-neutral-400 font-medium">
-                Recent company updates & alerts
-              </p>
+              {unreadAnnouncements.length > 0 && (
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300">
+                  {unreadAnnouncements.length} new
+                </span>
+              )}
             </div>
+            <p className="text-[11px] text-neutral-400 font-medium">
+              Company announcements and status alerts
+            </p>
           </div>
 
           <div className="flex items-center gap-1.5">
@@ -494,51 +596,47 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
 
         <div className="space-y-2.5">
           {safeAnnos.length === 0 ? (
-            <div className="text-center py-8 text-neutral-400 text-xs">
-              <p className="font-medium">No announcements posted yet.</p>
+            <div className="text-center py-6 text-neutral-400 text-xs font-medium">
+              No announcements posted yet.
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
-              {safeAnnos.slice(0, 3).map(anno => (
+            <div className="divide-y divide-black/[0.06] dark:divide-white/[0.08]">
+              {sortedAnnos.slice(0, 3).map(anno => (
                 <div
                   key={anno.id}
-                  className={`p-3.5 rounded-[16px] border transition-all flex flex-col justify-between ${
-                    anno.isRead
-                      ? 'bg-black/[0.02] dark:bg-white/[0.02] border-black/[0.04] dark:border-white/[0.06]'
-                      : 'bg-black/[0.02] dark:bg-white/[0.03] border-amber-500/30 shadow-xs'
+                  className={`py-3 px-2 rounded-xl transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 hover:bg-black/[0.02] dark:hover:bg-white/[0.03] ${
+                    anno.isRead ? 'opacity-70' : ''
                   }`}
                 >
-                  <div>
-                    <div className="flex items-center justify-between gap-2 mb-1.5">
-                      <div className="flex items-center gap-1.5">
-                        {anno.isPinned && <Pin className="w-3 h-3 text-amber-600 dark:text-amber-400" />}
-                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-[8px] bg-black/5 dark:bg-white/10 text-neutral-600 dark:text-neutral-300 capitalize tracking-tight">
-                          {anno.priority || 'General'}
-                        </span>
-                      </div>
-                      <button
-                        onClick={() => onAcknowledgeAnnouncement(anno.id)}
-                        className={`text-[11px] font-semibold px-2.5 h-7 min-h-[28px] flex items-center justify-center rounded-[8px] transition-all active:scale-95 cursor-pointer box-border ${
-                          anno.isRead 
-                            ? 'text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300' 
-                            : 'bg-[#007aff] text-white hover:bg-[#0071e3] shadow-xs'
-                        }`}
-                      >
-                        {anno.isRead ? 'Read' : 'Acknowledge'}
-                      </button>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
+                      {anno.isPinned && <Pin className="w-3 h-3 text-amber-600 dark:text-amber-400 shrink-0" />}
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-black/5 dark:bg-white/10 text-neutral-600 dark:text-neutral-300 capitalize tracking-tight">
+                        {anno.priority || 'General'}
+                      </span>
+                      <h4 className="text-xs font-bold leading-snug text-neutral-900 dark:text-neutral-100 truncate">
+                        {anno.title}
+                      </h4>
                     </div>
-
-                    <h4 className="text-xs font-bold leading-snug text-neutral-900 dark:text-neutral-100 line-clamp-1">
-                      {anno.title}
-                    </h4>
-                    <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5 line-clamp-2 leading-relaxed">
+                    <p className="text-xs text-neutral-500 dark:text-neutral-400 line-clamp-1 leading-relaxed">
                       {anno.content}
                     </p>
                   </div>
 
-                  <div className="text-[10px] text-neutral-400 mt-2 flex items-center justify-between">
-                    <span>{anno?.authorName || 'Admin'}</span>
-                    <span>{formatAnnouncementDate(anno?.createdAt)}</span>
+                  <div className="flex items-center gap-3 shrink-0 self-end sm:self-center">
+                    <span className="text-[10px] text-neutral-400">
+                      {formatAnnouncementDate(anno?.createdAt)}
+                    </span>
+                    <button
+                      onClick={() => onAcknowledgeAnnouncement(anno.id)}
+                      className={`text-[11px] font-semibold px-2.5 h-7 min-h-[28px] flex items-center justify-center rounded-lg transition-all active:scale-95 cursor-pointer box-border ${
+                        anno.isRead 
+                          ? 'text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300' 
+                          : 'bg-[#007aff] text-white hover:bg-[#0071e3]'
+                      }`}
+                    >
+                      {anno.isRead ? 'Read' : 'Acknowledge'}
+                    </button>
                   </div>
                 </div>
               ))}

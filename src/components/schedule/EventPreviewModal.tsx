@@ -254,9 +254,7 @@ export const EventPreviewModal: React.FC<EventPreviewModalProps> = ({
               
               {/* Date & Time */}
               <div className="flex items-start gap-2.5">
-                <div className="w-6 h-6 rounded-[8px] bg-[#007aff]/10 text-[#007aff] dark:text-[#0a84ff] flex items-center justify-center shrink-0 mt-0.5">
-                  <Calendar className="w-3.5 h-3.5" />
-                </div>
+                <Calendar className="w-4 h-4 text-[#007aff] dark:text-[#0a84ff] shrink-0 mt-0.5" />
                 <div className="flex-1 min-w-0">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 block">
                     Schedule
@@ -270,9 +268,7 @@ export const EventPreviewModal: React.FC<EventPreviewModalProps> = ({
               {/* Location (if present) */}
               {event.location && (
                 <div className="flex items-start gap-2.5 pt-2 border-t border-black/[0.04] dark:border-white/[0.04]">
-                  <div className="w-6 h-6 rounded-[8px] bg-rose-500/10 text-rose-500 flex items-center justify-center shrink-0 mt-0.5">
-                    <MapPin className="w-3.5 h-3.5" />
-                  </div>
+                  <MapPin className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
                   <div className="flex-1 min-w-0">
                     <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 block">
                       Location
@@ -288,9 +284,7 @@ export const EventPreviewModal: React.FC<EventPreviewModalProps> = ({
               {event.meetingUrl && (
                 <div className="flex items-center justify-between gap-2.5 pt-2 border-t border-black/[0.04] dark:border-white/[0.04]">
                   <div className="flex items-center gap-2.5 flex-1 min-w-0">
-                    <div className="w-6 h-6 rounded-[8px] bg-indigo-500/10 text-indigo-500 flex items-center justify-center shrink-0">
-                      <Video className="w-3.5 h-3.5" />
-                    </div>
+                    <Video className="w-4 h-4 text-indigo-500 shrink-0" />
                     <div className="flex-1 min-w-0">
                       <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 block">
                         Meeting
@@ -305,7 +299,7 @@ export const EventPreviewModal: React.FC<EventPreviewModalProps> = ({
                     href={event.meetingUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="h-8 px-3 rounded-xl bg-indigo-500 text-white hover:bg-indigo-600 text-xs font-semibold flex items-center gap-1.5 transition-all active:scale-95 shadow-2xs shrink-0"
+                    className="h-8 px-3 rounded-xl bg-indigo-500 text-white hover:bg-indigo-600 text-xs font-semibold flex items-center gap-1.5 transition-all active:scale-95 shrink-0"
                   >
                     <span>Join</span>
                     <ExternalLink className="w-3 h-3" />

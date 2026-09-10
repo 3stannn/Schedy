@@ -284,11 +284,11 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
         {/* ========================================================================= */}
         {/* COLUMN 1: UPCOMING (Calendar Events with 'pending' status)                */}
         {/* ========================================================================= */}
-        <div className="ios-card p-3.5 rounded-2xl flex flex-col gap-3 min-h-[480px]">
+        <div className="ios-card p-3.5 rounded-2xl flex flex-col gap-3 min-h-[480px] bg-white/70 dark:bg-[#1c1c1e]/70 border border-neutral-200/80 dark:border-neutral-800">
           {/* Column Header */}
           <div className="flex items-center justify-between px-1">
             <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-2xs" />
+              <span className="w-2 h-2 rounded-full bg-blue-500" />
               <h3 className="font-bold text-xs sm:text-sm text-[#1c1917] dark:text-white">
                 Upcoming
               </h3>
@@ -322,78 +322,85 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
                 </button>
               </div>
             ) : (
-              upcomingEvents.map((evt) => (
-                <div
-                  key={evt.id}
-                  onClick={() => onSelectEvent(evt)}
-                  className="p-3.5 rounded-[14px] bg-white dark:bg-[#18181b] border border-neutral-200/80 dark:border-neutral-800 shadow-2xs hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between gap-2.5"
-                >
-                  <div className="space-y-1.5">
-                    <div className="flex items-start justify-between gap-1.5">
-                      <h4 className="font-bold text-xs sm:text-[13px] text-[#1c1917] dark:text-white group-hover:text-[#2383e2] transition-colors line-clamp-2">
-                        {evt.title}
-                      </h4>
-                      <div className="flex items-center gap-1 shrink-0">
-                        {getItemTypeBadge(evt)}
-                        {getPriorityBadge(evt.priority)}
+              upcomingEvents.map((evt) => {
+                const isUrgent = evt.priority === 'urgent';
+                return (
+                  <div
+                    key={evt.id}
+                    onClick={() => onSelectEvent(evt)}
+                    className={`p-3.5 rounded-[14px] bg-white dark:bg-[#18181b] border transition-all cursor-pointer group flex flex-col justify-between gap-2.5 ${
+                      isUrgent
+                        ? 'border-red-300/80 dark:border-red-900/60 hover:border-red-400'
+                        : 'border-neutral-200/80 dark:border-neutral-800 hover:border-blue-500/50'
+                    }`}
+                  >
+                    <div className="space-y-1.5">
+                      <div className="flex items-start justify-between gap-1.5">
+                        <h4 className="font-bold text-xs sm:text-[13px] text-[#1c1917] dark:text-white group-hover:text-[#2383e2] transition-colors line-clamp-2">
+                          {evt.title}
+                        </h4>
+                        <div className="flex items-center gap-1 shrink-0">
+                          {getItemTypeBadge(evt)}
+                          {getPriorityBadge(evt.priority)}
+                        </div>
                       </div>
-                    </div>
 
-                    {evt.description && (
-                      <div className="text-[11px] text-neutral-500 dark:text-neutral-400 font-normal overflow-hidden">
-                        <FormattedNoteContent content={evt.description} isCompact={true} />
-                      </div>
-                    )}
+                      {evt.description && (
+                        <div className="text-[11px] text-neutral-500 dark:text-neutral-400 font-normal overflow-hidden">
+                          <FormattedNoteContent content={evt.description} isCompact={true} />
+                        </div>
+                      )}
 
-                    <div className="flex items-center gap-2 pt-1 text-[10px] text-neutral-400 font-medium flex-wrap">
-                      <span className="inline-flex items-center gap-1">
-                        <Clock className="w-3 h-3" />
-                        <span>{formatEventDate(evt.startTime)}</span>
-                      </span>
-                      {evt.location && (
-                        <span className="inline-flex items-center gap-0.5 truncate max-w-[120px]">
-                          <MapPin className="w-3 h-3 shrink-0" />
-                          <span>{evt.location}</span>
+                      <div className="flex items-center gap-2 pt-1 text-[10px] text-neutral-400 font-medium flex-wrap">
+                        <span className="inline-flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          <span>{formatEventDate(evt.startTime)}</span>
                         </span>
-                      )}
-                      {evt.meetingUrl && (
-                        <span className="inline-flex items-center gap-0.5 text-blue-500">
-                          <Video className="w-3 h-3 shrink-0" />
-                        </span>
-                      )}
-                      {(() => {
-                        const autoInfo = getEventAutoDeleteInfo(evt);
-                        if (!autoInfo.isExpiringSoon || !autoInfo.badgeText) return null;
-                        return (
-                          <span
-                            className={`inline-flex items-center gap-1 text-[9px] font-semibold px-1.5 py-0.5 rounded-[5px] border ${autoInfo.badgeClass}`}
-                            title={autoInfo.noticeMessage || undefined}
-                          >
-                            <Clock className="w-2.5 h-2.5 shrink-0" />
-                            <span>{autoInfo.badgeText}</span>
+                        {evt.location && (
+                          <span className="inline-flex items-center gap-0.5 truncate max-w-[120px]">
+                            <MapPin className="w-3 h-3 shrink-0" />
+                            <span>{evt.location}</span>
                           </span>
-                        );
-                      })()}
+                        )}
+                        {evt.meetingUrl && (
+                          <span className="inline-flex items-center gap-0.5 text-blue-500">
+                            <Video className="w-3 h-3 shrink-0" />
+                          </span>
+                        )}
+                        {(() => {
+                          const autoInfo = getEventAutoDeleteInfo(evt);
+                          if (!autoInfo.isExpiringSoon || !autoInfo.badgeText) return null;
+                          return (
+                            <span
+                              className={`inline-flex items-center gap-1 text-[9px] font-semibold px-1.5 py-0.5 rounded-[5px] border ${autoInfo.badgeClass}`}
+                              title={autoInfo.noticeMessage || undefined}
+                            >
+                              <Clock className="w-2.5 h-2.5 shrink-0" />
+                              <span>{autoInfo.badgeText}</span>
+                            </span>
+                          );
+                        })()}
+                      </div>
+                    </div>
+
+                    {/* Actions Row */}
+                    <div className="flex items-center justify-between pt-2 border-t border-neutral-100 dark:border-neutral-800/60" onClick={e => e.stopPropagation()}>
+                      <span className="text-[9px] font-bold uppercase tracking-wider text-neutral-400">
+                        {evt.category}
+                      </span>
+
+                      <button
+                        onClick={() => onStatusChange(evt, 'in_progress')}
+                        className="flex items-center gap-1 px-2.5 py-1 rounded-[6px] text-[10px] font-bold bg-amber-50 text-amber-700 hover:bg-amber-100 dark:bg-amber-950/40 dark:text-amber-300 dark:hover:bg-amber-900/60 transition-all active:scale-95 border border-amber-200/60 dark:border-amber-800/40 cursor-pointer"
+                        title="Move to In Progress"
+                      >
+                        <span>Start</span>
+                        <ArrowRight className="w-3 h-3" />
+                      </button>
                     </div>
                   </div>
-
-                  {/* Actions Row */}
-                  <div className="flex items-center justify-between pt-2 border-t border-neutral-100 dark:border-neutral-800/60" onClick={e => e.stopPropagation()}>
-                    <span className="text-[9px] font-bold uppercase tracking-wider text-neutral-400">
-                      {evt.category}
-                    </span>
-
-                    <button
-                      onClick={() => onStatusChange(evt, 'in_progress')}
-                      className="flex items-center gap-1 px-2.5 py-1 rounded-[6px] text-[10px] font-bold bg-amber-50 text-amber-700 hover:bg-amber-100 dark:bg-amber-950/40 dark:text-amber-300 dark:hover:bg-amber-900/60 transition-all active:scale-95 shadow-2xs border border-amber-200/60 dark:border-amber-800/40"
-                      title="Move to In Progress"
-                    >
-                      <span>Start</span>
-                      <ArrowRight className="w-3 h-3" />
-                    </button>
-                  </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
 
@@ -408,24 +415,24 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
         </div>
 
         {/* ========================================================================= */}
-        {/* COLUMN 2: IN PROGRESS (Calendar Events with 'in_progress' status)         */}
+        {/* COLUMN 2: IN PROGRESS (Primary Active Column - Prominent Weight)          */}
         {/* ========================================================================= */}
-        <div className="ios-card p-3.5 rounded-2xl flex flex-col gap-3 min-h-[480px]">
+        <div className="ios-card p-3.5 rounded-2xl flex flex-col gap-3 min-h-[480px] border border-amber-500/35 dark:border-amber-500/25 bg-amber-500/[0.015] dark:bg-amber-500/[0.02]">
           {/* Column Header */}
           <div className="flex items-center justify-between px-1">
             <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-2xs animate-pulse" />
-              <h3 className="font-bold text-xs sm:text-sm text-[#1c1917] dark:text-white">
+              <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse" />
+              <h3 className="font-bold text-xs sm:text-sm text-amber-900 dark:text-amber-300">
                 In Progress
               </h3>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-neutral-200/80 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300">
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-800 dark:text-amber-300">
                 {inProgressEvents.length}
               </span>
             </div>
 
             <button
               onClick={() => onAddNewEvent('in_progress')}
-              className="p-1 rounded-lg hover:bg-neutral-200/60 dark:hover:bg-neutral-800 text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition-colors"
+              className="p-1 rounded-lg hover:bg-amber-500/10 text-amber-600 dark:text-amber-400 transition-colors"
               title="Add In Progress Task"
             >
               <Plus className="w-4 h-4" />
@@ -435,8 +442,8 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
           {/* Column Card List */}
           <div className="flex flex-col gap-2.5 flex-1">
             {inProgressEvents.length === 0 ? (
-              <div className="flex flex-col items-center justify-center p-6 text-center border border-dashed border-neutral-200 dark:border-neutral-800/80 rounded-xl my-auto">
-                <Sparkles className="w-6 h-6 text-neutral-300 dark:text-neutral-600 mb-1.5" />
+              <div className="flex flex-col items-center justify-center p-6 text-center border border-dashed border-amber-500/20 rounded-xl my-auto">
+                <Sparkles className="w-6 h-6 text-amber-400/50 mb-1.5" />
                 <p className="text-xs font-semibold text-neutral-500 dark:text-neutral-400">No tasks in progress</p>
                 <p className="text-[10px] text-neutral-400 mt-0.5">Click "Start" on any upcoming task.</p>
               </div>
@@ -445,7 +452,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
                 <div
                   key={evt.id}
                   onClick={() => onSelectEvent(evt)}
-                  className="p-3.5 rounded-[14px] bg-white dark:bg-[#18181b] border border-amber-200/80 dark:border-amber-900/50 shadow-2xs hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between gap-2.5 ring-1 ring-amber-400/20"
+                  className="p-3.5 rounded-[14px] bg-white dark:bg-[#18181b] border border-amber-300/80 dark:border-amber-900/60 transition-all cursor-pointer group flex flex-col justify-between gap-2.5 hover:border-amber-400"
                 >
                   <div className="space-y-1.5">
                     <div className="flex items-start justify-between gap-1.5">
@@ -498,7 +505,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
 
                     <button
                       onClick={() => onStatusChange(evt, 'completed')}
-                      className="flex items-center gap-1 px-2.5 py-1 rounded-[6px] text-[10px] font-bold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-300 dark:hover:bg-emerald-900/60 transition-all active:scale-95 shadow-2xs border border-emerald-200/60 dark:border-emerald-800/40"
+                      className="flex items-center gap-1 px-2.5 py-1 rounded-[6px] text-[10px] font-bold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-300 dark:hover:bg-emerald-900/60 transition-all active:scale-95 border border-emerald-200/60 dark:border-emerald-800/40"
                       title="Mark as Done"
                     >
                       <CheckCircle2 className="w-3 h-3" />
@@ -521,17 +528,17 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
         </div>
 
         {/* ========================================================================= */}
-        {/* COLUMN 3: DONE (Calendar Events with 'completed' status)                  */}
+        {/* COLUMN 3: DONE (Archive - Lighter Weight & Receded Visuals)               */}
         {/* ========================================================================= */}
-        <div className="ios-card p-3.5 rounded-2xl flex flex-col gap-3 min-h-[480px]">
+        <div className="ios-card p-3.5 rounded-2xl flex flex-col gap-3 min-h-[480px] bg-black/[0.015] dark:bg-white/[0.015] border border-neutral-200/50 dark:border-neutral-800/50 opacity-90">
           {/* Column Header */}
           <div className="flex items-center justify-between px-1">
             <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-2xs" />
-              <h3 className="font-bold text-xs sm:text-sm text-[#1c1917] dark:text-white">
+              <span className="w-2 h-2 rounded-full bg-emerald-500" />
+              <h3 className="font-bold text-xs sm:text-sm text-neutral-600 dark:text-neutral-300">
                 Done
               </h3>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-neutral-200/80 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300">
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-neutral-200/60 dark:bg-neutral-800/60 text-neutral-600 dark:text-neutral-400">
                 {doneEvents.length}
               </span>
             </div>
@@ -548,21 +555,21 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
           {/* Column Card List */}
           <div className="flex flex-col gap-2.5 flex-1">
             {doneEvents.length === 0 ? (
-              <div className="flex flex-col items-center justify-center p-6 text-center border border-dashed border-neutral-200 dark:border-neutral-800/80 rounded-xl my-auto">
-                <CheckCircle2 className="w-6 h-6 text-neutral-300 dark:text-neutral-600 mb-1.5" />
-                <p className="text-xs font-semibold text-neutral-500 dark:text-neutral-400">No completed tasks</p>
-                <p className="text-[10px] text-neutral-400 mt-0.5">Tasks marked as done will collect here.</p>
+              <div className="flex flex-col items-center justify-center p-6 text-center border border-dashed border-neutral-200/60 dark:border-neutral-800/60 rounded-xl my-auto">
+                <CheckCircle2 className="w-6 h-6 text-neutral-300 dark:text-neutral-600 mb-1.5 opacity-40" />
+                <p className="text-xs font-semibold text-neutral-400 dark:text-neutral-500">No completed tasks</p>
+                <p className="text-[10px] text-neutral-400/80 mt-0.5">Tasks marked as done will collect here.</p>
               </div>
             ) : (
               doneEvents.map((evt) => (
                 <div
                   key={evt.id}
                   onClick={() => onSelectEvent(evt)}
-                  className="p-3.5 rounded-[14px] bg-white/70 dark:bg-[#18181b]/70 border border-neutral-200/60 dark:border-neutral-800/60 shadow-2xs hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between gap-2.5 opacity-80 hover:opacity-100"
+                  className="p-3.5 rounded-[14px] bg-white/60 dark:bg-[#18181b]/60 border border-neutral-200/50 dark:border-neutral-800/50 transition-all cursor-pointer group flex flex-col justify-between gap-2.5 opacity-70 hover:opacity-100"
                 >
                   <div className="space-y-1.5">
                     <div className="flex items-start justify-between gap-1.5">
-                      <h4 className="font-bold text-xs sm:text-[13px] text-neutral-600 dark:text-neutral-300 line-through truncate">
+                      <h4 className="font-bold text-xs sm:text-[13px] text-neutral-500 dark:text-neutral-400 line-through truncate">
                         {evt.title}
                       </h4>
                       <div className="flex items-center gap-1 shrink-0">
@@ -603,7 +610,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
 
                     <button
                       onClick={() => onStatusChange(evt, 'in_progress')}
-                      className="flex items-center gap-1 text-[10px] font-semibold text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition-colors"
+                      className="flex items-center gap-1 text-[10px] font-semibold text-neutral-500 hover:text-neutral-900 dark:hover:text-white transition-colors cursor-pointer"
                       title="Reopen Task"
                     >
                       <RotateCcw className="w-3 h-3" />
@@ -618,7 +625,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
           {/* Bottom Add Button */}
           <button
             onClick={() => onAddNewEvent('completed')}
-            className="w-full flex items-center justify-center gap-1.5 h-8 min-h-[32px] rounded-xl text-xs font-semibold text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white hover:bg-white dark:hover:bg-[#18181b] border border-dashed border-neutral-200 dark:border-neutral-800 transition-all"
+            className="w-full flex items-center justify-center gap-1.5 h-8 min-h-[32px] rounded-xl text-xs font-semibold text-neutral-400 hover:text-neutral-800 dark:text-neutral-500 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 border border-dashed border-neutral-200/60 dark:border-neutral-800/60 transition-all cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>Add Done Task</span>
@@ -628,11 +635,11 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
         {/* ========================================================================= */}
         {/* COLUMN 4: NOTES (Independent Notepad / Scratchpad Database)              */}
         {/* ========================================================================= */}
-        <div className="ios-card p-3.5 rounded-2xl flex flex-col gap-3 min-h-[480px]">
+        <div className="ios-card p-3.5 rounded-2xl flex flex-col gap-3 min-h-[480px] bg-white/70 dark:bg-[#1c1c1e]/70 border border-neutral-200/80 dark:border-neutral-800">
           {/* Column Header */}
           <div className="flex items-center justify-between px-1">
             <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-purple-500 shadow-2xs" />
+              <span className="w-2 h-2 rounded-full bg-purple-500" />
               <h3 className="font-bold text-xs sm:text-sm text-[#1c1917] dark:text-white">
                 Notes
               </h3>
@@ -672,7 +679,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
                   <div
                     key={note.id}
                     onClick={() => onSelectNote(note)}
-                    className={`p-3.5 rounded-[14px] ${style.bg} border ${style.border} shadow-2xs hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between gap-2`}
+                    className={`p-3.5 rounded-[14px] ${style.bg} border ${style.border} transition-all cursor-pointer group flex flex-col justify-between gap-2`}
                   >
                     <div className="space-y-1">
                       <div className="flex items-start justify-between gap-1.5">
@@ -723,7 +730,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
           {/* Bottom Add Button */}
           <button
             onClick={onAddNewNote}
-            className="w-full flex items-center justify-center gap-1.5 h-8 min-h-[32px] rounded-xl text-xs font-semibold text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white hover:bg-white dark:hover:bg-[#18181b] border border-dashed border-neutral-200 dark:border-neutral-800 transition-all"
+            className="w-full flex items-center justify-center gap-1.5 h-8 min-h-[32px] rounded-xl text-xs font-semibold text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white hover:bg-white dark:hover:bg-[#18181b] border border-dashed border-neutral-200 dark:border-neutral-800 transition-all cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>Add Note</span>

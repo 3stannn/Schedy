@@ -214,7 +214,7 @@ export const AnnouncementFeed: React.FC<AnnouncementFeedProps> = ({
             {isAdmin && (
               <button
                 onClick={onAddNew}
-                className="h-8 min-h-[32px] px-3 text-xs font-semibold text-white bg-[#007aff] hover:bg-[#0071e3] rounded-xl shadow-xs active:scale-[0.98] whitespace-nowrap cursor-pointer flex items-center gap-1.5 box-border"
+                className="h-8 min-h-[32px] px-3 text-xs font-semibold text-white bg-[#007aff] hover:bg-[#0071e3] rounded-xl active:scale-[0.98] whitespace-nowrap cursor-pointer flex items-center gap-1.5 box-border"
               >
                 <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
                 <span>Post Notice</span>
@@ -329,7 +329,7 @@ export const AnnouncementFeed: React.FC<AnnouncementFeedProps> = ({
                           className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all active:scale-95 ${
                             anno.isRead
                               ? 'text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300'
-                              : 'bg-[#2383e2] text-white hover:bg-[#1a73e8] shadow-xs'
+                              : 'bg-[#2383e2] text-white hover:bg-[#1a73e8]'
                           }`}
                         >
                           {anno.isRead ? (

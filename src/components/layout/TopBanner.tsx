@@ -20,18 +20,18 @@ export const TopBanner: React.FC<TopBannerProps> = ({
   const isDev = current.priority === 'dev';
 
   return (
-    <div className={`w-full border-b px-6 sm:px-10 md:px-12 lg:px-16 xl:px-20 2xl:px-24 py-2 transition-all shadow-xs backdrop-blur-md ${
+    <div className={`w-full border-b px-6 sm:px-10 md:px-12 lg:px-16 xl:px-20 2xl:px-24 py-2 transition-all backdrop-blur-md ${
       isDev
         ? 'bg-purple-500/10 dark:bg-purple-500/15 border-purple-500/30 text-purple-950 dark:text-purple-200'
         : 'bg-amber-500/10 dark:bg-amber-500/15 border-amber-500/30 text-amber-900 dark:text-amber-200'
     }`}>
       <div className="w-full max-w-[1560px] mx-auto flex items-center justify-between text-xs">
-        <div className="flex items-center gap-2.5 overflow-hidden mr-3">
-          <div className={`w-5 h-5 rounded flex items-center justify-center shrink-0 ${
-            isDev ? 'bg-purple-500/20 text-purple-600 dark:text-purple-400' : 'bg-amber-500/20 text-amber-600 dark:text-amber-400'
-          }`}>
-            {isDev ? <Sparkles className="w-3.5 h-3.5" /> : <AlertTriangle className="w-3.5 h-3.5" />}
-          </div>
+        <div className="flex items-center gap-2 overflow-hidden mr-3">
+          {isDev ? (
+            <Sparkles className="w-4 h-4 text-purple-600 dark:text-purple-400 shrink-0" />
+          ) : (
+            <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+          )}
           <div className="flex items-center gap-2 truncate">
             {isDev && (
               <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-700 dark:text-purple-300">
