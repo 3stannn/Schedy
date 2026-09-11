@@ -20,6 +20,7 @@ import { OverviewDashboard } from './components/common/OverviewDashboard';
 import { PomodoroTimer, type PomodoroInfo } from './components/tools/PomodoroTimer';
 import { ToastContainer } from './components/common/Toast';
 import type { ToastMessage } from './components/common/Toast';
+import { PixelBuddy } from './components/common/PixelBuddy';
 import { haptics } from './utils/haptics';
 
 import { 
@@ -710,7 +711,7 @@ export function App() {
       </main>
 
       {/* Minimal Footer */}
-      <footer className="mt-auto border-t border-[#e9e9e7] dark:border-[#2e2e2e] bg-white dark:bg-[#191919] py-3.5 text-xs text-neutral-400">
+      <footer className="mt-auto border-t border-[#e9e9e7] dark:border-[#2e2e2e] bg-white dark:bg-[#191919] py-3.5 text-xs text-neutral-400 relative">
         <div className="w-full max-w-[1560px] mx-auto px-6 sm:px-10 md:px-12 lg:px-16 xl:px-20 2xl:px-24 flex flex-col items-center justify-center text-center gap-2">
           <p className="flex items-center justify-center gap-1.5 flex-wrap">
             <span>Schedy • Simple Schedule & Announcements</span>
@@ -740,6 +741,11 @@ export function App() {
               Export
             </button>
           </div>
+        </div>
+
+        {/* Pixel Buddy Mascot walking on the footer top border line */}
+        <div className="absolute top-0 right-4 sm:right-8 md:right-12 -translate-y-[calc(100%-2px)] z-20 pointer-events-auto">
+          <PixelBuddy />
         </div>
       </footer>
       </div>

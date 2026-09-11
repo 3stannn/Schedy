@@ -1116,4 +1116,41 @@ a:hover .moving-icon-shake,
   100% {
     width: 100%;
   }
-}
+}
+
+/* ==========================================================================
+   Pixel Buddy Mascot Animations (Lower Right Footer)
+   ========================================================================== */
+
+@keyframes pixelBuddyHop {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  25% {
+    transform: translateY(-6px);
+  }
+  50% {
+    transform: translateY(-14px);
+  }
+  75% {
+    transform: translateY(-6px);
+  }
+}
+
+.pixel-buddy-sprite {
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+}
+
+.pixel-buddy-hopping {
+  animation: pixelBuddyHop 0.72s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pixel-buddy-hopping {
+    animation: none !important;
+    transform: none !important;
+  }
+}
+
