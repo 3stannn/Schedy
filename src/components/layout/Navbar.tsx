@@ -11,7 +11,7 @@ import {
   Menu,
   X,
   Timer,
-  Vibrate
+  Trash2
 } from '../common/MovingIcon';
 import { haptics } from '../../utils/haptics';
 
@@ -28,6 +28,7 @@ interface NavbarProps {
   onOpenConfig: () => void;
   onOpenExport: () => void;
   onOpenShare: () => void;
+  onOpenClearAll: () => void;
   onNewEvent: () => void;
   onNewAnnouncement: () => void;
   onNewTask?: () => void;
@@ -45,13 +46,13 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenConfig,
   onOpenExport,
   onOpenShare,
+  onOpenClearAll,
   onNewEvent,
   onNewAnnouncement,
   onNewTask,
   pomodoroInfo,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [hapticsEnabled, setHapticsEnabled] = useState(() => haptics.getEnabled());
 
   const handleSelectTab = (tab: typeof activeTab) => {
     haptics.selection();
@@ -294,6 +295,16 @@ export const Navbar: React.FC<NavbarProps> = ({
               </div>
             </div>
 
+            {/* All Clear Destructive Button */}
+            <button
+              onClick={onOpenClearAll}
+              className="w-full flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-[10px] text-[11px] font-medium text-[#ff3b30] dark:text-[#ff453a] hover:bg-[#ff3b30]/10 transition-all active:scale-95 cursor-pointer h-7"
+              title="Clear All Schedule Data"
+            >
+              <Trash2 className="w-3.5 h-3.5 shrink-0" />
+              <span>All Clear</span>
+            </button>
+
           </div>
         </div>
 
@@ -483,25 +494,19 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </div>
               </div>
 
-              {/* Haptic Feedback Row */}
+              {/* All Clear Destructive Row */}
               <div className="flex items-center justify-between pt-2 border-t border-black/[0.06] dark:border-white/[0.08] text-xs">
-                <div className="flex items-center gap-1.5">
-                  <Vibrate className="w-3.5 h-3.5 text-neutral-500 dark:text-neutral-400" />
-                  <span className="text-neutral-500 dark:text-neutral-400 font-medium text-[11px]">
-                    iOS Haptics
+                <div className="flex items-center gap-1.5 text-[#ff3b30] dark:text-[#ff453a]">
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span className="font-semibold text-[11px]">
+                    All Clear
                   </span>
                 </div>
                 <button
-                  onClick={() => {
-                    const next = haptics.toggle();
-                    setHapticsEnabled(next);
-                  }}
-                  className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer ${hapticsEnabled
-                    ? 'bg-[#007aff]/15 text-[#007aff] dark:text-[#0a84ff] ring-1 ring-[#007aff]/30'
-                    : 'bg-black/[0.04] dark:bg-white/[0.06] text-neutral-400'
-                    }`}
+                  onClick={() => handleActionAndClose(onOpenClearAll)}
+                  className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer bg-[#ff3b30]/10 hover:bg-[#ff3b30]/20 text-[#ff3b30] dark:text-[#ff453a] ring-1 ring-[#ff3b30]/25 active:scale-95"
                 >
-                  <span>{hapticsEnabled ? 'On' : 'Off'}</span>
+                  <span>Clear Data</span>
                 </button>
               </div>
             </div>

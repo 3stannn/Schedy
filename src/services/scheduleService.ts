@@ -280,6 +280,19 @@ export async function deleteEvent(id: string): Promise<boolean> {
   return true;
 }
 
+export async function clearAllEvents(): Promise<void> {
+  const supabase = getUserSupabaseClient();
+  if (supabase && isUserSupabaseConfigured()) {
+    try {
+      await supabase.from('schedules').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+    } catch (err) {
+      console.warn('User Supabase clear all schedules error:', err);
+    }
+  }
+
+  saveLocalEvents([]);
+}
+
 export function subscribeToRealtimeUserSchedules(onUpdate: (payload: any) => void): () => void {
   const supabase = getUserSupabaseClient();
   if (!supabase || !isUserSupabaseConfigured()) {

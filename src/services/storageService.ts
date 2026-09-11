@@ -185,3 +185,37 @@ export function saveLocalNotes(notes: Note[]): void {
   }
 }
 
+/**
+ * Wipes all local events, notes, announcements, reads, and focus timer records.
+ * Keeps user preferences (theme, user ID, Supabase credentials) intact.
+ */
+export function clearAllLocalData(): void {
+  try {
+    saveLocalEvents([]);
+    saveLocalNotes([]);
+    saveLocalReads([]);
+    saveLocalAnnouncements(getInitialAnnouncements());
+
+    // Clear Pomodoro / Focus session keys
+    const pomodoroKeys = [
+      'schedy_pomodoro_settings',
+      'schedy_pomodoro_active_mode',
+      'schedy_pomodoro_end_timestamp',
+      'schedy_pomodoro_is_running',
+      'schedy_pomodoro_paused_seconds',
+      'schedy_pomodoro_round',
+      'schedy_pomodoro_task_id',
+      'schedy_pomodoro_custom_goal',
+      'schedy_pomodoro_completed_sessions',
+      'schedy_pomodoro_total_focus_time',
+      'schedy_haptics_enabled',
+    ];
+    for (const key of pomodoroKeys) {
+      localStorage.removeItem(key);
+    }
+  } catch (e) {
+    console.error('Failed to clear all local data:', e);
+  }
+}
+
+

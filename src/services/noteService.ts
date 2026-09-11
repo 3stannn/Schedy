@@ -143,6 +143,19 @@ export async function deleteNote(id: string): Promise<void> {
   saveLocalNotes(current.filter(n => n.id !== id));
 }
 
+export async function clearAllNotes(): Promise<void> {
+  const supabase = getUserSupabaseClient();
+  if (supabase && isUserSupabaseConfigured()) {
+    try {
+      await supabase.from('notes').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+    } catch (err) {
+      console.warn('Supabase clear all notes error:', err);
+    }
+  }
+
+  saveLocalNotes([]);
+}
+
 export async function bulkSaveNotes(notes: Note[], mode: 'replace' | 'merge'): Promise<Note[]> {
   const supabase = getUserSupabaseClient();
   if (supabase && isUserSupabaseConfigured()) {

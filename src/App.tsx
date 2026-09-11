@@ -15,6 +15,7 @@ import { NoteModal } from './components/tasks/NoteModal';
 import { DatabaseConfigModal } from './components/settings/DatabaseConfigModal';
 import { ExportImportModal } from './components/settings/ExportImportModal';
 import { ShareCodeModal } from './components/settings/ShareCodeModal';
+import { ClearAllDataModal } from './components/settings/ClearAllDataModal';
 import { OverviewDashboard } from './components/common/OverviewDashboard';
 import { PomodoroTimer, type PomodoroInfo } from './components/tools/PomodoroTimer';
 import { ToastContainer } from './components/common/Toast';
@@ -26,6 +27,7 @@ import {
   createEvent, 
   updateEvent, 
   deleteEvent, 
+  clearAllEvents,
   bulkSaveEvents,
   expandRecurringEvents,
   subscribeToRealtimeUserSchedules,
@@ -45,9 +47,11 @@ import {
   createNote,
   updateNote,
   deleteNote,
+  clearAllNotes,
   bulkSaveNotes,
   subscribeToRealtimeNotes
 } from './services/noteService';
+import { clearAllLocalData, getInitialAnnouncements } from './services/storageService';
 
 import { isUserSupabaseConfigured, testUserSupabaseConnection } from './services/supabaseClient';
 import { Calendar, List } from './components/common/MovingIcon';
@@ -107,6 +111,7 @@ export function App() {
   const [isDbConfigModalOpen, setIsDbConfigModalOpen] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [isClearAllModalOpen, setIsClearAllModalOpen] = useState(false);
   const [initialSyncCode, setInitialSyncCode] = useState('');
 
   // Detect ?sync= URL parameter on launch
@@ -453,6 +458,30 @@ export function App() {
     }
   };
 
+  const handleClearAll = async () => {
+    try {
+      await Promise.all([
+        clearAllEvents(),
+        clearAllNotes(),
+      ]);
+      clearAllLocalData();
+      setEvents([]);
+      setNotes([]);
+      setAnnouncements(getInitialAnnouncements());
+      setPomodoroInfo(undefined);
+      haptics.error();
+      addToast(
+        'success',
+        'All Clear Completed',
+        'All your schedules, tasks, notes, and local records have been wiped.'
+      );
+    } catch (err: any) {
+      console.error('Failed to clear all data:', err);
+      haptics.error();
+      addToast('error', 'Clear Failed', err?.message || 'Could not wipe data.');
+    }
+  };
+
   const unreadCount = announcements.filter(a => !a.isRead).length;
   const urgentAnnouncements = announcements.filter(a => a.priority === 'dev' || a.priority === 'important' || a.isPinned);
 
@@ -479,6 +508,7 @@ export function App() {
           setInitialSyncCode('');
           setIsShareModalOpen(true);
         }}
+        onOpenClearAll={() => setIsClearAllModalOpen(true)}
         onNewEvent={() => {
           setEditingEvent(null);
           setSelectedDateForNewEvent(new Date());
@@ -778,6 +808,14 @@ export function App() {
         announcements={announcements}
         onApplySync={handleApplySyncCode}
         initialCode={initialSyncCode}
+      />
+
+      <ClearAllDataModal
+        isOpen={isClearAllModalOpen}
+        onClose={() => setIsClearAllModalOpen(false)}
+        onConfirm={handleClearAll}
+        eventsCount={events.length}
+        notesCount={notes.length}
       />
 
       {/* Toast Notification Container */}

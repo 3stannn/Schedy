@@ -11,21 +11,12 @@
  * Uses standard `navigator.vibrate(pattern)` for cross-platform support.
  */
 
-const HAPTICS_STORAGE_KEY = 'schedy_haptics_enabled';
-
 class HapticEngine {
   private switchLabel: HTMLLabelElement | null = null;
-  private isEnabled: boolean = true;
+  private readonly isEnabled: boolean = true;
 
   constructor() {
     if (typeof window !== 'undefined') {
-      try {
-        const stored = localStorage.getItem(HAPTICS_STORAGE_KEY);
-        this.isEnabled = stored !== null ? stored === 'true' : true;
-      } catch {
-        this.isEnabled = true;
-      }
-
       // Pre-warm the iOS switch DOM on the very first touch gesture
       if (typeof document !== 'undefined') {
         const initDOM = () => {
@@ -187,29 +178,9 @@ class HapticEngine {
     this.trigger('error');
   }
 
-  /** Set haptics preference */
-  public setEnabled(enabled: boolean) {
-    this.isEnabled = enabled;
-    try {
-      localStorage.setItem(HAPTICS_STORAGE_KEY, String(enabled));
-    } catch {
-      // Ignore
-    }
-  }
-
-  /** Get haptics preference */
+  /** Get haptics status (always active) */
   public getEnabled(): boolean {
     return this.isEnabled;
-  }
-
-  /** Toggle haptics preference */
-  public toggle(): boolean {
-    const next = !this.isEnabled;
-    this.setEnabled(next);
-    if (next) {
-      this.medium();
-    }
-    return next;
   }
 }
 
