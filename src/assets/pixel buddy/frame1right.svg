@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 135 135" width="135" height="135">
+  <g>
+    <rect x="25.25" y="33.70" width="33.80" height="67.50" fill="#1D4ED8" shape-rendering="crispEdges" />
+    <rect x="25.25" y="101.20" width="33.80" height="8.40" fill="#1D4ED8" shape-rendering="crispEdges" />
+    <rect x="33.65" y="25.20" width="25.30" height="8.40" fill="#1D4ED8" shape-rendering="crispEdges" />
+    <rect x="37.95" y="109.60" width="16.90" height="16.90" fill="#0D1B2A" shape-rendering="crispEdges" />
+    <rect x="59.05" y="8.30" width="16.90" height="16.90" fill="#0D1B2A" shape-rendering="crispEdges" />
+    <rect x="59.05" y="25.20" width="42.20" height="84.40" fill="#2563EB" shape-rendering="crispEdges" />
+    <rect x="59.05" y="109.60" width="25.30" height="16.90" fill="#0D1B2A" shape-rendering="crispEdges" />
+    <rect x="67.45" y="33.70" width="33.80" height="50.70" fill="#EFF6FF" shape-rendering="crispEdges" />
+    <rect x="67.45" y="67.40" width="16.90" height="16.90" fill="#DBEAFE" shape-rendering="crispEdges" />
+    <rect x="67.45" y="92.80" width="33.80" height="8.40" fill="#60A5FA" shape-rendering="crispEdges" />
+    <rect x="75.95" y="8.30" width="16.90" height="16.90" fill="#0D1B2A" shape-rendering="crispEdges" />
+    <rect x="75.95" y="33.70" width="33.80" height="50.70" fill="#EFF6FF" shape-rendering="crispEdges" />
+    <rect x="92.75" y="50.50" width="8.40" height="16.90" fill="#0D1B2A" shape-rendering="crispEdges" />
+    <rect x="101.25" y="33.70" width="8.40" height="67.50" fill="#2563EB" shape-rendering="crispEdges" />
+    <rect x="101.25" y="67.40" width="8.40" height="8.40" fill="#2563EB" shape-rendering="crispEdges" />
+  </g>
+</svg>

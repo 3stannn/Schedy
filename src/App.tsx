@@ -744,8 +744,8 @@ export function App() {
         </div>
 
         {/* Pixel Buddy Mascot walking on the footer top border line */}
-        <div className="absolute top-0 right-4 sm:right-8 md:right-12 -translate-y-[calc(100%-2px)] z-20 pointer-events-auto">
-          <PixelBuddy />
+        <div className="absolute top-0 right-2 sm:right-8 md:right-12 -translate-y-[calc(100%-2px)] z-20 pointer-events-auto">
+          <PixelBuddy theme={theme} />
         </div>
       </footer>
       </div>
