@@ -81,6 +81,8 @@ const CHEER_MESSAGES = [
   "Stay on schedule!",
 ];
 
+const POST_CLICK_PAUSE_DURATION = 2.0; // Seconds to pause facing front after click or tap
+
 export interface PixelBuddyProps {
   theme?: 'light' | 'dark' | 'pink';
 }
@@ -92,6 +94,9 @@ export const PixelBuddy: React.FC<PixelBuddyProps> = ({ theme: propTheme }) => {
   const isJumpingRef = useRef(false);
   const isPausedRef = useRef(false);
   const isHoveringRef = useRef(false);
+  const postClickPauseTimerRef = useRef(0);
+  const pauseTimerRef = useRef(0);
+  const jumpTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const currentStepRef = useRef(0);
   const jumpStepRef = useRef(0);
 
@@ -139,7 +144,7 @@ export const PixelBuddy: React.FC<PixelBuddyProps> = ({ theme: propTheme }) => {
     const frames = FRAME_SETS[currentTheme] || FRAME_SETS.light;
     if (isJumpingRef.current) {
       setCurrentImg(frames.jump[jumpStepRef.current] || frames.jump[0]);
-    } else if (isHoveringRef.current) {
+    } else if (isHoveringRef.current || postClickPauseTimerRef.current > 0) {
       setCurrentImg(frames.standFront);
     } else if (dirRef.current === -1) {
       setCurrentImg(frames.walkLeft[currentStepRef.current]);
@@ -167,7 +172,6 @@ export const PixelBuddy: React.FC<PixelBuddyProps> = ({ theme: propTheme }) => {
     let animId: number;
     let lastTime = performance.now();
     let stepTimer = 0;
-    let pauseTimer = 0;
     let currentStep = 0;
 
     const speed = 40; // px per second
@@ -180,8 +184,19 @@ export const PixelBuddy: React.FC<PixelBuddyProps> = ({ theme: propTheme }) => {
       const getFrames = () => FRAME_SETS[themeRef.current] || FRAME_SETS.light;
 
       if (!isJumpingRef.current && !isPausedRef.current) {
-        if (pauseTimer > 0) {
-          pauseTimer -= delta;
+        if (postClickPauseTimerRef.current > 0) {
+          postClickPauseTimerRef.current -= delta;
+          const f = getFrames();
+          setCurrentImg(f.standFront);
+          stepTimer = 0;
+          currentStep = 0;
+          currentStepRef.current = 0;
+          if (postClickPauseTimerRef.current <= 0 && !isHoveringRef.current) {
+            // Just ended pause, face walking direction
+            setCurrentImg(dirRef.current === -1 ? f.walkLeft[0] : f.walkRight[0]);
+          }
+        } else if (pauseTimerRef.current > 0) {
+          pauseTimerRef.current -= delta;
           // Stand still facing current turn
           const f = getFrames();
           setCurrentImg(dirRef.current === -1 ? f.walkLeft[0] : f.walkRight[0]);
@@ -200,11 +215,11 @@ export const PixelBuddy: React.FC<PixelBuddyProps> = ({ theme: propTheme }) => {
           if (dirRef.current === -1 && posRef.current <= -maxDist) {
             posRef.current = -maxDist;
             dirRef.current = 1;
-            pauseTimer = 0.55; // pause 550ms at left turnaround
+            pauseTimerRef.current = 0.55; // pause 550ms at left turnaround
           } else if (dirRef.current === 1 && posRef.current >= 0) {
             posRef.current = 0;
             dirRef.current = -1;
-            pauseTimer = 0.55; // pause 550ms at right turnaround
+            pauseTimerRef.current = 0.55; // pause 550ms at right turnaround
           }
 
           // Walk step animation
@@ -232,7 +247,12 @@ export const PixelBuddy: React.FC<PixelBuddyProps> = ({ theme: propTheme }) => {
     };
 
     animId = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(animId);
+    return () => {
+      cancelAnimationFrame(animId);
+      if (jumpTimerRef.current) {
+        clearInterval(jumpTimerRef.current);
+      }
+    };
   }, []);
 
   const handleClick = () => {
@@ -244,9 +264,15 @@ export const PixelBuddy: React.FC<PixelBuddyProps> = ({ theme: propTheme }) => {
       // ignore
     }
 
-    // Set jumping state
+    if (jumpTimerRef.current) {
+      clearInterval(jumpTimerRef.current);
+    }
+
+    // Set jumping state & reset pauses while jump animation is running
     isJumpingRef.current = true;
     setIsJumping(true);
+    postClickPauseTimerRef.current = 0;
+    pauseTimerRef.current = 0;
 
     // Pick cheer message (clean text, no emojis)
     setSpeech((prev) => {
@@ -290,21 +316,16 @@ export const PixelBuddy: React.FC<PixelBuddyProps> = ({ theme: propTheme }) => {
         setCurrentImg(currentFrames.jump[jumpStep]);
       } else {
         clearInterval(jumpTimer);
+        jumpTimerRef.current = null;
         setIsJumping(false);
         isJumpingRef.current = false;
         jumpStepRef.current = 0;
-        // If still hovering, face front; otherwise resume walking frame in current direction
-        if (isHoveringRef.current) {
-          setCurrentImg(currentFrames.standFront);
-        } else {
-          setCurrentImg(
-            dirRef.current === -1
-              ? currentFrames.walkLeft[currentStepRef.current]
-              : currentFrames.walkRight[currentStepRef.current]
-          );
-        }
+        // Stand facing front and pause after click or tap before resuming walking
+        postClickPauseTimerRef.current = POST_CLICK_PAUSE_DURATION;
+        setCurrentImg(currentFrames.standFront);
       }
     }, 90);
+    jumpTimerRef.current = jumpTimer;
   };
 
   // Auto-dismiss speech bubble
@@ -332,7 +353,7 @@ export const PixelBuddy: React.FC<PixelBuddyProps> = ({ theme: propTheme }) => {
         if (typeof window !== 'undefined' && !window.matchMedia('(hover: hover)').matches) return;
         isHoveringRef.current = false;
         isPausedRef.current = false;
-        if (!isJumpingRef.current) {
+        if (!isJumpingRef.current && postClickPauseTimerRef.current <= 0) {
           const f = FRAME_SETS[themeRef.current] || FRAME_SETS.light;
           setCurrentImg(
             dirRef.current === -1

@@ -15,6 +15,8 @@ body {
   color: #000000;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 html,
@@ -53,6 +55,56 @@ html.pink body,
 body.pink {
   background-color: #fff5f7;
   color: #1a1a1a;
+}
+
+/* ==========================================================================
+   Smooth Theme Transitions (Light / Dark / Pink)
+   ========================================================================== */
+
+html.theme-transition,
+html.theme-transition *,
+html.theme-transition *::before,
+html.theme-transition *::after {
+  transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              fill 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              stroke 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  transition-delay: 0s !important;
+}
+
+/* Exclude pixel buddy mascot so sprites swap crisp pixel frames without color smearing */
+html.theme-transition .pixel-buddy-container,
+html.theme-transition .pixel-buddy-container * {
+  transition: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.theme-transition,
+  html.theme-transition *,
+  html.theme-transition *::before,
+  html.theme-transition *::after {
+    transition: none !important;
+  }
+}
+
+@keyframes theme-icon-pop {
+  from {
+    opacity: 0.2;
+    transform: rotate(-30deg) scale(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(0deg) scale(1);
+  }
+}
+
+.theme-toggle-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  animation: theme-icon-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 /* ==========================================================================
@@ -860,6 +912,10 @@ html.dark .ios-btn-plain {
   border-radius: 16px;
   border: 0.5px solid rgba(60, 60, 67, 0.12);
   box-shadow: none;
+  transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 html.dark .ios-card {
@@ -874,6 +930,8 @@ html.dark .ios-card {
   border-radius: 14px;
   border: 0.5px solid rgba(60, 60, 67, 0.1);
   overflow: hidden;
+  transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 html.dark .ios-grouped-list {
@@ -950,6 +1008,8 @@ html.dark .ios-input:focus {
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   border-bottom: 0.5px solid rgba(60, 60, 67, 0.12);
+  transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 html.dark .ios-nav-bar {

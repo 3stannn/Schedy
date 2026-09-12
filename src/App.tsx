@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import type { ScheduleEvent, EventStatus, ScheduleItemType } from './types/schedule';
 import type { Announcement } from './types/announcement';
 import type { Note } from './types/note';
@@ -66,12 +66,27 @@ export function App() {
     return 'light';
   });
 
+  const isFirstRender = useRef(true);
+
   useEffect(() => {
     localStorage.setItem('schedy_theme', theme);
     const root = document.documentElement;
+
+    if (!isFirstRender.current) {
+      root.classList.add('theme-transition');
+    } else {
+      isFirstRender.current = false;
+    }
+
     root.classList.remove('light', 'dark', 'pink');
     root.classList.add(theme);
     localStorage.setItem('schedulesync_theme', theme);
+
+    const timer = setTimeout(() => {
+      root.classList.remove('theme-transition');
+    }, 350);
+
+    return () => clearTimeout(timer);
   }, [theme]);
 
   const handleToggleTheme = () => {
@@ -492,7 +507,7 @@ export function App() {
   const expandedEvents = expandRecurringEvents(events, viewRangeStart, viewRangeEnd);
 
   return (
-    <div className="min-h-screen bg-[#f2f2f7] dark:bg-[#000000] text-black dark:text-white flex flex-col font-sans transition-colors">
+    <div className="min-h-screen bg-[#f2f2f7] dark:bg-[#000000] text-black dark:text-white flex flex-col font-sans transition-colors duration-300">
       
       {/* App Navbar / Desktop Left Sidebar */}
       <Navbar

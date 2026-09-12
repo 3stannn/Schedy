@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import schedyLogo from '../../assets/schedy.png';
+import schedyPinkLogo from '../../assets/schedypink.png';
 import {
   Database,
   Download,
@@ -53,6 +54,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   pomodoroInfo,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const currentLogo = theme === 'pink' ? schedyPinkLogo : schedyLogo;
 
   const handleSelectTab = (tab: typeof activeTab) => {
     haptics.selection();
@@ -90,7 +92,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       {/* ========================================================================= */}
       {/* DESKTOP VERTICAL SIDEBAR (Visible on md and above)                       */}
       {/* ========================================================================= */}
-      <aside className="hidden md:flex md:w-60 lg:w-64 md:flex-col md:fixed md:inset-y-0 md:left-0 md:z-30 border-r border-black/[0.08] dark:border-white/[0.1] bg-white/80 dark:bg-[#161618]/85 backdrop-blur-2xl p-3.5 justify-between transition-colors">
+      <aside className="hidden md:flex md:w-60 lg:w-64 md:flex-col md:fixed md:inset-y-0 md:left-0 md:z-30 border-r border-black/[0.08] dark:border-white/[0.1] bg-white/80 dark:bg-[#161618]/85 backdrop-blur-2xl p-3.5 justify-between transition-colors duration-300">
 
         {/* Top Section: Brand + Navigation + Action */}
         <div className="space-y-4">
@@ -99,7 +101,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           <div className="px-3 py-2.5 rounded-[16px] bg-black/[0.03] dark:bg-white/[0.05] border border-black/[0.05] dark:border-white/[0.08] flex items-center justify-between">
             <div className="flex items-center gap-2.5 min-w-0">
               <img
-                src={schedyLogo}
+                src={currentLogo}
                 alt="Schedy"
                 className="w-7 h-7 object-contain rounded-[8px] shrink-0"
               />
@@ -290,7 +292,9 @@ export const Navbar: React.FC<NavbarProps> = ({
                     }`}
                   title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
                 >
-                  {theme === 'dark' ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
+                  <span key={theme === 'dark' ? 'sun' : 'moon'} className="theme-toggle-icon">
+                    {theme === 'dark' ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
+                  </span>
                 </button>
               </div>
             </div>
@@ -313,7 +317,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       {/* ========================================================================= */}
       {/* MOBILE TOP BAR (Visible on < md)                                         */}
       {/* ========================================================================= */}
-      <header className="md:hidden sticky top-0 z-40 w-full ios-nav-bar transition-all">
+      <header className="md:hidden sticky top-0 z-40 w-full ios-nav-bar transition-all duration-300">
         <div className="w-full max-w-[1760px] mx-auto px-3.5 py-2">
 
           {/* Mobile Main Row */}
@@ -322,7 +326,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* Logo & Brand */}
             <div className="flex items-center gap-2 shrink-0">
               <img
-                src={schedyLogo}
+                src={currentLogo}
                 alt="Schedy"
                 className="w-6 h-6 object-contain rounded-[6px] shrink-0"
               />
@@ -488,7 +492,9 @@ export const Navbar: React.FC<NavbarProps> = ({
                     onClick={onToggleTheme}
                     className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-black/[0.04] dark:bg-white/[0.06] text-neutral-700 dark:text-neutral-200 text-xs font-medium cursor-pointer"
                   >
-                    {theme === 'dark' ? <Sun className="w-3.5 h-3.5 text-amber-400" /> : <Moon className="w-3.5 h-3.5 text-neutral-600" />}
+                    <span key={theme === 'dark' ? 'sun' : 'moon'} className="theme-toggle-icon">
+                      {theme === 'dark' ? <Sun className="w-3.5 h-3.5 text-amber-400" /> : <Moon className="w-3.5 h-3.5 text-neutral-600" />}
+                    </span>
                     <span>{theme === 'dark' ? 'Light' : 'Dark'}</span>
                   </button>
                 </div>
