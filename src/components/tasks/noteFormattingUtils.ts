@@ -29,14 +29,121 @@ export function stripHtml(html: string): string {
 }
 
 /**
+ * Sanitizes and repairs malformed HTML content, specifically fixing instances where
+ * <mark> inline elements wrap block elements (<p>, <li>, <ul>, <ol>, etc.),
+ * merging adjacent marks, un-nesting fragmented <li> items, and removing empty mark tags.
+ */
+export function sanitizeAndHealHtmlContent(html: string): string {
+  if (!html || typeof DOMParser === 'undefined') return html;
+
+  try {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    const root = doc.body;
+
+    const BLOCK_TAGS = new Set([
+      'p', 'div', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'pre', 'hr'
+    ]);
+
+    // 1. Find any <mark> that contains block elements
+    const marks = Array.from(root.querySelectorAll('mark'));
+    for (const mark of marks) {
+      const blockChildren = Array.from(mark.children).filter(child =>
+        BLOCK_TAGS.has(child.tagName.toLowerCase())
+      );
+
+      if (blockChildren.length > 0) {
+        const parent = mark.parentNode;
+        if (!parent) continue;
+
+        const fragment = doc.createDocumentFragment();
+        for (const child of Array.from(mark.childNodes)) {
+          if (
+            child.nodeType === Node.ELEMENT_NODE &&
+            BLOCK_TAGS.has((child as HTMLElement).tagName.toLowerCase())
+          ) {
+            const blockEl = child as HTMLElement;
+            // Push mark inside this block element around its non-empty inline content
+            if (blockEl.textContent?.trim()) {
+              const innerMark = doc.createElement('mark');
+              while (blockEl.firstChild) {
+                innerMark.appendChild(blockEl.firstChild);
+              }
+              blockEl.appendChild(innerMark);
+            }
+            fragment.appendChild(blockEl);
+          } else if (child.textContent?.trim()) {
+            const inlineMark = doc.createElement('mark');
+            inlineMark.appendChild(child);
+            fragment.appendChild(inlineMark);
+          }
+        }
+        parent.replaceChild(fragment, mark);
+      }
+    }
+
+    // 2. Un-nest any fragmented or invalid <li> elements (e.g. <li> directly inside <li>)
+    root.querySelectorAll('li > li').forEach(nestedLi => {
+      const parentLi = nestedLi.parentElement;
+      if (parentLi) {
+        parentLi.after(nestedLi);
+        if (!parentLi.textContent?.trim() && parentLi.children.length === 0) {
+          parentLi.remove();
+        }
+      }
+    });
+
+    // 3. Flatten nested marks: <mark>...<mark>...</mark>...</mark>
+    root.querySelectorAll('mark mark').forEach(innerMark => {
+      const parent = innerMark.parentNode;
+      if (parent) {
+        while (innerMark.firstChild) {
+          parent.insertBefore(innerMark.firstChild, innerMark);
+        }
+        innerMark.remove();
+      }
+    });
+
+    // 4. Remove completely empty marks
+    root.querySelectorAll('mark').forEach(m => {
+      if (!m.textContent?.trim() && m.children.length === 0) {
+        m.remove();
+      }
+    });
+
+    // 5. Merge adjacent marks within the same parent
+    root.querySelectorAll('mark').forEach(m => {
+      let next = m.nextSibling;
+      while (
+        next &&
+        next.nodeType === Node.ELEMENT_NODE &&
+        (next as HTMLElement).tagName.toLowerCase() === 'mark'
+      ) {
+        const nextMark = next as HTMLElement;
+        while (nextMark.firstChild) {
+          m.appendChild(nextMark.firstChild);
+        }
+        const toRemove = nextMark;
+        next = nextMark.nextSibling;
+        toRemove.remove();
+      }
+    });
+
+    return root.innerHTML;
+  } catch {
+    return html;
+  }
+}
+
+/**
  * Converts legacy raw markdown or plain text note content into clean, semantic Notion-style HTML
  */
 export function convertMarkdownOrTextToHtml(raw: string): string {
   if (!raw) return '';
 
-  // If already full HTML with paragraph/div/list tags, return as-is
+  // If already full HTML with paragraph/div/list tags, sanitize & heal, then return
   if (isHtmlContent(raw) && (/<(p|div|ul|ol|h[1-6]|blockquote|pre|table)/i.test(raw))) {
-    return raw;
+    return sanitizeAndHealHtmlContent(raw);
   }
 
   // Otherwise clean up legacy markdown / corrupted tokens (e.g., ****, *- [], etc.)
@@ -145,7 +252,7 @@ export function convertMarkdownOrTextToHtml(raw: string): string {
   }
 
   flushList();
-  return htmlBlocks.join('');
+  return sanitizeAndHealHtmlContent(htmlBlocks.join(''));
 }
 
 /**

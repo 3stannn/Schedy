@@ -636,12 +636,33 @@ html.dark .notion-rendered-content code {
   color: #1c1917;
   padding: 0.1rem 0.25rem;
   border-radius: 0.25rem;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+.notion-editor mark:empty,
+.notion-rendered-content mark:empty {
+  display: none !important;
+}
+
+/* Defensive protection: If mark ever wraps block elements in legacy HTML, never render a vertical bar */
+.notion-editor mark:has(p, div, ul, ol, li, h1, h2, h3, h4, h5, h6, blockquote),
+.notion-rendered-content mark:has(p, div, ul, ol, li, h1, h2, h3, h4, h5, h6, blockquote) {
+  background-color: transparent !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
 }
 
 html.dark .notion-editor mark,
 html.dark .notion-rendered-content mark {
   background-color: rgba(234, 179, 8, 0.35);
   color: #fef08a;
+}
+
+html.pink .notion-editor mark,
+html.pink .notion-rendered-content mark {
+  background-color: rgba(244, 114, 182, 0.3);
+  color: #831843;
 }
 
 .notion-editor a,

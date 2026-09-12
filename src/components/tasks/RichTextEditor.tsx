@@ -139,7 +139,21 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
       const parentEl = node.nodeType === Node.ELEMENT_NODE ? (node as HTMLElement) : node.parentElement;
       if (parentEl) {
         // Highlight check
-        const inMark = !!parentEl.closest('mark');
+        let inMark = !!parentEl.closest('mark');
+        if (!inMark && selection.rangeCount > 0) {
+          const range = selection.getRangeAt(0);
+          if (!range.collapsed) {
+            const startEl =
+              range.startContainer.nodeType === Node.ELEMENT_NODE
+                ? (range.startContainer as HTMLElement)
+                : range.startContainer.parentElement;
+            const endEl =
+              range.endContainer.nodeType === Node.ELEMENT_NODE
+                ? (range.endContainer as HTMLElement)
+                : range.endContainer.parentElement;
+            inMark = !!(startEl?.closest('mark') || endEl?.closest('mark'));
+          }
+        }
         setIsHighlight(inMark);
 
         // Block type check
@@ -253,30 +267,312 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     handleInput();
   };
 
-  // Toggle Highlight (<mark>)
+  // Helper: Safely unwrap a text/inline node from an ancestor <mark> without deleting other siblings or tags
+  const unwrapNodeFromMark = (target: Node, mark: HTMLElement) => {
+    let curr: Node = target;
+    // Bubble up if target is nested inside inline elements within mark
+    while (curr.parentNode && curr.parentNode !== mark) {
+      const parent = curr.parentNode as HTMLElement;
+      const after = parent.cloneNode(false) as HTMLElement;
+      while (curr.nextSibling) {
+        after.appendChild(curr.nextSibling);
+      }
+      if (after.childNodes.length > 0) {
+        parent.after(after);
+      }
+      parent.after(curr);
+    }
+
+    // Now curr is direct child of mark
+    const afterMark = mark.cloneNode(false) as HTMLElement;
+    while (curr.nextSibling) {
+      afterMark.appendChild(curr.nextSibling);
+    }
+    if (afterMark.childNodes.length > 0) {
+      mark.after(afterMark);
+    }
+    mark.after(curr);
+    if (mark.childNodes.length === 0) {
+      mark.remove();
+    }
+    if (afterMark.childNodes.length === 0) {
+      afterMark.remove();
+    }
+  };
+
+  // Helper: Cleanup empty marks, heal blocks, and merge adjacent marks
+  const cleanupAndMergeMarks = (root: HTMLElement) => {
+    const BLOCK_TAGS = new Set([
+      'p', 'div', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'pre', 'hr'
+    ]);
+
+    // 1. Heal any mark that wraps block elements
+    const marks = Array.from(root.querySelectorAll('mark'));
+    for (const mark of marks) {
+      const blockChildren = Array.from(mark.children).filter(c =>
+        BLOCK_TAGS.has(c.tagName.toLowerCase())
+      );
+      if (blockChildren.length > 0) {
+        const parent = mark.parentNode;
+        if (!parent) continue;
+        const fragment = document.createDocumentFragment();
+        for (const child of Array.from(mark.childNodes)) {
+          if (
+            child.nodeType === Node.ELEMENT_NODE &&
+            BLOCK_TAGS.has((child as HTMLElement).tagName.toLowerCase())
+          ) {
+            const blockEl = child as HTMLElement;
+            if (blockEl.textContent?.trim()) {
+              const innerMark = document.createElement('mark');
+              while (blockEl.firstChild) {
+                innerMark.appendChild(blockEl.firstChild);
+              }
+              blockEl.appendChild(innerMark);
+            }
+            fragment.appendChild(blockEl);
+          } else if (child.textContent?.trim()) {
+            const inlineMark = document.createElement('mark');
+            inlineMark.appendChild(child);
+            fragment.appendChild(inlineMark);
+          }
+        }
+        parent.replaceChild(fragment, mark);
+      }
+    }
+
+    // 2. Un-nest orphaned <li>
+    root.querySelectorAll('li > li').forEach(nestedLi => {
+      const parentLi = nestedLi.parentElement;
+      if (parentLi) {
+        parentLi.after(nestedLi);
+        if (!parentLi.textContent?.trim() && parentLi.children.length === 0) {
+          parentLi.remove();
+        }
+      }
+    });
+
+    // 3. Remove empty marks
+    root.querySelectorAll('mark').forEach(m => {
+      if (!m.textContent?.trim() && m.children.length === 0) {
+        m.remove();
+      }
+    });
+
+    // 4. Merge adjacent marks within the same parent
+    root.querySelectorAll('mark').forEach(m => {
+      let next = m.nextSibling;
+      while (
+        next &&
+        next.nodeType === Node.ELEMENT_NODE &&
+        (next as HTMLElement).tagName.toLowerCase() === 'mark'
+      ) {
+        const nextMark = next as HTMLElement;
+        while (nextMark.firstChild) {
+          m.appendChild(nextMark.firstChild);
+        }
+        const toRemove = nextMark;
+        next = nextMark.nextSibling;
+        toRemove.remove();
+      }
+    });
+  };
+
+  // Toggle Highlight (<mark>) with safe inline DOM traversal
   const toggleHighlight = () => {
     if (!editorRef.current) return;
     editorRef.current.focus();
+
     const selection = window.getSelection();
     if (!selection || selection.rangeCount === 0) return;
 
     const range = selection.getRangeAt(0);
-    const selectedContent = range.extractContents();
+    const root = editorRef.current;
+    if (!root.contains(range.commonAncestorContainer)) return;
 
-    const parentMark = selection.anchorNode?.parentElement?.closest('mark');
-    if (parentMark) {
-      // Remove mark
-      const text = parentMark.textContent || '';
-      const textNode = document.createTextNode(text);
-      parentMark.parentNode?.replaceChild(textNode, parentMark);
-    } else {
-      // Add mark
-      const mark = document.createElement('mark');
-      mark.appendChild(selectedContent);
-      range.insertNode(mark);
-      selection.selectAllChildren(mark);
+    // Case 1: Collapsed selection (caret only)
+    if (range.collapsed) {
+      // Check if caret is currently inside a <mark>
+      const currentMark = (
+        range.startContainer.nodeType === Node.ELEMENT_NODE
+          ? (range.startContainer as HTMLElement)
+          : range.startContainer.parentElement
+      )?.closest('mark');
+
+      if (currentMark && root.contains(currentMark)) {
+        // Unwrap this mark (remove highlight)
+        const parent = currentMark.parentNode;
+        if (parent) {
+          while (currentMark.firstChild) {
+            parent.insertBefore(currentMark.firstChild, currentMark);
+          }
+          currentMark.remove();
+          handleInput(true);
+        }
+        return;
+      }
+
+      // If on a word, expand selection to word
+      if (range.startContainer.nodeType === Node.TEXT_NODE) {
+        const textNode = range.startContainer as Text;
+        const text = textNode.nodeValue || '';
+        const offset = range.startOffset;
+
+        let start = offset;
+        while (start > 0 && /\S/.test(text[start - 1])) {
+          start--;
+        }
+        let end = offset;
+        while (end < text.length && /\S/.test(text[end])) {
+          end++;
+        }
+
+        if (start < end) {
+          range.setStart(textNode, start);
+          range.setEnd(textNode, end);
+          selection.removeAllRanges();
+          selection.addRange(range);
+        } else {
+          return;
+        }
+      } else {
+        return;
+      }
     }
-    handleInput();
+
+    // Case 2: Range is not collapsed - collect all intersecting text nodes
+    const textNodes: Text[] = [];
+    const startContainer = range.startContainer;
+    const endContainer = range.endContainer;
+
+    if (startContainer === endContainer && startContainer.nodeType === Node.TEXT_NODE) {
+      textNodes.push(startContainer as Text);
+    } else {
+      const walker = document.createTreeWalker(
+        range.commonAncestorContainer.nodeType === Node.TEXT_NODE
+          ? range.commonAncestorContainer.parentElement || root
+          : range.commonAncestorContainer,
+        NodeFilter.SHOW_TEXT,
+        {
+          acceptNode(node) {
+            if (!range.intersectsNode(node)) {
+              return NodeFilter.FILTER_REJECT;
+            }
+            const parent = node.parentElement;
+            if (parent && parent.closest('.notion-task-checkbox')) {
+              return NodeFilter.FILTER_REJECT;
+            }
+            return NodeFilter.FILTER_ACCEPT;
+          }
+        }
+      );
+
+      let curr = walker.nextNode();
+      while (curr) {
+        if (curr.nodeType === Node.TEXT_NODE) {
+          textNodes.push(curr as Text);
+        }
+        curr = walker.nextNode();
+      }
+    }
+
+    if (textNodes.length === 0) return;
+
+    // Compute slices for each text node
+    interface TextSlice {
+      node: Text;
+      start: number;
+      end: number;
+      inMark: boolean;
+    }
+
+    const slices: TextSlice[] = [];
+    for (const node of textNodes) {
+      let start = 0;
+      let end = node.length;
+
+      if (node === range.startContainer) {
+        start = range.startOffset;
+      }
+      if (node === range.endContainer) {
+        end = range.endOffset;
+      }
+
+      if (start < end) {
+        const textVal = node.nodeValue?.slice(start, end) || '';
+        // Skip pure whitespace nodes between blocks directly under root
+        if (!textVal.trim() && node.parentElement === root) {
+          continue;
+        }
+
+        const mark = node.parentElement?.closest('mark');
+        const inMark = !!(mark && root.contains(mark));
+
+        slices.push({ node, start, end, inMark });
+      }
+    }
+
+    if (slices.length === 0) return;
+
+    // Check if ALL non-empty slices are already inside <mark>
+    const nonWhitespaceSlices = slices.filter(
+      s => (s.node.nodeValue?.slice(s.start, s.end).trim().length || 0) > 0
+    );
+    const shouldUnhighlight =
+      nonWhitespaceSlices.length > 0 && nonWhitespaceSlices.every(s => s.inMark);
+
+    // Isolate slices from last to first so splitting doesn't invalidate earlier offsets
+    const isolatedNodes: { node: Text; inMark: boolean }[] = [];
+    for (let i = slices.length - 1; i >= 0; i--) {
+      const s = slices[i];
+      let targetNode = s.node;
+
+      if (s.end < targetNode.length) {
+        targetNode.splitText(s.end);
+      }
+      if (s.start > 0) {
+        targetNode = targetNode.splitText(s.start);
+      }
+
+      isolatedNodes.unshift({ node: targetNode, inMark: s.inMark });
+    }
+
+    if (shouldUnhighlight) {
+      // Remove highlight from each isolated node
+      for (const item of isolatedNodes) {
+        const mark = item.node.parentElement?.closest('mark');
+        if (mark && root.contains(mark)) {
+          unwrapNodeFromMark(item.node, mark);
+        }
+      }
+    } else {
+      // Apply highlight to each isolated node not yet in a mark
+      for (const item of isolatedNodes) {
+        const mark = item.node.parentElement?.closest('mark');
+        if (mark && root.contains(mark)) {
+          continue;
+        }
+        const newMark = document.createElement('mark');
+        item.node.parentNode?.insertBefore(newMark, item.node);
+        newMark.appendChild(item.node);
+      }
+    }
+
+    cleanupAndMergeMarks(root);
+
+    // Restore selection across the affected nodes
+    if (isolatedNodes.length > 0) {
+      const firstNode = isolatedNodes[0].node;
+      const lastNode = isolatedNodes[isolatedNodes.length - 1].node;
+      try {
+        const newRange = document.createRange();
+        newRange.setStart(firstNode, 0);
+        newRange.setEnd(lastNode, lastNode.length);
+        selection.removeAllRanges();
+        selection.addRange(newRange);
+      } catch {}
+    }
+
+    handleInput(true);
   };
 
   // Convert a specific task item into a standard paragraph without affecting items above or below it
@@ -510,6 +806,11 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
         openLinkModal();
         return;
       }
+      if (key === 'h' && e.shiftKey) {
+        e.preventDefault();
+        toggleHighlight();
+        return;
+      }
     }
 
     // Tab key handling
@@ -639,6 +940,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
           {/* Undo */}
           <button
             type="button"
+            onMouseDown={(e) => e.preventDefault()}
             onClick={handleUndo}
             disabled={!canUndo}
             className={`p-1.5 rounded-lg transition-all text-xs font-medium flex items-center justify-center ${
@@ -654,6 +956,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
           {/* Redo */}
           <button
             type="button"
+            onMouseDown={(e) => e.preventDefault()}
             onClick={handleRedo}
             disabled={!canRedo}
             className={`p-1.5 rounded-lg transition-all text-xs font-medium flex items-center justify-center ${
@@ -671,6 +974,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
           {/* Bold */}
           <button
             type="button"
+            onMouseDown={(e) => e.preventDefault()}
             onClick={() => execCmd('bold')}
             className={btnClass(isBold)}
             title="Bold (Ctrl+B)"
@@ -681,6 +985,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
           {/* Italic */}
           <button
             type="button"
+            onMouseDown={(e) => e.preventDefault()}
             onClick={() => execCmd('italic')}
             className={btnClass(isItalic)}
             title="Italic (Ctrl+I)"
@@ -691,6 +996,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
           {/* Underline */}
           <button
             type="button"
+            onMouseDown={(e) => e.preventDefault()}
             onClick={() => execCmd('underline')}
             className={btnClass(isUnderline)}
             title="Underline (Ctrl+U)"
@@ -701,6 +1007,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
           {/* Strikethrough */}
           <button
             type="button"
+            onMouseDown={(e) => e.preventDefault()}
             onClick={() => execCmd('strikeThrough')}
             className={btnClass(isStrike)}
             title="Strikethrough"
@@ -711,9 +1018,10 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
           {/* Highlight */}
           <button
             type="button"
+            onMouseDown={(e) => e.preventDefault()}
             onClick={toggleHighlight}
             className={btnClass(isHighlight)}
-            title="Highlight Text"
+            title="Highlight Text (Ctrl+Shift+H)"
           >
             <Highlighter className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400" />
           </button>
@@ -723,6 +1031,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
           {/* Headings */}
           <button
             type="button"
+            onMouseDown={(e) => e.preventDefault()}
             onClick={() => setBlockType('h1')}
             className={btnClass(activeBlock === 'h1')}
             title="Heading 1"
@@ -731,6 +1040,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
           </button>
           <button
             type="button"
+            onMouseDown={(e) => e.preventDefault()}
             onClick={() => setBlockType('h2')}
             className={btnClass(activeBlock === 'h2')}
             title="Heading 2"
@@ -739,6 +1049,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
           </button>
           <button
             type="button"
+            onMouseDown={(e) => e.preventDefault()}
             onClick={() => setBlockType('h3')}
             className={btnClass(activeBlock === 'h3')}
             title="Heading 3"
@@ -751,6 +1062,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
           {/* Checklist / Tasks */}
           <button
             type="button"
+            onMouseDown={(e) => e.preventDefault()}
             onClick={toggleChecklist}
             className={btnClass(activeBlock === 'task')}
             title="To-Do Checklist Item"
@@ -761,6 +1073,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
           {/* Bullet List */}
           <button
             type="button"
+            onMouseDown={(e) => e.preventDefault()}
             onClick={() => execCmd('insertUnorderedList')}
             className={btnClass(activeBlock === 'ul')}
             title="Bulleted List"
@@ -771,6 +1084,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
           {/* Numbered List */}
           <button
             type="button"
+            onMouseDown={(e) => e.preventDefault()}
             onClick={() => execCmd('insertOrderedList')}
             className={btnClass(activeBlock === 'ol')}
             title="Numbered List"
@@ -783,6 +1097,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
           {/* Quote */}
           <button
             type="button"
+            onMouseDown={(e) => e.preventDefault()}
             onClick={() => setBlockType('blockquote')}
             className={btnClass(activeBlock === 'quote')}
             title="Quote Block"
@@ -793,6 +1108,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
           {/* Inline Code */}
           <button
             type="button"
+            onMouseDown={(e) => e.preventDefault()}
             onClick={toggleInlineCode}
             className={btnClass(activeBlock === 'code')}
             title="Inline Code"
@@ -803,6 +1119,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
           {/* Link */}
           <button
             type="button"
+            onMouseDown={(e) => e.preventDefault()}
             onClick={openLinkModal}
             className={btnClass(false)}
             title="Insert Link (Ctrl+K)"
@@ -813,6 +1130,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
           {/* Divider */}
           <button
             type="button"
+            onMouseDown={(e) => e.preventDefault()}
             onClick={() => execCmd('insertHorizontalRule')}
             className={btnClass(false)}
             title="Divider Line"
@@ -917,6 +1235,10 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
                   <div className="flex justify-between">
                     <span className="text-neutral-500 font-sans">Ctrl + U</span>
                     <span className="underline font-sans">Toggle Underline</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-neutral-500 font-sans">Ctrl + Shift + H</span>
+                    <span className="text-amber-500 dark:text-amber-400 font-sans font-medium">Highlight</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-neutral-500 font-sans">Ctrl + K</span>
