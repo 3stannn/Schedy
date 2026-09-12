@@ -108,7 +108,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   Schedy
                 </span>
                 <span className="text-[10px] text-neutral-500 dark:text-neutral-400 font-medium leading-tight mt-0.5">
-                  Planner & Notices
+                  Workspace & Calendar
                 </span>
               </div>
             </div>
