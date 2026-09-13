@@ -14,9 +14,11 @@ import {
   Timer,
   Trash2
 } from '../common/MovingIcon';
+import { LogOut } from 'lucide-react';
 import { haptics } from '../../utils/haptics';
 
 import type { PomodoroInfo } from '../tools/PomodoroTimer';
+import type { UserProfile } from '../../types/auth';
 
 interface NavbarProps {
   activeTab: 'schedule' | 'announcements' | 'overview' | 'tasks' | 'pomodoro';
@@ -34,7 +36,13 @@ interface NavbarProps {
   onNewAnnouncement: () => void;
   onNewTask?: () => void;
   pomodoroInfo?: PomodoroInfo;
+  onOpenAISchedule: () => void;
+  user: UserProfile | null;
+  onOpenAuth: () => void;
+  onOpenUpgrade: () => void;
+  onSignOut: () => void;
 }
+
 
 export const Navbar: React.FC<NavbarProps> = ({
   activeTab,
@@ -52,6 +60,11 @@ export const Navbar: React.FC<NavbarProps> = ({
   onNewAnnouncement,
   onNewTask,
   pomodoroInfo,
+  onOpenAISchedule,
+  user,
+  onOpenAuth,
+  onOpenUpgrade,
+  onSignOut,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const currentLogo = theme === 'pink' ? schedyPinkLogo : schedyLogo;
@@ -126,14 +139,29 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
 
           {/* Primary "+ New" Action Button - iOS Filled Button */}
-          <button
-            onClick={handlePrimaryNewAction}
-            className="w-full flex items-center justify-center gap-2 px-3 py-1.5 text-xs font-semibold text-white bg-[#007aff] hover:bg-[#0071e3] dark:bg-[#0a84ff] dark:hover:bg-[#0077ed] rounded-xl transition-all active:scale-[0.98] cursor-pointer min-h-[32px] h-8"
-            title="Create New Item"
-          >
-            <Plus className="w-4 h-4 stroke-[2.5]" />
-            <span>{getPrimaryButtonText()}</span>
-          </button>
+          <div className="grid grid-cols-2 gap-1.5">
+            <button
+              onClick={handlePrimaryNewAction}
+              className="w-full flex items-center justify-center gap-1.5 px-2 py-1.5 text-xs font-semibold text-white bg-[#007aff] hover:bg-[#0071e3] dark:bg-[#0a84ff] dark:hover:bg-[#0077ed] rounded-xl transition-all active:scale-[0.98] cursor-pointer min-h-[32px] h-8"
+              title="Create New Item"
+            >
+              <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+              <span>{getPrimaryButtonText()}</span>
+            </button>
+
+            <button
+              onClick={() => {
+                haptics.medium();
+                onOpenAISchedule();
+              }}
+              className="w-full flex items-center justify-center px-2 py-1.5 text-xs font-semibold text-[#007aff] dark:text-[#0a84ff] bg-[#007aff]/10 hover:bg-[#007aff]/15 rounded-xl transition-all active:scale-[0.98] cursor-pointer min-h-[32px] h-8"
+              title="AI Schedule Text Importer"
+            >
+              <span>AI Import</span>
+            </button>
+
+          </div>
+
 
           {/* Vertical Segmented View Switcher */}
           <div className="space-y-1">
@@ -309,6 +337,68 @@ export const Navbar: React.FC<NavbarProps> = ({
               <span>All Clear</span>
             </button>
 
+            {/* Google Account / Pro Subscription Section */}
+            <div className="pt-1.5 border-t border-black/[0.05] dark:border-white/[0.07]">
+              {!user ? (
+                <button
+                  onClick={() => {
+                    haptics.medium();
+                    onOpenAuth();
+                  }}
+                  className="w-full flex items-center justify-center gap-2 px-2.5 py-1.5 rounded-[10px] text-xs font-semibold border border-black/[0.08] dark:border-white/[0.1] bg-white dark:bg-white/[0.05] hover:bg-neutral-50 dark:hover:bg-white/[0.08] text-neutral-800 dark:text-neutral-200 transition-all active:scale-[0.98] cursor-pointer min-h-[30px]"
+                >
+                  <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/>
+                    <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"/>
+                    <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.98 0 12s.45 3.82 1.25 5.42l4.03-3.15z"/>
+                    <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+                  </svg>
+                  <span>Sign in with Google</span>
+                </button>
+              ) : (
+                <div className="p-1.5 rounded-[10px] bg-black/[0.02] dark:bg-white/[0.04] border border-black/[0.04] dark:border-white/[0.06] flex items-center justify-between gap-1.5">
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    {user.avatarUrl ? (
+                      <img src={user.avatarUrl} alt={user.fullName} className="w-5 h-5 rounded-full shrink-0 object-cover" />
+                    ) : (
+                      <div className="w-5 h-5 rounded-full bg-neutral-200 dark:bg-neutral-700 flex items-center justify-center text-[9px] font-bold text-neutral-700 dark:text-neutral-200 shrink-0">
+                        {user.fullName?.charAt(0) || 'U'}
+                      </div>
+                    )}
+                    <div className="min-w-0">
+                      <div className="text-[10px] font-semibold text-neutral-900 dark:text-white truncate">
+                        {user.fullName}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        {user.isPro ? (
+                          <span className="px-1.5 py-0.2 text-[8px] font-bold rounded-full bg-[#007aff]/15 text-[#007aff] dark:text-[#0a84ff]">
+                            PRO
+                          </span>
+                        ) : (
+                          <button
+                            onClick={onOpenUpgrade}
+                            className="text-[9px] text-[#007aff] dark:text-[#0a84ff] font-semibold hover:underline cursor-pointer"
+                          >
+                            Upgrade
+                          </button>
+                        )}
+                      </div>
+
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={onSignOut}
+                    className="p-1 rounded-md text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-black/5 dark:hover:bg-white/10 transition-colors shrink-0 cursor-pointer"
+                    title="Sign Out"
+                  >
+                    <LogOut className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
+            </div>
+
+
           </div>
         </div>
 
@@ -337,6 +427,19 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             {/* Right Mobile Actions */}
             <div className="flex items-center gap-1.5 shrink-0">
+              {/* AI Schedule Button - iOS Pill */}
+              <button
+                onClick={() => {
+                  haptics.medium();
+                  onOpenAISchedule();
+                }}
+                className="flex items-center justify-center px-2.5 py-1 text-xs font-semibold text-[#007aff] dark:text-[#0a84ff] bg-[#007aff]/10 hover:bg-[#007aff]/15 rounded-full transition-all active:scale-95 cursor-pointer min-h-[28px] h-7"
+                title="AI Schedule Importer"
+              >
+                <span>AI</span>
+              </button>
+
+
               {/* "+ New" Action Button - iOS Pill */}
               <button
                 onClick={handlePrimaryNewAction}
@@ -346,6 +449,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
                 <span>New</span>
               </button>
+
 
               {/* Mobile Menu Button - iOS Circular Button */}
               <button
@@ -515,6 +619,61 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <span>Clear Data</span>
                 </button>
               </div>
+
+              {/* Mobile Google Account / Pro Section */}
+              <div className="pt-2 border-t border-black/[0.06] dark:border-white/[0.08]">
+                {!user ? (
+                  <button
+                    onClick={() => handleActionAndClose(onOpenAuth)}
+                    className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-xs font-semibold border border-black/[0.08] dark:border-white/[0.1] bg-white dark:bg-white/[0.05] text-neutral-800 dark:text-neutral-200 shadow-2xs"
+                  >
+                    <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24">
+                      <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/>
+                      <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"/>
+                      <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.98 0 12s.45 3.82 1.25 5.42l4.03-3.15z"/>
+                      <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+                    </svg>
+                    <span>Sign in with Google</span>
+                  </button>
+                ) : (
+                  <div className="flex items-center justify-between p-2 rounded-xl bg-black/[0.02] dark:bg-white/[0.04]">
+                    <div className="flex items-center gap-2 min-w-0">
+                      {user.avatarUrl ? (
+                        <img src={user.avatarUrl} alt={user.fullName} className="w-5 h-5 rounded-full shrink-0 object-cover" />
+                      ) : (
+                        <div className="w-5 h-5 rounded-full bg-neutral-200 dark:bg-neutral-700 flex items-center justify-center text-[9px] font-bold">
+                          {user.fullName?.charAt(0) || 'U'}
+                        </div>
+                      )}
+                      <div className="min-w-0">
+                        <p className="text-[11px] font-semibold truncate">{user.fullName}</p>
+                        <div className="flex items-center gap-1">
+                          {user.isPro ? (
+                            <span className="px-1.5 py-0.2 text-[8px] font-bold rounded-full bg-[#007aff]/15 text-[#007aff] dark:text-[#0a84ff]">
+                              PRO
+                            </span>
+                          ) : (
+                            <button
+                              onClick={() => handleActionAndClose(onOpenUpgrade)}
+                              className="text-[9px] text-[#007aff] dark:text-[#0a84ff] font-semibold hover:underline cursor-pointer"
+                            >
+                              Upgrade
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => handleActionAndClose(onSignOut)}
+                      className="p-1 text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200"
+                      title="Sign Out"
+                    >
+                      <LogOut className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                )}
+              </div>
+
             </div>
           )}
 

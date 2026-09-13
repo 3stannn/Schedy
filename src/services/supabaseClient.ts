@@ -18,8 +18,9 @@ export function normalizeSupabaseUrl(rawUrl: string): string {
    Hidden & internal. Configured via environment variables (.env).
    ========================================================================= */
 
-const FALLBACK_UNIVERSAL_URL = 'https://llmovvlrbdemeqesjpws.supabase.co';
-const FALLBACK_UNIVERSAL_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxsbW92dmxyYmRlbWVxZXNqcHdzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgxMDEwMDYsImV4cCI6MjEwMzY3NzAwNn0.m6_sKwdbplEUiPiBzjmY6FfCNoL41x2c2ZkFV6CpDAQ';
+const FALLBACK_UNIVERSAL_URL = '';
+const FALLBACK_UNIVERSAL_KEY = '';
+
 
 const universalEnvUrl = normalizeSupabaseUrl(
   (import.meta as any).env?.VITE_UNIVERSAL_SUPABASE_URL ||

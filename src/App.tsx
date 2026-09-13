@@ -23,6 +23,13 @@ import type { ToastMessage } from './components/common/Toast';
 import { PixelBuddy } from './components/common/PixelBuddy';
 import { haptics } from './utils/haptics';
 
+import type { UserProfile } from './types/auth';
+import { getCurrentUserProfile, subscribeToAuthChanges, signOutUser } from './services/authService';
+import { AuthModal } from './components/auth/AuthModal';
+import { UpgradeModal } from './components/paywall/UpgradeModal';
+import { AIScheduleModal } from './components/ai/AIScheduleModal';
+
+
 import { 
   fetchAllEvents, 
   createEvent, 
@@ -130,18 +137,24 @@ export function App() {
   const [isClearAllModalOpen, setIsClearAllModalOpen] = useState(false);
   const [initialSyncCode, setInitialSyncCode] = useState('');
 
-  // Detect ?sync= URL parameter on launch
+  // User Profile & Paid AI Modal States
+  const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
+  const [isAIScheduleModalOpen, setIsAIScheduleModalOpen] = useState(false);
+  const [reopenAIModalAfterAuth, setReopenAIModalAfterAuth] = useState(false);
+
+  // Initialize Auth & Realtime Profile updates
   useEffect(() => {
-    try {
-      const params = new URLSearchParams(window.location.search);
-      const syncParam = params.get('sync');
-      if (syncParam) {
-        setInitialSyncCode(syncParam);
-        setIsShareModalOpen(true);
-      }
-    } catch (e) {
-      console.error(e);
-    }
+    getCurrentUserProfile().then(profile => {
+      if (profile) setCurrentUser(profile);
+    });
+
+    const unsubscribe = subscribeToAuthChanges(profile => {
+      setCurrentUser(profile);
+    });
+
+    return () => unsubscribe();
   }, []);
 
   // Toasts
@@ -155,6 +168,27 @@ export function App() {
   const dismissToast = (id: string) => {
     setToasts(prev => prev.filter(t => t.id !== id));
   };
+
+  // Detect ?sync= and ?upgraded= URL parameters on launch
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const syncParam = params.get('sync');
+      if (syncParam) {
+        setInitialSyncCode(syncParam);
+        setIsShareModalOpen(true);
+      }
+
+      const upgradedParam = params.get('upgraded');
+      if (upgradedParam === 'true') {
+        addToast('success', 'Welcome to Schedy Pro!', 'Your payment was successful. Pro features are now active.');
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }, [addToast]);
+
 
   // Load Data
   const loadData = useCallback(async () => {
@@ -506,6 +540,45 @@ export function App() {
   const viewRangeEnd = addMonths(endOfMonth(new Date()), 2);
   const expandedEvents = expandRecurringEvents(events, viewRangeStart, viewRangeEnd);
 
+  // AI Scheduling & Auth Handlers
+  const handleOpenAISchedule = () => {
+    if (!currentUser) {
+      setReopenAIModalAfterAuth(true);
+      setIsAuthModalOpen(true);
+      return;
+    }
+    if (!currentUser.isPro && currentUser.aiCreditsRemaining <= 0) {
+      setIsUpgradeModalOpen(true);
+      return;
+    }
+    setIsAIScheduleModalOpen(true);
+  };
+
+  const handleImportAIEvents = async (importedEvents: ScheduleEvent[]) => {
+    try {
+      await bulkSaveEvents(importedEvents, 'merge');
+      setEvents(prev => [...prev, ...importedEvents]);
+
+      addToast(
+        'success',
+        'AI Schedule Imported',
+        `Successfully added ${importedEvents.length} event${importedEvents.length > 1 ? 's' : ''} to your schedule!`
+      );
+      getCurrentUserProfile().then(p => {
+        if (p) setCurrentUser(p);
+      });
+    } catch (err: any) {
+      console.error('Failed to save imported events:', err);
+      addToast('error', 'Import Failed', err.message);
+    }
+  };
+
+  const handleSignOut = async () => {
+    await signOutUser();
+    setCurrentUser(null);
+    addToast('info', 'Signed Out', 'You have been signed out.');
+  };
+
   return (
     <div className="min-h-screen bg-[#f2f2f7] dark:bg-[#000000] text-black dark:text-white flex flex-col font-sans transition-colors duration-300">
       
@@ -542,7 +615,13 @@ export function App() {
           setIsEventModalOpen(true);
         }}
         pomodoroInfo={pomodoroInfo}
+        onOpenAISchedule={handleOpenAISchedule}
+        user={currentUser}
+        onOpenAuth={() => setIsAuthModalOpen(true)}
+        onOpenUpgrade={() => setIsUpgradeModalOpen(true)}
+        onSignOut={handleSignOut}
       />
+
 
       {/* Main Content Area (Offset for desktop fixed sidebar) */}
       <div className="flex-1 flex flex-col min-w-0 md:pl-60 lg:pl-64 transition-all">
@@ -839,8 +918,53 @@ export function App() {
         notesCount={notes.length}
       />
 
+      {/* Auth & Paid AI Modals */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => {
+          setIsAuthModalOpen(false);
+          setReopenAIModalAfterAuth(false);
+        }}
+        onSuccess={() => {
+          setIsAuthModalOpen(false);
+          getCurrentUserProfile().then(p => {
+            if (p) {
+              setCurrentUser(p);
+              if (reopenAIModalAfterAuth) {
+                setReopenAIModalAfterAuth(false);
+                setIsAIScheduleModalOpen(true);
+              }
+            }
+          });
+        }}
+      />
+
+      <UpgradeModal
+        isOpen={isUpgradeModalOpen}
+        onClose={() => setIsUpgradeModalOpen(false)}
+        user={currentUser}
+      />
+
+      <AIScheduleModal
+        isOpen={isAIScheduleModalOpen}
+        onClose={() => setIsAIScheduleModalOpen(false)}
+        onImportEvents={handleImportAIEvents}
+        user={currentUser}
+        onUserUpdated={(updatedUser) => setCurrentUser(updatedUser)}
+        onRequireUpgrade={() => {
+          setIsAIScheduleModalOpen(false);
+          setIsUpgradeModalOpen(true);
+        }}
+        onRequireAuth={() => {
+          setIsAIScheduleModalOpen(false);
+          setReopenAIModalAfterAuth(true);
+          setIsAuthModalOpen(true);
+        }}
+      />
+
       {/* Toast Notification Container */}
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
+
 
     </div>
   );

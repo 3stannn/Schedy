@@ -39,13 +39,15 @@ function mapAnnouncementToRow(anno: Announcement): Partial<DatabaseAnnouncementR
   };
 }
 
-const FALLBACK_DEV_PASS = 's8JUzc5rMsmPp3ombM21RQ@Dev2026!';
+const FALLBACK_DEV_PASS = '';
 
 export function verifyDevPassword(input: string): boolean {
   if (!input) return false;
-  const configuredPass = (import.meta as any).env?.VITE_DEV_PASSWORD || FALLBACK_DEV_PASS;
-  return input.trim() === configuredPass.trim();
+  const configuredPass = ((import.meta as any).env?.VITE_DEV_PASSWORD || FALLBACK_DEV_PASS).trim();
+  if (!configuredPass) return false;
+  return input.trim() === configuredPass;
 }
+
 
 const isUUID = (str?: string): boolean =>
   typeof str === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
