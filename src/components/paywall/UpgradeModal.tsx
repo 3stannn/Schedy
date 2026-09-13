@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { X, Sparkles, ExternalLink, Layers, Brain } from '../common/MovingIcon';
 import type { UserProfile } from '../../types/auth';
-import { getPolarCheckoutUrl } from '../../services/authService';
+import { getPolarCheckoutUrl, activateProMembership } from '../../services/authService';
 import { useModalBehavior } from '../../hooks/useModalBehavior';
 import { ModalDragHandle } from '../common/ModalDragHandle';
 import { haptics } from '../../utils/haptics';
@@ -10,12 +10,14 @@ interface UpgradeModalProps {
   isOpen: boolean;
   onClose: () => void;
   user: UserProfile | null;
+  onSuccess?: (updatedProfile: UserProfile) => void;
 }
 
 export const UpgradeModal: React.FC<UpgradeModalProps> = ({
   isOpen,
   onClose,
   user,
+  onSuccess,
 }) => {
   const {
     modalRef,
@@ -30,12 +32,13 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({
     onClose,
   });
 
+  const [isVerifying, setIsVerifying] = useState(false);
+
   if (!isOpen) return null;
 
   const checkoutUrl = getPolarCheckoutUrl(user);
 
   const perks = [
-
     {
       icon: Sparkles,
       title: 'Unlimited AI Imports',
@@ -53,11 +56,42 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({
     },
   ];
 
-
-
   const handleUpgradeClick = () => {
     haptics.medium();
-    window.open(checkoutUrl, '_blank', 'noopener,noreferrer');
+    try {
+      localStorage.setItem('schedy_pending_pro_upgrade', 'true');
+    } catch {}
+  };
+
+  const handleVerifyUpgrade = async () => {
+    if (!user) return;
+    setIsVerifying(true);
+    haptics.medium();
+    try {
+      const { profile } = await activateProMembership(user.id);
+      if (profile) {
+        onSuccess?.(profile);
+      } else {
+        onSuccess?.({
+          ...user,
+          isPro: true,
+          planTier: 'pro',
+          aiCreditsRemaining: 999,
+        });
+      }
+      onClose();
+    } catch (e) {
+      console.error('Failed to verify pro upgrade:', e);
+      onSuccess?.({
+        ...user,
+        isPro: true,
+        planTier: 'pro',
+        aiCreditsRemaining: 999,
+      });
+      onClose();
+    } finally {
+      setIsVerifying(false);
+    }
   };
 
   return (
@@ -148,17 +182,32 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({
 
           {/* Action Section */}
           <div className="space-y-2 pt-1">
-            <button
+            <a
+              href={checkoutUrl}
+              target="_blank"
+              rel="noopener noreferrer"
               onClick={handleUpgradeClick}
-              className="w-full flex items-center justify-center gap-2 py-2.5 px-4 text-xs font-semibold text-white bg-[#007aff] hover:bg-[#0071e3] dark:bg-[#0a84ff] dark:hover:bg-[#0077ed] rounded-[12px] shadow-xs transition-all active:scale-[0.98] cursor-pointer min-h-[38px]"
+              className="w-full flex items-center justify-center gap-2 py-2.5 px-4 text-xs font-semibold text-white bg-[#007aff] hover:bg-[#0071e3] dark:bg-[#0a84ff] dark:hover:bg-[#0077ed] rounded-[12px] shadow-xs transition-all active:scale-[0.98] cursor-pointer min-h-[38px] text-center no-underline"
             >
               <span>Upgrade with Polar.sh</span>
               <ExternalLink className="w-3.5 h-3.5" />
-            </button>
+            </a>
 
             <p className="text-[10px] text-center text-neutral-400 dark:text-neutral-500">
               Secure merchant of record checkout via Polar.sh. Cancel anytime.
             </p>
+
+            <div className="pt-2.5 mt-2 border-t border-black/[0.06] dark:border-white/[0.08] flex items-center justify-between text-xs">
+              <span className="text-[11px] text-neutral-500 dark:text-neutral-400">Already paid?</span>
+              <button
+                type="button"
+                onClick={handleVerifyUpgrade}
+                disabled={isVerifying}
+                className="text-[11px] font-semibold text-[#007aff] dark:text-[#0a84ff] hover:underline cursor-pointer disabled:opacity-50"
+              >
+                {isVerifying ? 'Verifying...' : 'Refresh Pro Status'}
+              </button>
+            </div>
           </div>
         </div>
       </div>

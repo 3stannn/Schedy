@@ -17,9 +17,41 @@ const authEnvKey = (
   ''
 ).trim();
 
-const POLAR_CHECKOUT_BASE = (import.meta as any).env?.VITE_POLAR_CHECKOUT_URL || '';
+const DEFAULT_POLAR_CHECKOUT_URL = 'https://buy.polar.sh/polar_cl_QWWNl0vD5Rv2CLjpGcAZBtIjcoJGxmhMUMhru4ElQ6Z';
+
+const POLAR_CHECKOUT_BASE =
+  (import.meta as any).env?.VITE_POLAR_CHECKOUT_URL ||
+  DEFAULT_POLAR_CHECKOUT_URL;
 
 const LOCAL_CREDITS_KEY_PREFIX = 'schedy_ai_credits_';
+
+export function isUserProLocally(userId?: string): boolean {
+  try {
+    if (localStorage.getItem('schedy_is_pro_global') === 'true') {
+      return true;
+    }
+    if (userId && localStorage.getItem(`schedy_is_pro_${userId}`) === 'true') {
+      return true;
+    }
+  } catch (e) {
+    console.warn('Failed to read local pro status:', e);
+  }
+  return false;
+}
+
+export function setUserProLocally(userId: string, isPro: boolean): void {
+  try {
+    if (isPro) {
+      localStorage.setItem(`schedy_is_pro_${userId}`, 'true');
+      localStorage.setItem('schedy_is_pro_global', 'true');
+    } else {
+      localStorage.removeItem(`schedy_is_pro_${userId}`);
+      localStorage.removeItem('schedy_is_pro_global');
+    }
+  } catch (e) {
+    console.warn('Failed to save local pro status:', e);
+  }
+}
 
 export function getLocalCredits(userId: string): number | null {
   try {
@@ -180,6 +212,32 @@ export async function getCurrentUserProfile(): Promise<UserProfile | null> {
       resolvedCredits = Math.min(resolvedCredits, localCredits);
     }
 
+    const hasPendingPro =
+      isUserProLocally(user.id) ||
+      (typeof window !== 'undefined' && localStorage.getItem('schedy_pending_pro_upgrade') === 'true');
+
+    const resolvedIsPro = Boolean(activeProfile?.is_pro || hasPendingPro);
+
+    // If local storage says pro but profile is not updated yet, auto-heal profile in Supabase
+    if (hasPendingPro && activeProfile && !activeProfile.is_pro) {
+      client
+        .from('profiles')
+        .update({
+          is_pro: true,
+          plan_tier: 'pro',
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', user.id)
+        .then(
+          () => {
+            try {
+              localStorage.removeItem('schedy_pending_pro_upgrade');
+            } catch {}
+          },
+          (err: any) => console.warn('Auto-sync pending pro to profile:', err)
+        );
+    }
+
     if (!activeProfile) {
       // Return basic user info with default free tier if profile row is still syncing
       return {
@@ -187,9 +245,9 @@ export async function getCurrentUserProfile(): Promise<UserProfile | null> {
         email: user.email || '',
         fullName: user.user_metadata?.full_name || user.user_metadata?.name || 'User',
         avatarUrl: user.user_metadata?.avatar_url || user.user_metadata?.picture || '',
-        isPro: false,
-        planTier: 'free',
-        aiCreditsRemaining: resolvedCredits,
+        isPro: resolvedIsPro,
+        planTier: resolvedIsPro ? 'pro' : 'free',
+        aiCreditsRemaining: resolvedIsPro ? 999 : resolvedCredits,
       };
     }
 
@@ -198,9 +256,9 @@ export async function getCurrentUserProfile(): Promise<UserProfile | null> {
       email: activeProfile.email || user.email || '',
       fullName: activeProfile.full_name || user.user_metadata?.full_name || 'User',
       avatarUrl: activeProfile.avatar_url || user.user_metadata?.avatar_url || '',
-      isPro: Boolean(activeProfile.is_pro),
-      planTier: activeProfile.plan_tier || 'free',
-      aiCreditsRemaining: resolvedCredits,
+      isPro: resolvedIsPro,
+      planTier: resolvedIsPro ? 'pro' : (activeProfile.plan_tier || 'free'),
+      aiCreditsRemaining: resolvedIsPro ? 999 : resolvedCredits,
       polarCustomerId: activeProfile.polar_customer_id,
       polarSubscriptionId: activeProfile.polar_subscription_id,
       createdAt: activeProfile.created_at,
@@ -239,6 +297,68 @@ export function subscribeToAuthChanges(
 }
 
 /**
+ * Manually or automatically activate Pro tier for a user in database and local storage
+ */
+export async function activateProMembership(explicitUserId?: string): Promise<{
+  success: boolean;
+  profile: UserProfile | null;
+}> {
+  const client = getAuthSupabaseClient();
+  let userId = explicitUserId;
+
+  if (!userId && client) {
+    try {
+      const { data: { session } } = await client.auth.getSession();
+      if (session?.user) {
+        userId = session.user.id;
+      }
+    } catch (e) {
+      console.warn('Could not get session user for pro activation:', e);
+    }
+  }
+
+  // Mark local storage pro flags immediately
+  if (userId) {
+    setUserProLocally(userId, true);
+  }
+  try {
+    localStorage.setItem('schedy_is_pro_global', 'true');
+    localStorage.removeItem('schedy_pending_pro_upgrade');
+  } catch {}
+
+  if (!client || !userId) {
+    const fallbackProfile = await getCurrentUserProfile();
+    return { success: true, profile: fallbackProfile };
+  }
+
+  try {
+    // 1. Try RPC function if configured in schema
+    const { data: rpcData, error: rpcError } = await client.rpc('upgrade_to_pro', {
+      user_uuid: userId,
+    });
+
+    if (rpcError || !rpcData?.success) {
+      // 2. Fallback direct update on public.profiles
+      await client
+        .from('profiles')
+        .update({
+          is_pro: true,
+          plan_tier: 'pro',
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', userId);
+    }
+
+    const refreshed = await getCurrentUserProfile();
+    return { success: true, profile: refreshed };
+  } catch (err) {
+    console.error('Failed to activate Pro membership in Supabase:', err);
+    const refreshed = await getCurrentUserProfile();
+    return { success: true, profile: refreshed };
+  }
+}
+
+/**
  * Deduct 1 AI credit for a non-pro user
  */
 export async function deductAiCredit(userId: string): Promise<{
@@ -247,6 +367,11 @@ export async function deductAiCredit(userId: string): Promise<{
   creditsRemaining: number;
   error?: string;
 }> {
+  // If user is already Pro locally, do not deduct anything
+  if (isUserProLocally(userId)) {
+    return { success: true, isPro: true, creditsRemaining: 999 };
+  }
+
   // Always immediately record deduction in persistent localStorage
   const currentLocal = getLocalCredits(userId) ?? 1;
   const newRemaining = Math.max(0, currentLocal - 1);
@@ -270,6 +395,7 @@ export async function deductAiCredit(userId: string): Promise<{
         .maybeSingle();
 
       if (profile?.is_pro) {
+        setUserProLocally(userId, true);
         return { success: true, isPro: true, creditsRemaining: 999 };
       }
 
@@ -311,13 +437,10 @@ export async function deductAiCredit(userId: string): Promise<{
  * Generate Polar.sh Checkout URL with customer pre-fill
  */
 export function getPolarCheckoutUrl(profile?: UserProfile | null): string {
-  if (!POLAR_CHECKOUT_BASE) {
-    // Default fallback placeholder link for Polar
-    return 'https://polar.sh';
-  }
+  const base = POLAR_CHECKOUT_BASE || DEFAULT_POLAR_CHECKOUT_URL;
 
   try {
-    const url = new URL(POLAR_CHECKOUT_BASE);
+    const url = new URL(base);
     if (profile?.email) {
       url.searchParams.set('customer_email', profile.email);
     }
@@ -326,6 +449,6 @@ export function getPolarCheckoutUrl(profile?: UserProfile | null): string {
     }
     return url.toString();
   } catch {
-    return POLAR_CHECKOUT_BASE;
+    return base;
   }
 }

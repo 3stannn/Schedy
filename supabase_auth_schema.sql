@@ -118,6 +118,28 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- 5b. Helper Function: Activate Pro Membership
+CREATE OR REPLACE FUNCTION public.upgrade_to_pro(user_uuid UUID, customer_id TEXT DEFAULT NULL, subscription_id TEXT DEFAULT NULL)
+RETURNS JSONB 
+SECURITY DEFINER SET search_path = public
+AS $$
+BEGIN
+    UPDATE public.profiles 
+    SET is_pro = true,
+        plan_tier = 'pro',
+        polar_customer_id = COALESCE(customer_id, polar_customer_id),
+        polar_subscription_id = COALESCE(subscription_id, polar_subscription_id),
+        updated_at = now()
+    WHERE id = user_uuid;
+
+    IF NOT FOUND THEN
+        RETURN jsonb_build_object('success', false, 'error', 'Profile not found');
+    END IF;
+
+    RETURN jsonb_build_object('success', true, 'is_pro', true, 'plan_tier', 'pro');
+END;
+$$ LANGUAGE plpgsql;
+
 -- =============================================================================
 -- 6. BACKFILL EXISTING USERS (Crucial for existing Google logins)
 -- Run this to immediately insert any accounts already created in auth.users!
