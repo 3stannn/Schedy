@@ -140,6 +140,68 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- 5c. Helper Function: Downgrade from Pro (Subscription canceled / revoked)
+CREATE OR REPLACE FUNCTION public.downgrade_from_pro(
+    user_uuid UUID DEFAULT NULL, 
+    user_email TEXT DEFAULT NULL, 
+    sub_id TEXT DEFAULT NULL
+)
+RETURNS JSONB 
+SECURITY DEFINER SET search_path = public
+AS $$
+DECLARE
+    affected_rows INT;
+BEGIN
+    UPDATE public.profiles 
+    SET is_pro = false,
+        plan_tier = 'free',
+        updated_at = now()
+    WHERE (user_uuid IS NOT NULL AND id = user_uuid)
+       OR (sub_id IS NOT NULL AND polar_subscription_id = sub_id)
+       OR (user_email IS NOT NULL AND LOWER(email) = LOWER(user_email));
+
+    GET DIAGNOSTICS affected_rows = ROW_COUNT;
+
+    IF affected_rows = 0 THEN
+        RETURN jsonb_build_object('success', false, 'error', 'No matching profile found to downgrade');
+    END IF;
+
+    RETURN jsonb_build_object('success', true, 'is_pro', false, 'plan_tier', 'free', 'affected_rows', affected_rows);
+END;
+$$ LANGUAGE plpgsql;
+
+-- 5d. Helper Function: Upgrade to Pro by Email or UUID
+CREATE OR REPLACE FUNCTION public.upgrade_to_pro_by_identifier(
+    user_uuid UUID DEFAULT NULL,
+    user_email TEXT DEFAULT NULL,
+    customer_id TEXT DEFAULT NULL, 
+    subscription_id TEXT DEFAULT NULL
+)
+RETURNS JSONB 
+SECURITY DEFINER SET search_path = public
+AS $$
+DECLARE
+    affected_rows INT;
+BEGIN
+    UPDATE public.profiles 
+    SET is_pro = true,
+        plan_tier = 'pro',
+        polar_customer_id = COALESCE(customer_id, polar_customer_id),
+        polar_subscription_id = COALESCE(subscription_id, polar_subscription_id),
+        updated_at = now()
+    WHERE (user_uuid IS NOT NULL AND id = user_uuid)
+       OR (user_email IS NOT NULL AND LOWER(email) = LOWER(user_email));
+
+    GET DIAGNOSTICS affected_rows = ROW_COUNT;
+
+    IF affected_rows = 0 THEN
+        RETURN jsonb_build_object('success', false, 'error', 'No matching profile found to upgrade');
+    END IF;
+
+    RETURN jsonb_build_object('success', true, 'is_pro', true, 'plan_tier', 'pro', 'affected_rows', affected_rows);
+END;
+$$ LANGUAGE plpgsql;
+
 -- =============================================================================
 -- 6. BACKFILL EXISTING USERS (Crucial for existing Google logins)
 -- Run this to immediately insert any accounts already created in auth.users!
