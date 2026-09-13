@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { X, Sparkles, ExternalLink, Layers, Brain } from '../common/MovingIcon';
+import { X, ExternalLink } from '../common/MovingIcon';
 import type { UserProfile } from '../../types/auth';
-import { getPolarCheckoutUrl, activateProMembership } from '../../services/authService';
+import { getPolarCheckoutUrl, getCurrentUserProfile } from '../../services/authService';
 import { useModalBehavior } from '../../hooks/useModalBehavior';
 import { ModalDragHandle } from '../common/ModalDragHandle';
 import { haptics } from '../../utils/haptics';
@@ -33,62 +33,32 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({
   });
 
   const [isVerifying, setIsVerifying] = useState(false);
+  const [verifyNotice, setVerifyNotice] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
   const checkoutUrl = getPolarCheckoutUrl(user);
 
-  const perks = [
-    {
-      icon: Sparkles,
-      title: 'Unlimited AI Imports',
-      desc: 'No credit limits. Import as many syllabi, exam schedules, and reminder lists as you need.',
-    },
-    {
-      icon: Layers,
-      title: 'Long Document & Multi-Week Parsing',
-      desc: 'Extract and distribute full semester syllabi, multi-day exam blocks, and complex schedules.',
-    },
-    {
-      icon: Brain,
-      title: 'Uncapped AI Access',
-      desc: 'Continuous access to Gemini AI text-to-calendar distribution with zero interruptions.',
-    },
-  ];
-
   const handleUpgradeClick = () => {
     haptics.medium();
-    try {
-      localStorage.setItem('schedy_pending_pro_upgrade', 'true');
-    } catch {}
   };
 
   const handleVerifyUpgrade = async () => {
     if (!user) return;
     setIsVerifying(true);
+    setVerifyNotice(null);
     haptics.medium();
     try {
-      const { profile } = await activateProMembership(user.id);
-      if (profile) {
-        onSuccess?.(profile);
+      const refreshed = await getCurrentUserProfile();
+      if (refreshed?.isPro) {
+        onSuccess?.(refreshed);
+        onClose();
       } else {
-        onSuccess?.({
-          ...user,
-          isPro: true,
-          planTier: 'pro',
-          aiCreditsRemaining: 999,
-        });
+        setVerifyNotice('No confirmed payment found yet. Please complete checkout on Polar.sh first.');
       }
-      onClose();
     } catch (e) {
       console.error('Failed to verify pro upgrade:', e);
-      onSuccess?.({
-        ...user,
-        isPro: true,
-        planTier: 'pro',
-        aiCreditsRemaining: 999,
-      });
-      onClose();
+      setVerifyNotice('Could not verify status. Please try again.');
     } finally {
       setIsVerifying(false);
     }
@@ -158,28 +128,6 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({
             </p>
           </div>
 
-          {/* Perks Grouped Card */}
-          <div className="p-2 rounded-[16px] bg-black/[0.03] dark:bg-white/[0.05] border border-black/[0.05] dark:border-white/[0.08] divide-y divide-black/[0.04] dark:divide-white/[0.06]">
-            {perks.map((perk, i) => {
-              const Icon = perk.icon;
-              return (
-                <div key={i} className="flex items-start gap-3 p-2.5">
-                  <div className="p-1.5 rounded-lg bg-[#007aff]/10 text-[#007aff] dark:text-[#0a84ff] shrink-0 mt-0.5">
-                    <Icon className="w-3.5 h-3.5" />
-                  </div>
-                  <div className="min-w-0">
-                    <h4 className="text-xs font-semibold text-neutral-900 dark:text-white">
-                      {perk.title}
-                    </h4>
-                    <p className="text-[11px] text-neutral-500 dark:text-neutral-400 leading-normal mt-0.5">
-                      {perk.desc}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
           {/* Action Section */}
           <div className="space-y-2 pt-1">
             <a
@@ -205,9 +153,15 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({
                 disabled={isVerifying}
                 className="text-[11px] font-semibold text-[#007aff] dark:text-[#0a84ff] hover:underline cursor-pointer disabled:opacity-50"
               >
-                {isVerifying ? 'Verifying...' : 'Refresh Pro Status'}
+                {isVerifying ? 'Checking...' : 'Refresh Pro Status'}
               </button>
             </div>
+
+            {verifyNotice && (
+              <p className="text-[11px] text-[#ff3b30] dark:text-[#ff453a] text-center pt-1 font-medium leading-tight">
+                {verifyNotice}
+              </p>
+            )}
           </div>
         </div>
       </div>

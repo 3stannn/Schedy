@@ -24,7 +24,7 @@ import { PixelBuddy } from './components/common/PixelBuddy';
 import { haptics } from './utils/haptics';
 
 import type { UserProfile } from './types/auth';
-import { getCurrentUserProfile, subscribeToAuthChanges, signOutUser, activateProMembership } from './services/authService';
+import { getCurrentUserProfile, subscribeToAuthChanges, signOutUser, activateProMembership, resetProStatus } from './services/authService';
 import { AuthModal } from './components/auth/AuthModal';
 import { UpgradeModal } from './components/paywall/UpgradeModal';
 import { AIScheduleModal } from './components/ai/AIScheduleModal';
@@ -169,7 +169,7 @@ export function App() {
     setToasts(prev => prev.filter(t => t.id !== id));
   };
 
-  // Detect ?sync= and ?upgraded= / checkout return parameters on launch
+  // Detect ?sync=, ?reset_pro=, and ?upgraded= on launch
   useEffect(() => {
     try {
       const params = new URLSearchParams(window.location.search);
@@ -179,41 +179,34 @@ export function App() {
         setIsShareModalOpen(true);
       }
 
-      const isUpgradedParam =
+      const resetParam = params.get('reset_pro');
+      if (resetParam === 'true') {
+        window.history.replaceState({}, document.title, window.location.pathname);
+        resetProStatus().then((p) => {
+          if (p) setCurrentUser(p);
+          addToast('info', 'Status Reset', 'Your account has been reset to the Free tier (0 AI credits).');
+        });
+      }
+
+      // Trigger activation when returning from Polar checkout
+      const isCheckoutReturn =
         params.get('upgraded') === 'true' ||
         params.has('checkout_id') ||
-        params.has('customer_session_token') ||
         params.get('status') === 'success';
 
-      if (isUpgradedParam) {
-        // Clean URL parameter without reloading page
+      if (isCheckoutReturn) {
         window.history.replaceState({}, document.title, window.location.pathname);
-
-        // Store pending pro upgrade flag in local storage
-        try {
-          localStorage.setItem('schedy_pending_pro_upgrade', 'true');
-          localStorage.setItem('schedy_is_pro_global', 'true');
-        } catch {}
-
-        // Activate Pro membership immediately
-        activateProMembership().then(({ profile }) => {
-          if (profile) {
+        activateProMembership().then(({ success, profile }) => {
+          if (success && profile && profile.isPro) {
             setCurrentUser(profile);
-          } else {
-            setCurrentUser(prev => prev ? { ...prev, isPro: true, planTier: 'pro', aiCreditsRemaining: 999 } : null);
+            setIsUpgradeModalOpen(false);
+            addToast(
+              'success',
+              'Welcome to Schedy Pro!',
+              'Your payment was verified. Pro features and unlimited AI imports are now unlocked!'
+            );
           }
-          setIsUpgradeModalOpen(false);
-          addToast(
-            'success',
-            'Welcome to Schedy Pro!',
-            'Your payment was verified. Pro features and unlimited AI imports are now unlocked!'
-          );
-        }).catch((err) => {
-          console.error('Error auto-activating pro after checkout:', err);
-          setCurrentUser(prev => prev ? { ...prev, isPro: true, planTier: 'pro', aiCreditsRemaining: 999 } : null);
-          setIsUpgradeModalOpen(false);
-          addToast('success', 'Welcome to Schedy Pro!', 'Pro features are now active.');
-        });
+        }).catch(console.error);
       }
     } catch (e) {
       console.error(e);

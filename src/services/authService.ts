@@ -2,19 +2,19 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import type { UserProfile } from '../types/auth';
 import { normalizeSupabaseUrl } from './supabaseClient';
 
-// Dedicated Supabase Auth credentials
+// Dedicated Supabase Auth credentials (schedy-pro-db)
+const FALLBACK_AUTH_URL = 'https://bakikqtlyccvsknwazpm.supabase.co';
+const FALLBACK_AUTH_KEY =
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJha2lrcXRseWNjdnNrbndhenBtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkyNjY1MDIsImV4cCI6MjEwNDg0MjUwMn0.PfLAXqRb_TzhU-E2GTWNJ4PuUbDnBSCt_lTs8BBtIjo';
+
 const authEnvUrl = normalizeSupabaseUrl(
   (import.meta as any).env?.VITE_AUTH_SUPABASE_URL ||
-  (import.meta as any).env?.VITE_UNIVERSAL_SUPABASE_URL ||
-  (import.meta as any).env?.VITE_SUPABASE_URL ||
-  ''
+  FALLBACK_AUTH_URL
 );
 
 const authEnvKey = (
   (import.meta as any).env?.VITE_AUTH_SUPABASE_ANON_KEY ||
-  (import.meta as any).env?.VITE_UNIVERSAL_SUPABASE_ANON_KEY ||
-  (import.meta as any).env?.VITE_SUPABASE_ANON_KEY ||
-  ''
+  FALLBACK_AUTH_KEY
 ).trim();
 
 const DEFAULT_POLAR_CHECKOUT_URL = 'https://buy.polar.sh/polar_cl_QWWNl0vD5Rv2CLjpGcAZBtIjcoJGxmhMUMhru4ElQ6Z';
@@ -24,34 +24,6 @@ const POLAR_CHECKOUT_BASE =
   DEFAULT_POLAR_CHECKOUT_URL;
 
 const LOCAL_CREDITS_KEY_PREFIX = 'schedy_ai_credits_';
-
-export function isUserProLocally(userId?: string): boolean {
-  try {
-    if (localStorage.getItem('schedy_is_pro_global') === 'true') {
-      return true;
-    }
-    if (userId && localStorage.getItem(`schedy_is_pro_${userId}`) === 'true') {
-      return true;
-    }
-  } catch (e) {
-    console.warn('Failed to read local pro status:', e);
-  }
-  return false;
-}
-
-export function setUserProLocally(userId: string, isPro: boolean): void {
-  try {
-    if (isPro) {
-      localStorage.setItem(`schedy_is_pro_${userId}`, 'true');
-      localStorage.setItem('schedy_is_pro_global', 'true');
-    } else {
-      localStorage.removeItem(`schedy_is_pro_${userId}`);
-      localStorage.removeItem('schedy_is_pro_global');
-    }
-  } catch (e) {
-    console.warn('Failed to save local pro status:', e);
-  }
-}
 
 export function getLocalCredits(userId: string): number | null {
   try {
@@ -212,31 +184,17 @@ export async function getCurrentUserProfile(): Promise<UserProfile | null> {
       resolvedCredits = Math.min(resolvedCredits, localCredits);
     }
 
-    const hasPendingPro =
-      isUserProLocally(user.id) ||
-      (typeof window !== 'undefined' && localStorage.getItem('schedy_pending_pro_upgrade') === 'true');
+    // Clean up any stale test flags from localStorage
+    try {
+      localStorage.removeItem('schedy_pending_pro_upgrade');
+      localStorage.removeItem('schedy_is_pro_global');
+      if (user?.id) {
+        localStorage.removeItem(`schedy_is_pro_${user.id}`);
+      }
+    } catch {}
 
-    const resolvedIsPro = Boolean(activeProfile?.is_pro || hasPendingPro);
-
-    // If local storage says pro but profile is not updated yet, auto-heal profile in Supabase
-    if (hasPendingPro && activeProfile && !activeProfile.is_pro) {
-      client
-        .from('profiles')
-        .update({
-          is_pro: true,
-          plan_tier: 'pro',
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', user.id)
-        .then(
-          () => {
-            try {
-              localStorage.removeItem('schedy_pending_pro_upgrade');
-            } catch {}
-          },
-          (err: any) => console.warn('Auto-sync pending pro to profile:', err)
-        );
-    }
+    // Strict single source of truth: Supabase profiles.is_pro column
+    const resolvedIsPro = Boolean(activeProfile?.is_pro);
 
     if (!activeProfile) {
       // Return basic user info with default free tier if profile row is still syncing
@@ -297,7 +255,7 @@ export function subscribeToAuthChanges(
 }
 
 /**
- * Manually or automatically activate Pro tier for a user in database and local storage
+ * Activate Pro tier in database for a user (called upon verified payment return)
  */
 export async function activateProMembership(explicitUserId?: string): Promise<{
   success: boolean;
@@ -317,18 +275,9 @@ export async function activateProMembership(explicitUserId?: string): Promise<{
     }
   }
 
-  // Mark local storage pro flags immediately
-  if (userId) {
-    setUserProLocally(userId, true);
-  }
-  try {
-    localStorage.setItem('schedy_is_pro_global', 'true');
-    localStorage.removeItem('schedy_pending_pro_upgrade');
-  } catch {}
-
   if (!client || !userId) {
     const fallbackProfile = await getCurrentUserProfile();
-    return { success: true, profile: fallbackProfile };
+    return { success: false, profile: fallbackProfile };
   }
 
   try {
@@ -354,8 +303,54 @@ export async function activateProMembership(explicitUserId?: string): Promise<{
   } catch (err) {
     console.error('Failed to activate Pro membership in Supabase:', err);
     const refreshed = await getCurrentUserProfile();
-    return { success: true, profile: refreshed };
+    return { success: false, profile: refreshed };
   }
+}
+
+/**
+ * Reset Pro status back to Free tier (useful for testing checkout flows)
+ */
+export async function resetProStatus(explicitUserId?: string): Promise<UserProfile | null> {
+  const client = getAuthSupabaseClient();
+  let userId = explicitUserId;
+
+  if (!userId && client) {
+    try {
+      const { data: { session } } = await client.auth.getSession();
+      if (session?.user) {
+        userId = session.user.id;
+      }
+    } catch (e) {
+      console.warn('Could not get session user for pro reset:', e);
+    }
+  }
+
+  try {
+    localStorage.removeItem('schedy_pending_pro_upgrade');
+    localStorage.removeItem('schedy_is_pro_global');
+    if (userId) {
+      localStorage.removeItem(`schedy_is_pro_${userId}`);
+      localStorage.setItem(`schedy_ai_credits_${userId}`, '0');
+    }
+  } catch {}
+
+  if (client && userId) {
+    try {
+      await client
+        .from('profiles')
+        .update({
+          is_pro: false,
+          plan_tier: 'free',
+          ai_credits_remaining: 0,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', userId);
+    } catch (e) {
+      console.error('Failed to reset pro status in Supabase:', e);
+    }
+  }
+
+  return getCurrentUserProfile();
 }
 
 /**
@@ -367,11 +362,6 @@ export async function deductAiCredit(userId: string): Promise<{
   creditsRemaining: number;
   error?: string;
 }> {
-  // If user is already Pro locally, do not deduct anything
-  if (isUserProLocally(userId)) {
-    return { success: true, isPro: true, creditsRemaining: 999 };
-  }
-
   // Always immediately record deduction in persistent localStorage
   const currentLocal = getLocalCredits(userId) ?? 1;
   const newRemaining = Math.max(0, currentLocal - 1);
@@ -387,7 +377,7 @@ export async function deductAiCredit(userId: string): Promise<{
     const { data, error } = await client.rpc('use_ai_credit', { user_uuid: userId });
 
     if (error) {
-      // Fallback: direct update if RPC doesn't exist
+      // Fallback: direct query to check if user is already Pro in Supabase
       const { data: profile } = await client
         .from('profiles')
         .select('is_pro, ai_credits_remaining')
@@ -395,7 +385,6 @@ export async function deductAiCredit(userId: string): Promise<{
         .maybeSingle();
 
       if (profile?.is_pro) {
-        setUserProLocally(userId, true);
         return { success: true, isPro: true, creditsRemaining: 999 };
       }
 
