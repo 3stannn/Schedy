@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { X, ExternalLink } from '../common/MovingIcon';
 import type { UserProfile } from '../../types/auth';
-import { getPolarCheckoutUrl, getCurrentUserProfile } from '../../services/authService';
+import { getPolarCheckoutUrl, syncSubscriptionWithPolar } from '../../services/authService';
 import { useModalBehavior } from '../../hooks/useModalBehavior';
 import { ModalDragHandle } from '../common/ModalDragHandle';
 import { haptics } from '../../utils/haptics';
@@ -49,12 +49,13 @@ export const UpgradeModal: React.FC<UpgradeModalProps> = ({
     setVerifyNotice(null);
     haptics.medium();
     try {
-      const refreshed = await getCurrentUserProfile();
-      if (refreshed?.isPro) {
-        onSuccess?.(refreshed);
+      // Trigger active server sync with Polar / Supabase
+      const { isPro, profile } = await syncSubscriptionWithPolar(user.email, user.id);
+      if (isPro && profile) {
+        onSuccess?.(profile);
         onClose();
       } else {
-        setVerifyNotice('No confirmed payment found yet. Please complete checkout on Polar.sh first.');
+        setVerifyNotice('No confirmed active subscription found yet. If you just completed payment, please wait a moment and try again.');
       }
     } catch (e) {
       console.error('Failed to verify pro upgrade:', e);

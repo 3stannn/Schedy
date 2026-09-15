@@ -255,6 +255,71 @@ export function subscribeToAuthChanges(
 }
 
 /**
+ * Request server-side sync of subscription state between Polar and Supabase
+ */
+export async function syncSubscriptionWithPolar(email?: string, userId?: string): Promise<{
+  success: boolean;
+  isPro: boolean;
+  profile: UserProfile | null;
+}> {
+  try {
+    const client = getAuthSupabaseClient();
+    let effectiveEmail = email;
+    let effectiveUserId = userId;
+
+    if ((!effectiveEmail || !effectiveUserId) && client) {
+      const { data: { session } } = await client.auth.getSession();
+      if (session?.user) {
+        effectiveEmail = effectiveEmail || session.user.email || undefined;
+        effectiveUserId = effectiveUserId || session.user.id;
+      }
+    }
+
+    if (effectiveEmail || effectiveUserId) {
+      try {
+        const sessionRes = await client?.auth.getSession();
+        const token = sessionRes?.data?.session?.access_token;
+        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+
+        const res = await fetch('/api/sync-subscription', {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            email: effectiveEmail,
+            userId: effectiveUserId,
+          }),
+        });
+
+        if (res.ok) {
+          const syncData = await res.json();
+          console.log('[Auth Service] Subscription sync result:', syncData);
+        }
+      } catch (netErr) {
+        console.warn('[Auth Service] Server-side subscription sync error:', netErr);
+      }
+    }
+
+    const updatedProfile = await getCurrentUserProfile();
+    return {
+      success: true,
+      isPro: Boolean(updatedProfile?.isPro),
+      profile: updatedProfile,
+    };
+  } catch (err) {
+    console.error('[Auth Service] Failed to sync subscription:', err);
+    const profile = await getCurrentUserProfile();
+    return {
+      success: false,
+      isPro: Boolean(profile?.isPro),
+      profile,
+    };
+  }
+}
+
+/**
  * Activate Pro tier in database for a user (called upon verified payment return)
  */
 export async function activateProMembership(explicitUserId?: string): Promise<{
@@ -297,6 +362,9 @@ export async function activateProMembership(explicitUserId?: string): Promise<{
         })
         .eq('id', userId);
     }
+
+    // Trigger server-side background sync as well
+    syncSubscriptionWithPolar(undefined, userId).catch(console.warn);
 
     const refreshed = await getCurrentUserProfile();
     return { success: true, profile: refreshed };

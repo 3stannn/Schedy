@@ -158,19 +158,19 @@ BEGIN
         updated_at = now()
     WHERE (user_uuid IS NOT NULL AND id = user_uuid)
        OR (sub_id IS NOT NULL AND polar_subscription_id = sub_id)
-       OR (user_email IS NOT NULL AND LOWER(email) = LOWER(user_email));
+       OR (user_email IS NOT NULL AND LOWER(TRIM(email)) = LOWER(TRIM(user_email)));
 
     GET DIAGNOSTICS affected_rows = ROW_COUNT;
 
     IF affected_rows = 0 THEN
-        RETURN jsonb_build_object('success', false, 'error', 'No matching profile found to downgrade');
+        RETURN jsonb_build_object('success', false, 'error', 'No matching profile found to downgrade', 'affected_rows', 0);
     END IF;
 
     RETURN jsonb_build_object('success', true, 'is_pro', false, 'plan_tier', 'free', 'affected_rows', affected_rows);
 END;
 $$ LANGUAGE plpgsql;
 
--- 5d. Helper Function: Upgrade to Pro by Email or UUID
+-- 5d. Helper Function: Upgrade to Pro by Email or UUID (Resilient & Self-Healing)
 CREATE OR REPLACE FUNCTION public.upgrade_to_pro_by_identifier(
     user_uuid UUID DEFAULT NULL,
     user_email TEXT DEFAULT NULL,
@@ -188,17 +188,92 @@ BEGIN
         plan_tier = 'pro',
         polar_customer_id = COALESCE(customer_id, polar_customer_id),
         polar_subscription_id = COALESCE(subscription_id, polar_subscription_id),
+        ai_credits_remaining = 999,
         updated_at = now()
     WHERE (user_uuid IS NOT NULL AND id = user_uuid)
-       OR (user_email IS NOT NULL AND LOWER(email) = LOWER(user_email));
+       OR (user_email IS NOT NULL AND LOWER(TRIM(email)) = LOWER(TRIM(user_email)));
 
     GET DIAGNOSTICS affected_rows = ROW_COUNT;
 
+    -- Self-heal: If profile record not found in public.profiles, check auth.users and insert
+    IF affected_rows = 0 AND user_email IS NOT NULL THEN
+        INSERT INTO public.profiles (
+            id,
+            email,
+            full_name,
+            avatar_url,
+            is_pro,
+            plan_tier,
+            ai_credits_remaining,
+            polar_customer_id,
+            polar_subscription_id,
+            updated_at
+        )
+        SELECT 
+            id,
+            email,
+            COALESCE(raw_user_meta_data->>'full_name', raw_user_meta_data->>'name', 'Schedy User'),
+            COALESCE(raw_user_meta_data->>'avatar_url', raw_user_meta_data->>'picture', ''),
+            true,
+            'pro',
+            999,
+            customer_id,
+            subscription_id,
+            now()
+        FROM auth.users
+        WHERE LOWER(TRIM(email)) = LOWER(TRIM(user_email))
+        ON CONFLICT (id) DO UPDATE SET
+            is_pro = true,
+            plan_tier = 'pro',
+            ai_credits_remaining = 999,
+            polar_customer_id = COALESCE(EXCLUDED.polar_customer_id, public.profiles.polar_customer_id),
+            polar_subscription_id = COALESCE(EXCLUDED.polar_subscription_id, public.profiles.polar_subscription_id),
+            updated_at = now();
+
+        GET DIAGNOSTICS affected_rows = ROW_COUNT;
+    END IF;
+
     IF affected_rows = 0 THEN
-        RETURN jsonb_build_object('success', false, 'error', 'No matching profile found to upgrade');
+        RETURN jsonb_build_object('success', false, 'error', 'No matching profile found to upgrade', 'affected_rows', 0);
     END IF;
 
     RETURN jsonb_build_object('success', true, 'is_pro', true, 'plan_tier', 'pro', 'affected_rows', affected_rows);
+END;
+$$ LANGUAGE plpgsql;
+
+-- 5e. Helper Function: Read Profile Safely (Bypasses client-side RLS restrictions for verification)
+CREATE OR REPLACE FUNCTION public.get_profile_by_identifier(
+    user_uuid UUID DEFAULT NULL,
+    user_email TEXT DEFAULT NULL
+)
+RETURNS JSONB
+SECURITY DEFINER SET search_path = public
+AS $$
+DECLARE
+    found_profile RECORD;
+BEGIN
+    SELECT * INTO found_profile
+    FROM public.profiles
+    WHERE (user_uuid IS NOT NULL AND id = user_uuid)
+       OR (user_email IS NOT NULL AND LOWER(TRIM(email)) = LOWER(TRIM(user_email)))
+    LIMIT 1;
+
+    IF NOT FOUND THEN
+        RETURN jsonb_build_object('found', false);
+    END IF;
+
+    RETURN jsonb_build_object(
+        'found', true,
+        'id', found_profile.id,
+        'email', found_profile.email,
+        'full_name', found_profile.full_name,
+        'is_pro', found_profile.is_pro,
+        'plan_tier', found_profile.plan_tier,
+        'polar_customer_id', found_profile.polar_customer_id,
+        'polar_subscription_id', found_profile.polar_subscription_id,
+        'ai_credits_remaining', found_profile.ai_credits_remaining,
+        'updated_at', found_profile.updated_at
+    );
 END;
 $$ LANGUAGE plpgsql;
 
