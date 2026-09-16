@@ -120,6 +120,9 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
 
+  // Mobile column tab state ('upcoming' | 'in_progress' | 'completed' | 'notes')
+  const [activeMobileTab, setActiveMobileTab] = useState<'upcoming' | 'in_progress' | 'completed' | 'notes'>('upcoming');
+
   // Drag and drop states
   const [draggingEventId, setDraggingEventId] = useState<string | null>(null);
   const [dragOverColumn, setDragOverColumn] = useState<EventStatus | null>(null);
@@ -136,13 +139,16 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
     if (draggingEventId) {
       document.body.classList.add('dragging-active');
       document.documentElement.classList.add('dragging-active');
+      document.body.style.cursor = 'grabbing';
     } else {
       document.body.classList.remove('dragging-active');
       document.documentElement.classList.remove('dragging-active');
+      document.body.style.cursor = '';
     }
     return () => {
       document.body.classList.remove('dragging-active');
       document.documentElement.classList.remove('dragging-active');
+      document.body.style.cursor = '';
     };
   }, [draggingEventId]);
 
@@ -150,7 +156,11 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
   const touchStartRef = useRef<{ x: number; y: number; eventId: string; identifier: number } | null>(null);
   const isTouchDraggingRef = useRef(false);
 
-  // 3-Second Long-Press to Drag & Drop
+  // Desktop instant mouse tracking
+  const mouseStartPosRef = useRef<{ x: number; y: number; eventId: string } | null>(null);
+  const [isMouseDown, setIsMouseDown] = useState(false);
+
+  // 1-Second Long-Press to Drag & Drop (Touch devices only)
   const [longPressingId, setLongPressingId] = useState<string | null>(null);
   const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pressStartPosRef = useRef<{ x: number; y: number; eventId: string } | null>(null);
@@ -167,6 +177,8 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
   // Helper to cleanly reset all drag states
   const resetDragState = useCallback(() => {
     cancelLongPress();
+    mouseStartPosRef.current = null;
+    setIsMouseDown(false);
     touchStartRef.current = null;
     isTouchDraggingRef.current = false;
     setTouchPosition(null);
@@ -216,6 +228,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
       if (targetEvent.status !== status) {
         onStatusChange(targetEvent, status);
       }
+      setActiveMobileTab(status === 'pending' ? 'upcoming' : status === 'in_progress' ? 'in_progress' : 'completed');
     }
     resetDragState();
   };
@@ -262,7 +275,17 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
     }
   };
 
-  // 1-Second Long-Press to Drag & Drop Handlers (Desktop mouse & Mobile touch)
+  // Desktop Instant Mouse Drag Handlers (0ms wait time on desktop)
+  const handleMouseDown = useCallback((e: React.MouseEvent, eventId: string) => {
+    if (e.button !== 0) return;
+    const target = e.target as HTMLElement;
+    if (target.closest('button, a, input, textarea')) return;
+    cancelLongPress();
+    mouseStartPosRef.current = { x: e.clientX, y: e.clientY, eventId };
+    setIsMouseDown(true);
+  }, [cancelLongPress]);
+
+  // 1-Second Long-Press to Drag & Drop Handlers (Mobile touch only)
   const startLongPress = useCallback((eventId: string, clientX: number, clientY: number) => {
     // If already actively dragging, ignore
     if (isDraggingRef.current || isTouchDraggingRef.current) return;
@@ -306,7 +329,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
     cancelLongPress();
 
     if (isTouchDraggingRef.current) {
-      const eventId = draggingEventId || touchStartRef.current?.eventId;
+      const eventId = draggingEventId || touchStartRef.current?.eventId || mouseStartPosRef.current?.eventId;
       const elem = document.elementFromPoint(clientX, clientY);
       const col = elem?.closest('[data-column-status]');
       const status = col?.getAttribute('data-column-status') as EventStatus | null;
@@ -318,6 +341,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
           if (targetEvent.status !== status) {
             onStatusChange(targetEvent, status);
           }
+          setActiveMobileTab(status === 'pending' ? 'upcoming' : status === 'in_progress' ? 'in_progress' : 'completed');
         }
       }
     }
@@ -325,9 +349,9 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
     resetDragState();
   }, [cancelLongPress, draggingEventId, events, onStatusChange, resetDragState]);
 
-  // Window listeners active during 1-second long-press charging or active dragging
+  // Window listeners active during 1-second touch long-press charging, active dragging, or active mouse press
   useEffect(() => {
-    if (!longPressingId && !draggingEventId) return;
+    if (!longPressingId && !draggingEventId && !isMouseDown) return;
 
     const onWindowTouchMove = (e: TouchEvent) => {
       if (e.touches.length > 1 && e.cancelable) {
@@ -353,12 +377,18 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
       if (isTouchDraggingRef.current) {
         e.preventDefault();
         handleActiveDragMove(e.clientX, e.clientY);
-      } else if (pressStartPosRef.current) {
-        const dx = Math.abs(e.clientX - pressStartPosRef.current.x);
-        const dy = Math.abs(e.clientY - pressStartPosRef.current.y);
-        // If mouse moved > 8px before 1 second elapsed, cancel long press
-        if (dx > 8 || dy > 8) {
-          cancelLongPress();
+      } else if (mouseStartPosRef.current) {
+        const dx = Math.abs(e.clientX - mouseStartPosRef.current.x);
+        const dy = Math.abs(e.clientY - mouseStartPosRef.current.y);
+        // Instant drag on desktop: as soon as mouse moves beyond click jitter threshold (4px), drag starts immediately
+        if (dx > 4 || dy > 4) {
+          isTouchDraggingRef.current = true;
+          isDraggingRef.current = true;
+          const eventId = mouseStartPosRef.current.eventId;
+          setDraggingEventId(eventId);
+          setTouchPosition({ x: e.clientX, y: e.clientY });
+          haptics.medium();
+          handleActiveDragMove(e.clientX, e.clientY);
         }
       }
     };
@@ -371,7 +401,12 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
     };
 
     const onWindowMouseUp = (e: MouseEvent) => {
-      handleActiveDragEnd(e.clientX, e.clientY);
+      if (isTouchDraggingRef.current) {
+        handleActiveDragEnd(e.clientX, e.clientY);
+      } else {
+        mouseStartPosRef.current = null;
+        setIsMouseDown(false);
+      }
     };
 
     const onWindowTouchCancel = () => {
@@ -384,11 +419,19 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
       resetDragState();
     };
 
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        cancelLongPress();
+        resetDragState();
+      }
+    };
+
     window.addEventListener('touchmove', onWindowTouchMove, { passive: false });
     window.addEventListener('touchend', onWindowTouchEnd, { passive: false });
     window.addEventListener('touchcancel', onWindowTouchCancel, { passive: true });
     window.addEventListener('mousemove', onWindowMouseMove);
     window.addEventListener('mouseup', onWindowMouseUp);
+    window.addEventListener('keydown', onKeyDown);
     window.addEventListener('blur', onWindowBlur);
 
     return () => {
@@ -397,9 +440,10 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
       window.removeEventListener('touchcancel', onWindowTouchCancel);
       window.removeEventListener('mousemove', onWindowMouseMove);
       window.removeEventListener('mouseup', onWindowMouseUp);
+      window.removeEventListener('keydown', onKeyDown);
       window.removeEventListener('blur', onWindowBlur);
     };
-  }, [longPressingId, draggingEventId, handleActiveDragMove, handleActiveDragEnd, cancelLongPress, resetDragState]);
+  }, [longPressingId, draggingEventId, isMouseDown, handleActiveDragMove, handleActiveDragEnd, cancelLongPress, resetDragState]);
 
   // Filter events
   const filteredEvents = useMemo(() => {
@@ -507,6 +551,9 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
     }
   };
 
+  const upcomingDotColor = theme === 'pink' ? 'bg-[#FF8DA1]' : 'bg-blue-500';
+  const upcomingBadgeBg = theme === 'pink' ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400' : 'bg-blue-500/15 text-blue-600 dark:text-blue-400';
+
   return (
     <div className="space-y-4">
       {/* Top Filter & Search Bar */}
@@ -563,6 +610,110 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
         </div>
       </div>
 
+      {/* Mobile Kanban Segmented Tabs (Mobile View Only) */}
+      <div className="md:hidden">
+        <div className="grid grid-cols-4 p-1 rounded-2xl bg-black/[0.04] dark:bg-white/[0.06] border border-black/[0.06] dark:border-white/[0.08] gap-1 select-none">
+          {/* Upcoming Tab */}
+          <button
+            type="button"
+            data-column-status="pending"
+            onClick={() => {
+              haptics.selection();
+              setActiveMobileTab('upcoming');
+            }}
+            className={`flex items-center justify-center gap-1 sm:gap-1.5 py-2 px-1 rounded-xl text-[11px] sm:text-xs font-semibold transition-all cursor-pointer ${
+              activeMobileTab === 'upcoming'
+                ? 'bg-white dark:bg-[#2c2c2e] text-[#1c1917] dark:text-white shadow-xs font-bold'
+                : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+            } ${dragOverColumn === 'pending' ? 'ring-2 ring-blue-500 bg-blue-500/10' : ''}`}
+          >
+            <span className={`w-1.5 h-1.5 rounded-full ${upcomingDotColor} shrink-0`} />
+            <span className="truncate">Upcoming</span>
+            <span className={`text-[10px] font-bold px-1.5 py-0.2 rounded-full shrink-0 ${
+              activeMobileTab === 'upcoming'
+                ? upcomingBadgeBg
+                : 'bg-black/[0.06] dark:bg-white/[0.08] text-neutral-600 dark:text-neutral-400'
+            }`}>
+              {upcomingEvents.length}
+            </span>
+          </button>
+
+          {/* In Progress Tab */}
+          <button
+            type="button"
+            data-column-status="in_progress"
+            onClick={() => {
+              haptics.selection();
+              setActiveMobileTab('in_progress');
+            }}
+            className={`flex items-center justify-center gap-1 sm:gap-1.5 py-2 px-1 rounded-xl text-[11px] sm:text-xs font-semibold transition-all cursor-pointer ${
+              activeMobileTab === 'in_progress'
+                ? 'bg-white dark:bg-[#2c2c2e] text-[#1c1917] dark:text-white shadow-xs font-bold'
+                : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+            } ${dragOverColumn === 'in_progress' ? 'ring-2 ring-amber-500 bg-amber-500/10' : ''}`}
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
+            <span className="truncate">In Progress</span>
+            <span className={`text-[10px] font-bold px-1.5 py-0.2 rounded-full shrink-0 ${
+              activeMobileTab === 'in_progress'
+                ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400'
+                : 'bg-black/[0.06] dark:bg-white/[0.08] text-neutral-600 dark:text-neutral-400'
+            }`}>
+              {inProgressEvents.length}
+            </span>
+          </button>
+
+          {/* Done Tab */}
+          <button
+            type="button"
+            data-column-status="completed"
+            onClick={() => {
+              haptics.selection();
+              setActiveMobileTab('completed');
+            }}
+            className={`flex items-center justify-center gap-1 sm:gap-1.5 py-2 px-1 rounded-xl text-[11px] sm:text-xs font-semibold transition-all cursor-pointer ${
+              activeMobileTab === 'completed'
+                ? 'bg-white dark:bg-[#2c2c2e] text-[#1c1917] dark:text-white shadow-xs font-bold'
+                : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+            } ${dragOverColumn === 'completed' ? 'ring-2 ring-emerald-500 bg-emerald-500/10' : ''}`}
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+            <span className="truncate">Done</span>
+            <span className={`text-[10px] font-bold px-1.5 py-0.2 rounded-full shrink-0 ${
+              activeMobileTab === 'completed'
+                ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
+                : 'bg-black/[0.06] dark:bg-white/[0.08] text-neutral-600 dark:text-neutral-400'
+            }`}>
+              {doneEvents.length}
+            </span>
+          </button>
+
+          {/* Notes Tab */}
+          <button
+            type="button"
+            onClick={() => {
+              haptics.selection();
+              setActiveMobileTab('notes');
+            }}
+            className={`flex items-center justify-center gap-1 sm:gap-1.5 py-2 px-1 rounded-xl text-[11px] sm:text-xs font-semibold transition-all cursor-pointer ${
+              activeMobileTab === 'notes'
+                ? 'bg-white dark:bg-[#2c2c2e] text-[#1c1917] dark:text-white shadow-xs font-bold'
+                : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+            }`}
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-purple-500 shrink-0" />
+            <span className="truncate">Notes</span>
+            <span className={`text-[10px] font-bold px-1.5 py-0.2 rounded-full shrink-0 ${
+              activeMobileTab === 'notes'
+                ? 'bg-purple-500/15 text-purple-600 dark:text-purple-400'
+                : 'bg-black/[0.06] dark:bg-white/[0.08] text-neutral-600 dark:text-neutral-400'
+            }`}>
+              {filteredNotes.length}
+            </span>
+          </button>
+        </div>
+      </div>
+
       {/* 4-COLUMN KANBAN BOARD */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 items-start">
 
@@ -575,7 +726,9 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
           onDragOver={(e) => handleDragOver(e, 'pending')}
           onDragLeave={(e) => handleDragLeave(e, 'pending')}
           onDrop={(e) => handleDrop(e, 'pending')}
-          className={`ios-card p-3.5 rounded-2xl flex flex-col gap-3 min-h-[480px] transition-all ${
+          className={`ios-card p-3.5 rounded-2xl flex-col gap-3 min-h-[480px] transition-all ${
+            activeMobileTab === 'upcoming' ? 'flex' : 'hidden md:flex'
+          } ${
             dragOverColumn === 'pending'
               ? 'bg-blue-500/10 dark:bg-blue-500/15 border-2 border-dashed border-blue-500 ring-2 ring-blue-500/20'
               : 'bg-white/70 dark:bg-[#1c1c1e]/70 border border-neutral-200/80 dark:border-neutral-800'
@@ -633,12 +786,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
                   <div
                     key={evt.id}
                     draggable={false}
-                    onMouseDown={(e) => {
-                      if (e.button !== 0) return;
-                      const target = e.target as HTMLElement;
-                      if (target.closest('button, a, input, textarea')) return;
-                      startLongPress(evt.id, e.clientX, e.clientY);
-                    }}
+                    onMouseDown={(e) => handleMouseDown(e, evt.id)}
                     onTouchStart={(e) => {
                       if (e.touches.length > 1) return;
                       const t = e.touches[0];
@@ -779,7 +927,9 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
           onDragOver={(e) => handleDragOver(e, 'in_progress')}
           onDragLeave={(e) => handleDragLeave(e, 'in_progress')}
           onDrop={(e) => handleDrop(e, 'in_progress')}
-          className={`ios-card p-3.5 rounded-2xl flex flex-col gap-3 min-h-[480px] transition-all ${
+          className={`ios-card p-3.5 rounded-2xl flex-col gap-3 min-h-[480px] transition-all ${
+            activeMobileTab === 'in_progress' ? 'flex' : 'hidden md:flex'
+          } ${
             dragOverColumn === 'in_progress'
               ? 'bg-amber-500/15 dark:bg-amber-500/20 border-2 border-dashed border-amber-500 ring-2 ring-amber-500/20'
               : 'border border-amber-500/35 dark:border-amber-500/25 bg-amber-500/[0.015] dark:bg-amber-500/[0.02]'
@@ -829,12 +979,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
                   <div
                     key={evt.id}
                     draggable={false}
-                    onMouseDown={(e) => {
-                      if (e.button !== 0) return;
-                      const target = e.target as HTMLElement;
-                      if (target.closest('button, a, input, textarea')) return;
-                      startLongPress(evt.id, e.clientX, e.clientY);
-                    }}
+                    onMouseDown={(e) => handleMouseDown(e, evt.id)}
                     onTouchStart={(e) => {
                       if (e.touches.length > 1) return;
                       const t = e.touches[0];
@@ -973,7 +1118,9 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
           onDragOver={(e) => handleDragOver(e, 'completed')}
           onDragLeave={(e) => handleDragLeave(e, 'completed')}
           onDrop={(e) => handleDrop(e, 'completed')}
-          className={`ios-card p-3.5 rounded-2xl flex flex-col gap-3 min-h-[480px] transition-all ${
+          className={`ios-card p-3.5 rounded-2xl flex-col gap-3 min-h-[480px] transition-all ${
+            activeMobileTab === 'completed' ? 'flex' : 'hidden md:flex'
+          } ${
             dragOverColumn === 'completed'
               ? 'bg-emerald-500/10 dark:bg-emerald-500/15 border-2 border-dashed border-emerald-500 ring-2 ring-emerald-500/20'
               : 'bg-black/[0.015] dark:bg-white/[0.015] border border-neutral-200/50 dark:border-neutral-800/50 opacity-90'
@@ -1023,12 +1170,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
                   <div
                     key={evt.id}
                     draggable={false}
-                    onMouseDown={(e) => {
-                      if (e.button !== 0) return;
-                      const target = e.target as HTMLElement;
-                      if (target.closest('button, a, input, textarea')) return;
-                      startLongPress(evt.id, e.clientX, e.clientY);
-                    }}
+                    onMouseDown={(e) => handleMouseDown(e, evt.id)}
                     onTouchStart={(e) => {
                       if (e.touches.length > 1) return;
                       const t = e.touches[0];
@@ -1147,7 +1289,9 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
         {/* ========================================================================= */}
         {/* COLUMN 4: NOTES (Independent Notepad / Scratchpad Database)              */}
         {/* ========================================================================= */}
-        <div className="ios-card p-3.5 rounded-2xl flex flex-col gap-3 min-h-[480px] bg-white/70 dark:bg-[#1c1c1e]/70 border border-neutral-200/80 dark:border-neutral-800">
+        <div className={`ios-card p-3.5 rounded-2xl flex-col gap-3 min-h-[480px] bg-white/70 dark:bg-[#1c1c1e]/70 border border-neutral-200/80 dark:border-neutral-800 ${
+          activeMobileTab === 'notes' ? 'flex' : 'hidden md:flex'
+        }`}>
           {/* Column Header */}
           <div className="flex items-center justify-between px-1">
             <div className="flex items-center gap-2">
