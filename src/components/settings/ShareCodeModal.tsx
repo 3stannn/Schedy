@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import type { ScheduleEvent } from '../../types/schedule';
 import type { Announcement } from '../../types/announcement';
 import { 
@@ -16,8 +16,7 @@ import {
 import { 
   generateShareCode, 
   generateShareUrl, 
-  parseShareCode,
-  type SyncPayload
+  parseShareCode
 } from '../../services/shareCodeService';
 import { format, parseISO } from 'date-fns';
 import { useModalBehavior } from '../../hooks/useModalBehavior';
@@ -41,7 +40,6 @@ export const ShareCodeModal: React.FC<ShareCodeModalProps> = ({
   initialCode = '',
 }) => {
   const [activeTab, setActiveTab] = useState<'generate' | 'join'>(initialCode ? 'join' : 'generate');
-  const [generatedCode, setGeneratedCode] = useState('');
   const [copiedCode, setCopiedCode] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
 
@@ -60,35 +58,25 @@ export const ShareCodeModal: React.FC<ShareCodeModalProps> = ({
 
   // Join Tab state
   const [inputCode, setInputCode] = useState(initialCode);
-  const [previewData, setPreviewData] = useState<SyncPayload | null>(null);
-  const [parseError, setParseError] = useState<string | null>(null);
 
-  // Auto-generate code when tab is active or events change
-  useEffect(() => {
-    if (!isOpen) return;
-    if (activeTab === 'generate') {
-      const code = generateShareCode(events, announcements);
-      setGeneratedCode(code);
-    }
+  // Derive generated code when activeTab is 'generate'
+  const generatedCode = useMemo(() => {
+    if (!isOpen || activeTab !== 'generate') return '';
+    return generateShareCode(events, announcements);
   }, [isOpen, activeTab, events, announcements]);
 
-  // Auto-parse input code if initial code provided or typed
-  useEffect(() => {
-    if (!isOpen) return;
-    if (inputCode.trim()) {
-      const res = parseShareCode(inputCode);
-      if (res.success && res.data) {
-        setPreviewData(res.data);
-        setParseError(null);
-      } else {
-        setPreviewData(null);
-        setParseError(res.error || 'Invalid code');
-      }
-    } else {
-      setPreviewData(null);
-      setParseError(null);
+  // Derive parse result from input code
+  const { previewData, parseError } = useMemo(() => {
+    const trimmed = inputCode.trim();
+    if (!trimmed) {
+      return { previewData: null, parseError: null };
     }
-  }, [isOpen, inputCode]);
+    const res = parseShareCode(trimmed);
+    if (res.success && res.data) {
+      return { previewData: res.data, parseError: null };
+    }
+    return { previewData: null, parseError: res.error || 'Invalid code' };
+  }, [inputCode]);
 
   if (!isOpen) return null;
 

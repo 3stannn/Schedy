@@ -302,18 +302,18 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
 
   // Month grid generation
   const monthStart = startOfMonth(currentDate);
-  const monthEnd = endOfMonth(monthStart);
-  const startDate = startOfWeek(monthStart);
-  const endDate = endOfWeek(monthEnd);
-  const monthDays = eachDayOfInterval({ start: startDate, end: endDate });
-
   const weeks = React.useMemo(() => {
+    const mStart = startOfMonth(currentDate);
+    const monthEnd = endOfMonth(mStart);
+    const startDate = startOfWeek(mStart);
+    const endDate = endOfWeek(monthEnd);
+    const monthDays = eachDayOfInterval({ start: startDate, end: endDate });
     const result: Date[][] = [];
     for (let i = 0; i < monthDays.length; i += 7) {
       result.push(monthDays.slice(i, i + 7));
     }
     return result;
-  }, [monthDays]);
+  }, [currentDate]);
 
   // Notion-style pastel chip tags for Month list
   const getPriorityChipStyle = (priority: string) => {

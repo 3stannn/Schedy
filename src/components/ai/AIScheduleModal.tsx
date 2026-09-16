@@ -71,12 +71,12 @@ export const AIScheduleModal: React.FC<AIScheduleModalProps> = ({
   const [extractedItems, setExtractedItems] = useState<ParsedEventItem[]>([]);
   const [step, setStep] = useState<'input' | 'preview'>('input');
   const [creditsRemaining, setCreditsRemaining] = useState<number>(user?.aiCreditsRemaining ?? 1);
+  const [prevUserCredits, setPrevUserCredits] = useState(user?.aiCreditsRemaining);
 
-  React.useEffect(() => {
-    if (user) {
-      setCreditsRemaining(user.aiCreditsRemaining);
-    }
-  }, [user?.aiCreditsRemaining]);
+  if (user && user.aiCreditsRemaining !== prevUserCredits) {
+    setPrevUserCredits(user.aiCreditsRemaining);
+    setCreditsRemaining(user.aiCreditsRemaining);
+  }
 
   const {
     modalRef,

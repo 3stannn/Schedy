@@ -129,6 +129,65 @@ export function sanitizeAndHealHtmlContent(html: string): string {
       }
     });
 
+    // 6. Un-nest any nested <a> tags
+    root.querySelectorAll('a a').forEach(nestedA => {
+      const parentA = nestedA.parentElement;
+      if (parentA) {
+        while (nestedA.firstChild) {
+          parentA.insertBefore(nestedA.firstChild, nestedA);
+        }
+        nestedA.remove();
+      }
+    });
+
+    // 7. Autolink any text nodes containing raw URLs (skipping existing <a>, <code>, <pre>)
+    const textNodes: Text[] = [];
+    const walker = doc.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+      acceptNode(node) {
+        const parent = node.parentElement;
+        if (!parent) return NodeFilter.FILTER_REJECT;
+        const tag = parent.tagName.toLowerCase();
+        if (tag === 'a' || tag === 'code' || tag === 'pre' || tag === 'script' || tag === 'style') {
+          return NodeFilter.FILTER_REJECT;
+        }
+        if (/(?:https?:\/\/|www\.)[^\s<>"'`]+/i.test(node.textContent || '')) {
+          return NodeFilter.FILTER_ACCEPT;
+        }
+        return NodeFilter.FILTER_SKIP;
+      },
+    });
+
+    while (walker.nextNode()) {
+      textNodes.push(walker.currentNode as Text);
+    }
+
+    for (const node of textNodes) {
+      const text = node.textContent;
+      if (!text) continue;
+      const parent = node.parentNode;
+      if (!parent) continue;
+
+      const autolinked = autolinkRawUrls(text);
+      if (autolinked !== text) {
+        const temp = doc.createElement('span');
+        temp.innerHTML = autolinked;
+        while (temp.firstChild) {
+          parent.insertBefore(temp.firstChild, node);
+        }
+        parent.removeChild(node);
+      }
+    }
+
+    // 8. Ensure all <a> tags have target="_blank" and rel="noopener noreferrer" and normalized href
+    root.querySelectorAll('a').forEach(a => {
+      a.setAttribute('target', '_blank');
+      a.setAttribute('rel', 'noopener noreferrer');
+      const href = a.getAttribute('href');
+      if (href) {
+        a.setAttribute('href', normalizeUrl(href));
+      }
+    });
+
     return root.innerHTML;
   } catch {
     return html;
@@ -256,19 +315,64 @@ export function convertMarkdownOrTextToHtml(raw: string): string {
 }
 
 /**
+ * Normalizes a URL string by trimming and adding https:// if no protocol/scheme is present
+ */
+export function normalizeUrl(url: string): string {
+  const trimmed = url.trim();
+  if (!trimmed) return '';
+  if (/^(https?:\/\/|mailto:|tel:|sms:|ftp:\/\/|\/\/)/i.test(trimmed)) {
+    return trimmed;
+  }
+  return `https://${trimmed}`;
+}
+
+/**
+ * Checks if a string is a standalone URL
+ */
+export function isStandaloneUrl(str: string): boolean {
+  if (!str) return false;
+  return /^(https?:\/\/[^\s]+|www\.[^\s]+)$/i.test(str.trim());
+}
+
+/**
+ * Autolinks raw URLs and converts markdown links while protecting existing HTML tags and code blocks
+ */
+export function autolinkRawUrls(text: string): string {
+  if (!text) return '';
+  return text.replace(
+    /(<a\b[^>]*>[\s\S]*?<\/a>|<code\b[^>]*>[\s\S]*?<\/code>|<pre\b[^>]*>[\s\S]*?<\/pre>|`[^`]+`|<[^>]+>|\[([^\]]+)\]\(([^)]+)\))|((?:https?:\/\/|www\.)[^\s<>"'`]+[^\s<>"'`,.;:?!)}\]])/gi,
+    (match, protectedTag, mdText, mdUrl, rawUrl) => {
+      if (protectedTag) {
+        if (mdText && mdUrl) {
+          const validUrl = normalizeUrl(mdUrl);
+          return `<a href="${validUrl}" target="_blank" rel="noopener noreferrer">${mdText}</a>`;
+        }
+        return protectedTag;
+      }
+      if (rawUrl) {
+        const validUrl = normalizeUrl(rawUrl);
+        return `<a href="${validUrl}" target="_blank" rel="noopener noreferrer">${rawUrl}</a>`;
+      }
+      return match;
+    }
+  );
+}
+
+/**
  * Formats inline markdown tokens into HTML tags
  */
 function formatInlineMarkdown(text: string): string {
   if (!text) return '';
-  return text
+  const inlineFormatted = text
     .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
     .replace(/__([^_]+)__/g, '<strong>$1</strong>')
     .replace(/~~([^~]+)~~/g, '<del>$1</del>')
     .replace(/==([^=]+)==/g, '<mark>$1</mark>')
     .replace(/`([^`]+)`/g, '<code>$1</code>')
     .replace(/\*([^*]+)\*/g, '<em>$1</em>')
-    .replace(/_([^_]+)_/g, '<em>$1</em>')
-    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+    .replace(/_([^_]+)_/g, '<em>$1</em>');
+
+  return autolinkRawUrls(inlineFormatted);
 }
 
 /**

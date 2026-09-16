@@ -96,9 +96,12 @@ const isEventToday = (event?: ScheduleEvent): boolean => {
   return false;
 };
 
+const EMPTY_EVENTS: ScheduleEvent[] = [];
+const EMPTY_ANNOS: Announcement[] = [];
+
 export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
-  events = [],
-  announcements = [],
+  events,
+  announcements,
   isAdmin = true,
   onNavigateTab,
   onNewEvent,
@@ -108,8 +111,8 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
   onAcknowledgeAnnouncement,
   onSelectEvent,
 }) => {
-  const safeEvents = Array.isArray(events) ? events : [];
-  const safeAnnos = Array.isArray(announcements) ? announcements : [];
+  const safeEvents = useMemo(() => (Array.isArray(events) ? events : EMPTY_EVENTS), [events]);
+  const safeAnnos = useMemo(() => (Array.isArray(announcements) ? announcements : EMPTY_ANNOS), [announcements]);
 
   const sortedAnnos = useMemo(() => {
     return [...safeAnnos].sort((a, b) => {

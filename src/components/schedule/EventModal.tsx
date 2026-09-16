@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import type { ScheduleEvent, PriorityLevel, EventCategory, EventStatus, RecurrenceRule, ScheduleItemType } from '../../types/schedule';
 import {
   X,
@@ -115,48 +115,65 @@ export const EventModal: React.FC<EventModalProps> = ({
     initialFocusRef: titleInputRef,
   });
 
-  useEffect(() => {
-    if (!isOpen) return;
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
+  const [prevEventId, setPrevEventId] = useState(initialEvent?.id);
+  const [prevSelectedDate, setPrevSelectedDate] = useState(selectedDate);
+  const [prevStatus, setPrevStatus] = useState(initialStatus);
+  const [prevItemType, setPrevItemType] = useState(initialItemType);
 
-    if (initialEvent) {
-      setItemType(initialEvent.itemType || 'event');
-      setTitle(initialEvent.title || '');
-      setDescription(initialEvent.description || '');
-      try {
-        const parsedStart = parseISO(initialEvent.startTime);
-        const parsedEnd = parseISO(initialEvent.endTime);
-        setStartTime(format(parsedStart, "yyyy-MM-dd'T'HH:mm"));
-        setEndTime(format(parsedEnd, "yyyy-MM-dd'T'HH:mm"));
-      } catch {
-        const start = new Date();
+  if (
+    prevIsOpen !== isOpen ||
+    prevEventId !== initialEvent?.id ||
+    prevSelectedDate !== selectedDate ||
+    prevStatus !== initialStatus ||
+    prevItemType !== initialItemType
+  ) {
+    setPrevIsOpen(isOpen);
+    setPrevEventId(initialEvent?.id);
+    setPrevSelectedDate(selectedDate);
+    setPrevStatus(initialStatus);
+    setPrevItemType(initialItemType);
+    if (isOpen) {
+      if (initialEvent) {
+        setItemType(initialEvent.itemType || 'event');
+        setTitle(initialEvent.title || '');
+        setDescription(initialEvent.description || '');
+        try {
+          const parsedStart = parseISO(initialEvent.startTime);
+          const parsedEnd = parseISO(initialEvent.endTime);
+          setStartTime(format(parsedStart, "yyyy-MM-dd'T'HH:mm"));
+          setEndTime(format(parsedEnd, "yyyy-MM-dd'T'HH:mm"));
+        } catch {
+          const start = new Date();
+          setStartTime(format(start, "yyyy-MM-dd'T'HH:mm"));
+          setEndTime(format(addHours(start, 1), "yyyy-MM-dd'T'HH:mm"));
+        }
+        setIsAllDay(!!initialEvent.isAllDay);
+        setCategory(initialEvent.category || 'general');
+        setPriority(initialEvent.priority || 'medium');
+        setStatus(initialEvent.status || 'pending');
+        setLocation(initialEvent.location || '');
+        setMeetingUrl(initialEvent.meetingUrl || '');
+        setRecurrenceRule(initialEvent.recurrenceRule || 'none');
+      } else {
+        const start = selectedDate || new Date();
+        const end = addHours(start, 1);
+        setItemType(initialItemType || 'event');
+        setTitle('');
+        setDescription('');
         setStartTime(format(start, "yyyy-MM-dd'T'HH:mm"));
-        setEndTime(format(addHours(start, 1), "yyyy-MM-dd'T'HH:mm"));
+        setEndTime(format(end, "yyyy-MM-dd'T'HH:mm"));
+        setIsAllDay(false);
+        setCategory('general');
+        setPriority('medium');
+        setStatus(initialStatus || 'pending');
+        setLocation('');
+        setMeetingUrl('');
+        setRecurrenceRule('none');
       }
-      setIsAllDay(!!initialEvent.isAllDay);
-      setCategory(initialEvent.category || 'general');
-      setPriority(initialEvent.priority || 'medium');
-      setStatus(initialEvent.status || 'pending');
-      setLocation(initialEvent.location || '');
-      setMeetingUrl(initialEvent.meetingUrl || '');
-      setRecurrenceRule(initialEvent.recurrenceRule || 'none');
-    } else {
-      const start = selectedDate || new Date();
-      const end = addHours(start, 1);
-      setItemType(initialItemType || 'event');
-      setTitle('');
-      setDescription('');
-      setStartTime(format(start, "yyyy-MM-dd'T'HH:mm"));
-      setEndTime(format(end, "yyyy-MM-dd'T'HH:mm"));
-      setIsAllDay(false);
-      setCategory('general');
-      setPriority('medium');
-      setStatus(initialStatus || 'pending');
-      setLocation('');
-      setMeetingUrl('');
-      setRecurrenceRule('none');
+      setError(null);
     }
-    setError(null);
-  }, [initialEvent, selectedDate, initialStatus, initialItemType, isOpen]);
+  }
 
   if (!isOpen) return null;
 
@@ -537,17 +554,17 @@ export const EventModal: React.FC<EventModalProps> = ({
           </div>
 
           {/* Footer Actions */}
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-black/[0.06] dark:border-white/[0.08]">
+          <div className="flex items-center justify-end gap-3 pt-4 pb-safe border-t border-black/[0.06] dark:border-white/[0.08]">
             <button
               type="button"
               onClick={onClose}
-              className="ios-btn-tinted px-3.5 py-1 text-xs font-semibold rounded-xl transition-all cursor-pointer min-h-[32px] h-8"
+              className="ios-btn-tinted px-3.5 py-1 text-xs font-semibold rounded-xl transition-colors cursor-pointer min-h-[32px] h-8"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="ios-btn-filled px-4.5 py-1 text-xs font-semibold text-white bg-[#007aff] hover:bg-[#0071e3] dark:bg-[#0a84ff] rounded-xl shadow-xs transition-all active:scale-[0.98] cursor-pointer min-h-[32px] h-8"
+              className="ios-btn-filled px-4 py-1 text-xs font-semibold text-white bg-[#007aff] hover:bg-[#0071e3] dark:bg-[#0a84ff] rounded-xl shadow-xs transition-colors active:scale-[0.98] cursor-pointer min-h-[32px] h-8"
             >
               {initialEvent
                 ? 'Save Changes'

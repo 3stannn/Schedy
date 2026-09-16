@@ -58,8 +58,10 @@ const formatTimeAgo = (dateStr?: string) => {
   }
 };
 
+const EMPTY_ANNOS: Announcement[] = [];
+
 export const AnnouncementFeed: React.FC<AnnouncementFeedProps> = ({
-  announcements = [],
+  announcements = EMPTY_ANNOS,
   isAdmin = true,
   onAcknowledge,
   onEdit,
@@ -72,7 +74,7 @@ export const AnnouncementFeed: React.FC<AnnouncementFeedProps> = ({
   const [isDevPasswordModalOpen, setIsDevPasswordModalOpen] = useState(false);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
-  const safeList = Array.isArray(announcements) ? announcements : [];
+  const safeList = useMemo(() => (Array.isArray(announcements) ? announcements : EMPTY_ANNOS), [announcements]);
 
   const filteredAnnouncements = useMemo(() => {
     return safeList.filter(a => {

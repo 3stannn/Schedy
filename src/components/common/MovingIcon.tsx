@@ -203,6 +203,7 @@ export const Upload = createMovingIcon('Upload', 'bounce');
 export const Share2 = createMovingIcon('Share2', 'pop');
 export const Copy = createMovingIcon('Copy', 'pop');
 export const Link = createMovingIcon('Link', 'pop');
+export const Unlink = createMovingIcon('Unlink', 'pop');
 export const ExternalLink = createMovingIcon('ExternalLink', 'nudge');
 export const RefreshCw = createMovingIcon('RefreshCw', 'spin');
 export const RotateCcw = createMovingIcon('RotateCcw', 'spin');

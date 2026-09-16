@@ -6,6 +6,16 @@
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "SF Pro Rounded", "Helvetica Neue", -apple-system-headline, sans-serif;
   letter-spacing: -0.015em;
   -webkit-tap-highlight-color: transparent;
+  --sat: env(safe-area-inset-top);
+  --sab: env(safe-area-inset-bottom);
+  --sal: env(safe-area-inset-left);
+  --sar: env(safe-area-inset-right);
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
 }
 
 body {
@@ -15,13 +25,47 @@ body {
   color: #000000;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overscroll-behavior: none;
   transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
               color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-html,
-body {
-  overscroll-behavior-y: none;
+/* Mobile-native interactive controls: kill 300ms tap delay and text callouts */
+button,
+a,
+[role="button"],
+.ios-segmented-item,
+.ios-btn-filled,
+.ios-btn-tinted,
+.ios-btn-plain {
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Scroll containment for modals, sheets, and lists */
+.modal-scroll,
+[role="dialog"] form,
+[role="dialog"] .overflow-y-auto,
+.ios-card .overflow-y-auto {
+  overscroll-behavior: contain;
+}
+
+/* Safe Area Inset Helpers */
+.pt-safe {
+  padding-top: max(8px, env(safe-area-inset-top));
+}
+
+.pb-safe {
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
+}
+
+.pl-safe {
+  padding-left: max(8px, env(safe-area-inset-left));
+}
+
+.pr-safe {
+  padding-right: max(8px, env(safe-area-inset-right));
 }
 
 body.modal-open,
@@ -104,6 +148,8 @@ html.theme-transition .pixel-buddy-container * {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  vertical-align: middle;
+  line-height: 1;
   animation: theme-icon-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
@@ -561,7 +607,7 @@ input[type="checkbox"] {
   cursor: pointer;
   display: inline-block;
   vertical-align: middle;
-  transition: all 0.15s ease-in-out;
+  transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
   outline: none;
   box-sizing: border-box;
 }
@@ -719,9 +765,39 @@ html.pink .notion-rendered-content mark {
 
 .notion-editor a,
 .notion-rendered-content a {
-  color: #2383e2;
+  color: #007aff;
   text-decoration: underline;
-  text-underline-offset: 2px;
+  text-underline-offset: 2.5px;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+  transition: opacity 0.15s ease, color 0.15s ease;
+}
+
+.notion-editor a:hover,
+.notion-rendered-content a:hover {
+  opacity: 0.82;
+  color: #0056b3;
+}
+
+html.dark .notion-editor a,
+html.dark .notion-rendered-content a {
+  color: #5ac8fa;
+}
+
+html.dark .notion-editor a:hover,
+html.dark .notion-rendered-content a:hover {
+  color: #70d7ff;
+}
+
+html.pink .notion-editor a,
+html.pink .notion-rendered-content a {
+  color: #f43f5e;
+}
+
+html.pink .notion-editor a:hover,
+html.pink .notion-rendered-content a:hover {
+  color: #fb7185;
 }
 
 .notion-editor hr,
@@ -770,7 +846,7 @@ html.dark .ios-segmented-control {
   font-size: 12px;
   font-weight: 500;
   color: rgba(60, 60, 67, 0.65);
-  transition: all 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
   cursor: pointer;
   white-space: nowrap;
   border: none;
@@ -1084,6 +1160,7 @@ html.dark .ios-nav-bar {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  vertical-align: middle;
   transform-origin: center center;
   will-change: transform;
   transition: transform 0.15s ease;
@@ -1197,6 +1274,19 @@ a:hover .moving-icon-shake,
   100% {
     width: 100%;
   }
+}
+
+@keyframes schedyRadialProgress {
+  0% {
+    stroke-dashoffset: 88;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+.schedy-radial-circle {
+  animation: schedyRadialProgress 1s linear forwards;
 }
 
 /* ==========================================================================

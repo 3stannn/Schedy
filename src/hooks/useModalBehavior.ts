@@ -57,7 +57,7 @@ export function useModalBehavior({
   initialFocusRef,
   enableDrag = true,
   closeOnEscape = true,
-  closeOnBackdrop = true,
+  closeOnBackdrop = false,
 }: UseModalBehaviorOptions) {
   const modalRef = useRef<HTMLDivElement>(null);
   const backdropRef = useRef<HTMLDivElement>(null);

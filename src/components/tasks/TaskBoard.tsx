@@ -25,6 +25,7 @@ import { stripHtml } from './noteFormattingUtils';
 import { getEventAutoDeleteInfo } from '../../utils/autoDeleteUtils';
 import { CustomSelect } from '../common/CustomSelect';
 import { haptics } from '../../utils/haptics';
+import { Hand } from 'lucide-react';
 
 const TYPE_FILTER_OPTIONS = [
   { value: 'all', label: 'All Types' },
@@ -61,6 +62,7 @@ interface TaskBoardProps {
   onAddNewNote: () => void;
   onDeleteNote: (id: string) => void;
   onTogglePinNote: (note: Note) => void;
+  theme?: 'light' | 'dark' | 'pink';
 }
 
 const NOTE_COLOR_STYLES: Record<NoteColor, { bg: string; border: string; text: string; header: string }> = {
@@ -102,6 +104,72 @@ const NOTE_COLOR_STYLES: Record<NoteColor, { bg: string; border: string; text: s
   },
 };
 
+interface RadialChargingIndicatorProps {
+  theme?: 'light' | 'dark' | 'pink';
+  position?: { x: number; y: number } | null;
+  columnType?: 'pending' | 'in_progress' | 'completed';
+}
+
+const RadialChargingIndicator: React.FC<RadialChargingIndicatorProps> = ({
+  theme,
+  position,
+  columnType = 'pending',
+}) => {
+  let strokeColor = '#007aff';
+  let glowColor = 'rgba(0, 122, 255, 0.6)';
+
+  if (theme === 'pink') {
+    strokeColor = '#FF8DA1';
+    glowColor = 'rgba(255, 141, 161, 0.6)';
+  } else if (columnType === 'in_progress') {
+    strokeColor = '#f59e0b';
+    glowColor = 'rgba(245, 158, 11, 0.6)';
+  } else if (columnType === 'completed') {
+    strokeColor = '#10b981';
+    glowColor = 'rgba(16, 185, 129, 0.6)';
+  }
+
+  return (
+    <div
+      className="absolute z-30 flex items-center justify-center pointer-events-none -translate-x-1/2 -translate-y-1/2 animate-in fade-in zoom-in-75 duration-150 select-none"
+      style={{
+        left: position ? `${position.x}px` : 'calc(100% - 24px)',
+        top: position ? `${position.y}px` : '24px',
+      }}
+    >
+      <div className="relative w-9 h-9 flex items-center justify-center rounded-full bg-neutral-900/90 dark:bg-black/90 backdrop-blur-md shadow-[0_4px_20px_rgba(0,0,0,0.5)] border border-white/20">
+        <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 36 36">
+          <circle
+            cx="18"
+            cy="18"
+            r="14"
+            fill="none"
+            stroke="rgba(255, 255, 255, 0.18)"
+            strokeWidth="2.75"
+          />
+          <circle
+            cx="18"
+            cy="18"
+            r="14"
+            fill="none"
+            stroke={strokeColor}
+            strokeWidth="2.75"
+            strokeLinecap="round"
+            strokeDasharray="88"
+            strokeDashoffset="88"
+            transform="rotate(-90 18 18)"
+            className="schedy-radial-circle"
+            style={{
+              filter: `drop-shadow(0 0 5px ${glowColor})`,
+            }}
+          />
+        </svg>
+        <Hand className="w-3.5 h-3.5 text-white fill-white/25 select-none pointer-events-none drop-shadow-sm" />
+      </div>
+    </div>
+  );
+};
+
 export const TaskBoard: React.FC<TaskBoardProps> = ({
   events,
   notes,
@@ -112,6 +180,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
   onAddNewNote,
   onDeleteNote,
   onTogglePinNote,
+  theme = 'dark',
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState<'all' | 'task' | 'event'>('all');
@@ -122,7 +191,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
   const [draggingEventId, setDraggingEventId] = useState<string | null>(null);
   const [dragOverColumn, setDragOverColumn] = useState<EventStatus | null>(null);
   const [touchPosition, setTouchPosition] = useState<{ x: number; y: number } | null>(null);
-  const [isMobileTouch, setIsMobileTouch] = useState(false);
+  const [chargingPressPos, setChargingPressPos] = useState<{ x: number; y: number } | null>(null);
   const isDraggingRef = useRef(false);
   const dragEnterCounters = useRef<Record<string, number>>({
     pending: 0,
@@ -160,12 +229,14 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
       longPressTimerRef.current = null;
     }
     setLongPressingId(null);
+    setChargingPressPos(null);
     pressStartPosRef.current = null;
   }, []);
 
   // Helper to cleanly reset all drag states
   const resetDragState = useCallback(() => {
     cancelLongPress();
+    setChargingPressPos(null);
     touchStartRef.current = null;
     isTouchDraggingRef.current = false;
     setTouchPosition(null);
@@ -261,24 +332,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
     }
   };
 
-  // Instant Desktop Drag & Drop Handlers (0ms wait time for mouse)
-  const handleDragStart = (e: React.DragEvent, eventId: string) => {
-    cancelLongPress();
-    e.dataTransfer.setData('text/plain', eventId);
-    e.dataTransfer.effectAllowed = 'move';
-    isDraggingRef.current = true;
-    haptics.medium();
-    setTimeout(() => {
-      setDraggingEventId(eventId);
-    }, 0);
-  };
-
-  const handleDragEnd = () => {
-    resetDragState();
-    dragEnterCounters.current = { pending: 0, in_progress: 0, completed: 0 };
-  };
-
-  // 2-Second Long-Press to Drag & Drop Handlers (Mobile touch only)
+  // 1-Second Long-Press to Drag & Drop Handlers (Desktop mouse & Mobile touch)
   const startLongPress = useCallback((eventId: string, clientX: number, clientY: number) => {
     // If already actively dragging, ignore
     if (isDraggingRef.current || isTouchDraggingRef.current) return;
@@ -292,12 +346,13 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
     longPressTimerRef.current = setTimeout(() => {
       longPressTimerRef.current = null;
       setLongPressingId(null);
+      setChargingPressPos(null);
       isTouchDraggingRef.current = true;
       isDraggingRef.current = true;
       setDraggingEventId(eventId);
       setTouchPosition({ x: clientX, y: clientY });
       haptics.medium();
-    }, 2000);
+    }, 1000);
   }, [cancelLongPress]);
 
   const handleActiveDragMove = useCallback((clientX: number, clientY: number) => {
@@ -341,7 +396,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
     resetDragState();
   }, [cancelLongPress, draggingEventId, events, onStatusChange, resetDragState]);
 
-  // Window listeners active during 3-second long-press charging or active dragging
+  // Window listeners active during 1-second long-press charging or active dragging
   useEffect(() => {
     if (!longPressingId && !draggingEventId) return;
 
@@ -358,8 +413,8 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
       } else if (pressStartPosRef.current) {
         const dx = Math.abs(touch.clientX - pressStartPosRef.current.x);
         const dy = Math.abs(touch.clientY - pressStartPosRef.current.y);
-        // If finger moved > 10px before 3 seconds elapsed, user is scrolling the task list!
-        if (dx > 10 || dy > 10) {
+        // If finger moved > 8px before 1 second elapsed, user is scrolling the task list!
+        if (dx > 8 || dy > 8) {
           cancelLongPress();
         }
       }
@@ -372,7 +427,8 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
       } else if (pressStartPosRef.current) {
         const dx = Math.abs(e.clientX - pressStartPosRef.current.x);
         const dy = Math.abs(e.clientY - pressStartPosRef.current.y);
-        if (dx > 10 || dy > 10) {
+        // If mouse moved > 8px before 1 second elapsed, cancel long press
+        if (dx > 8 || dy > 8) {
           cancelLongPress();
         }
       }
@@ -394,11 +450,17 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
       resetDragState();
     };
 
+    const onWindowBlur = () => {
+      cancelLongPress();
+      resetDragState();
+    };
+
     window.addEventListener('touchmove', onWindowTouchMove, { passive: false });
     window.addEventListener('touchend', onWindowTouchEnd, { passive: false });
     window.addEventListener('touchcancel', onWindowTouchCancel, { passive: true });
     window.addEventListener('mousemove', onWindowMouseMove);
     window.addEventListener('mouseup', onWindowMouseUp);
+    window.addEventListener('blur', onWindowBlur);
 
     return () => {
       window.removeEventListener('touchmove', onWindowTouchMove);
@@ -406,6 +468,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
       window.removeEventListener('touchcancel', onWindowTouchCancel);
       window.removeEventListener('mousemove', onWindowMouseMove);
       window.removeEventListener('mouseup', onWindowMouseUp);
+      window.removeEventListener('blur', onWindowBlur);
     };
   }, [longPressingId, draggingEventId, handleActiveDragMove, handleActiveDragEnd, cancelLongPress, resetDragState]);
 
@@ -640,16 +703,28 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
                 return (
                   <div
                     key={evt.id}
-                    draggable={!isMobileTouch}
-                    onDragStart={(e) => handleDragStart(e, evt.id)}
-                    onDragEnd={handleDragEnd}
-                    onMouseEnter={() => {
-                      if (isMobileTouch) setIsMobileTouch(false);
+                    draggable={false}
+                    onMouseDown={(e) => {
+                      if (e.button !== 0) return;
+                      const target = e.target as HTMLElement;
+                      if (target.closest('button, a, input, textarea')) return;
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      const relX = Math.max(20, Math.min(rect.width - 20, e.clientX - rect.left));
+                      const relY = Math.max(20, Math.min(rect.height - 20, e.clientY - rect.top));
+                      setChargingPressPos({ x: relX, y: relY });
+                      startLongPress(evt.id, e.clientX, e.clientY);
                     }}
                     onTouchStart={(e) => {
-                      setIsMobileTouch(true);
+                      if (e.touches.length > 1) return;
                       const t = e.touches[0];
-                      if (t) startLongPress(evt.id, t.clientX, t.clientY);
+                      if (!t) return;
+                      const target = e.target as HTMLElement;
+                      if (target.closest('button, a, input, textarea')) return;
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      const relX = Math.max(20, Math.min(rect.width - 20, t.clientX - rect.left));
+                      const relY = Math.max(20, Math.min(rect.height - 20, t.clientY - rect.top));
+                      setChargingPressPos({ x: relX, y: relY });
+                      startLongPress(evt.id, t.clientX, t.clientY);
                     }}
                     onClick={() => {
                       if (isDraggingRef.current) return;
@@ -665,20 +740,13 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
                         : 'border-neutral-200/80 dark:border-neutral-800 hover:border-blue-500/50'
                     }`}
                   >
-                    {/* 2-Second Long Press Progress Bar & Badge (Mobile Only) */}
+                    {/* Radial Hold-to-Drag Charging Ring */}
                     {isCharging && (
-                      <>
-                        <div className="absolute top-0 inset-x-0 h-1.5 bg-blue-500/15 dark:bg-blue-500/25 overflow-hidden rounded-t-[13px] z-20 pointer-events-none">
-                          <div
-                            className="h-full bg-blue-500 dark:bg-blue-400 rounded-full"
-                            style={{ animation: 'schedyLongPress 2s linear forwards' }}
-                          />
-                        </div>
-                        <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 z-30 px-2.5 py-0.5 rounded-full bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 text-[10px] font-bold shadow-xl border border-black/10 dark:border-white/10 flex items-center gap-1.5 animate-in fade-in zoom-in-95 duration-150 pointer-events-none whitespace-nowrap">
-                          <span className="w-1.5 h-1.5 rounded-full bg-blue-500 dark:bg-blue-400 animate-ping" />
-                          <span>Hold 2s to drag...</span>
-                        </div>
-                      </>
+                      <RadialChargingIndicator
+                        theme={theme}
+                        position={chargingPressPos}
+                        columnType="pending"
+                      />
                     )}
                     <div className="space-y-1.5">
                       <div className="flex items-start justify-between gap-1.5">
@@ -832,16 +900,28 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
                 return (
                   <div
                     key={evt.id}
-                    draggable={!isMobileTouch}
-                    onDragStart={(e) => handleDragStart(e, evt.id)}
-                    onDragEnd={handleDragEnd}
-                    onMouseEnter={() => {
-                      if (isMobileTouch) setIsMobileTouch(false);
+                    draggable={false}
+                    onMouseDown={(e) => {
+                      if (e.button !== 0) return;
+                      const target = e.target as HTMLElement;
+                      if (target.closest('button, a, input, textarea')) return;
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      const relX = Math.max(20, Math.min(rect.width - 20, e.clientX - rect.left));
+                      const relY = Math.max(20, Math.min(rect.height - 20, e.clientY - rect.top));
+                      setChargingPressPos({ x: relX, y: relY });
+                      startLongPress(evt.id, e.clientX, e.clientY);
                     }}
                     onTouchStart={(e) => {
-                      setIsMobileTouch(true);
+                      if (e.touches.length > 1) return;
                       const t = e.touches[0];
-                      if (t) startLongPress(evt.id, t.clientX, t.clientY);
+                      if (!t) return;
+                      const target = e.target as HTMLElement;
+                      if (target.closest('button, a, input, textarea')) return;
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      const relX = Math.max(20, Math.min(rect.width - 20, t.clientX - rect.left));
+                      const relY = Math.max(20, Math.min(rect.height - 20, t.clientY - rect.top));
+                      setChargingPressPos({ x: relX, y: relY });
+                      startLongPress(evt.id, t.clientX, t.clientY);
                     }}
                     onClick={() => {
                       if (isDraggingRef.current) return;
@@ -855,20 +935,13 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
                         : ''
                     }`}
                   >
-                    {/* 2-Second Long Press Progress Bar & Badge (Mobile Only) */}
+                    {/* Radial Hold-to-Drag Charging Ring */}
                     {isCharging && (
-                      <>
-                        <div className="absolute top-0 inset-x-0 h-1.5 bg-amber-500/15 dark:bg-amber-500/25 overflow-hidden rounded-t-[13px] z-20 pointer-events-none">
-                          <div
-                            className="h-full bg-amber-500 dark:bg-amber-400 rounded-full"
-                            style={{ animation: 'schedyLongPress 2s linear forwards' }}
-                          />
-                        </div>
-                        <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 z-30 px-2.5 py-0.5 rounded-full bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 text-[10px] font-bold shadow-xl border border-black/10 dark:border-white/10 flex items-center gap-1.5 animate-in fade-in zoom-in-95 duration-150 pointer-events-none whitespace-nowrap">
-                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 dark:bg-amber-400 animate-ping" />
-                          <span>Hold 2s to drag...</span>
-                        </div>
-                      </>
+                      <RadialChargingIndicator
+                        theme={theme}
+                        position={chargingPressPos}
+                        columnType="in_progress"
+                      />
                     )}
                     <div className="space-y-1.5">
                       <div className="flex items-start justify-between gap-1.5">
@@ -1022,16 +1095,28 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
                 return (
                   <div
                     key={evt.id}
-                    draggable={!isMobileTouch}
-                    onDragStart={(e) => handleDragStart(e, evt.id)}
-                    onDragEnd={handleDragEnd}
-                    onMouseEnter={() => {
-                      if (isMobileTouch) setIsMobileTouch(false);
+                    draggable={false}
+                    onMouseDown={(e) => {
+                      if (e.button !== 0) return;
+                      const target = e.target as HTMLElement;
+                      if (target.closest('button, a, input, textarea')) return;
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      const relX = Math.max(20, Math.min(rect.width - 20, e.clientX - rect.left));
+                      const relY = Math.max(20, Math.min(rect.height - 20, e.clientY - rect.top));
+                      setChargingPressPos({ x: relX, y: relY });
+                      startLongPress(evt.id, e.clientX, e.clientY);
                     }}
                     onTouchStart={(e) => {
-                      setIsMobileTouch(true);
+                      if (e.touches.length > 1) return;
                       const t = e.touches[0];
-                      if (t) startLongPress(evt.id, t.clientX, t.clientY);
+                      if (!t) return;
+                      const target = e.target as HTMLElement;
+                      if (target.closest('button, a, input, textarea')) return;
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      const relX = Math.max(20, Math.min(rect.width - 20, t.clientX - rect.left));
+                      const relY = Math.max(20, Math.min(rect.height - 20, t.clientY - rect.top));
+                      setChargingPressPos({ x: relX, y: relY });
+                      startLongPress(evt.id, t.clientX, t.clientY);
                     }}
                     onClick={() => {
                       if (isDraggingRef.current) return;
@@ -1045,20 +1130,13 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
                         : ''
                     }`}
                   >
-                    {/* 2-Second Long Press Progress Bar & Badge (Mobile Only) */}
+                    {/* Radial Hold-to-Drag Charging Ring */}
                     {isCharging && (
-                      <>
-                        <div className="absolute top-0 inset-x-0 h-1.5 bg-emerald-500/15 dark:bg-emerald-500/25 overflow-hidden rounded-t-[13px] z-20 pointer-events-none">
-                          <div
-                            className="h-full bg-emerald-500 dark:bg-emerald-400 rounded-full"
-                            style={{ animation: 'schedyLongPress 2s linear forwards' }}
-                          />
-                        </div>
-                        <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 z-30 px-2.5 py-0.5 rounded-full bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 text-[10px] font-bold shadow-xl border border-black/10 dark:border-white/10 flex items-center gap-1.5 animate-in fade-in zoom-in-95 duration-150 pointer-events-none whitespace-nowrap">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-ping" />
-                          <span>Hold 2s to drag...</span>
-                        </div>
-                      </>
+                      <RadialChargingIndicator
+                        theme={theme}
+                        position={chargingPressPos}
+                        columnType="completed"
+                      />
                     )}
                     <div className="space-y-1.5">
                       <div className="flex items-start justify-between gap-1.5">
@@ -1248,28 +1326,39 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
       </div>
 
       {/* ========================================================================= */}
-      {/* MOBILE FLOATING TOUCH DRAG PREVIEW (Follows touch point directly)          */}
+      {/* FLOATING DRAG PREVIEW (Follows cursor & touch point directly)             */}
       {/* ========================================================================= */}
       {touchPosition && activeDraggingEvent && (
         <div
-          className="fixed pointer-events-none z-[9999] w-[260px] p-3 rounded-2xl bg-white/95 dark:bg-[#18181b]/95 backdrop-blur-xl shadow-2xl border-2 border-[#007aff] dark:border-[#0a84ff] rotate-1 select-none -translate-x-1/2 -translate-y-1/2"
+          className="fixed pointer-events-none z-[9999] w-[280px] p-3.5 rounded-2xl bg-white/95 dark:bg-[#18181b]/95 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.35),0_0_25px_rgba(0,122,255,0.2)] border-2 border-[#007aff] dark:border-[#0a84ff] rotate-1.5 scale-[1.02] select-none -translate-x-1/2 -translate-y-1/2"
           style={{
             left: `${touchPosition.x}px`,
             top: `${touchPosition.y}px`,
           }}
         >
-          <div className="flex items-start justify-between gap-1.5 mb-1">
+          <div className="flex items-start justify-between gap-1.5 mb-1.5">
             <div className="flex items-center gap-1.5 min-w-0 flex-1">
               <GripVertical className="w-3.5 h-3.5 text-[#007aff] dark:text-[#0a84ff] shrink-0" />
-              <h4 className="font-bold text-xs text-[#1c1917] dark:text-white truncate">
+              <h4 className="font-bold text-xs sm:text-[13px] text-[#1c1917] dark:text-white truncate">
                 {activeDraggingEvent.title}
               </h4>
             </div>
-            {getItemTypeBadge(activeDraggingEvent)}
+            <div className="flex items-center gap-1 shrink-0">
+              {getItemTypeBadge(activeDraggingEvent)}
+              {getPriorityBadge(activeDraggingEvent.priority)}
+            </div>
           </div>
-          <div className="flex items-center justify-between text-[10px] text-neutral-500 dark:text-neutral-400 mt-1">
+          <div className="flex items-center justify-between text-[10px] text-neutral-500 dark:text-neutral-400 mt-1 pt-1.5 border-t border-black/[0.06] dark:border-white/[0.08]">
             <span className="capitalize font-medium">{activeDraggingEvent.category}</span>
-            <span className="text-[#007aff] dark:text-[#0a84ff] font-bold text-[9px] uppercase tracking-wider">
+            <span className={`font-bold text-[9.5px] uppercase tracking-wider px-2 py-0.5 rounded-full ${
+              dragOverColumn === 'pending'
+                ? 'bg-blue-500/15 text-blue-600 dark:text-blue-400'
+                : dragOverColumn === 'in_progress'
+                ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400'
+                : dragOverColumn === 'completed'
+                ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
+                : 'bg-neutral-500/10 text-neutral-500'
+            }`}>
               {dragOverColumn ? `Move to ${dragOverColumn.replace('_', ' ')}` : 'Dragging...'}
             </span>
           </div>

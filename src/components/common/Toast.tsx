@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { CheckCircle2, AlertCircle, Info, AlertTriangle, X } from './MovingIcon';
 
 export interface ToastMessage {
@@ -22,7 +22,7 @@ interface ToastContainerProps {
  * - WCAG Guideline: Minimum 3,500ms floor to prevent flash-disappear; maximum 8,500ms ceiling.
  * - Interactive Pause-on-Hover: Timer stops when user hovers to allow reading.
  */
-export function calculateToastDuration(toast: ToastMessage): number {
+function calculateToastDuration(toast: ToastMessage): number {
   if (toast.customDuration && toast.customDuration > 0) {
     return toast.customDuration;
   }
@@ -51,16 +51,18 @@ const ToastItem: React.FC<{ toast: ToastMessage; onDismiss: (id: string) => void
   const totalDuration = useMemo(() => calculateToastDuration(toast), [toast]);
   const [remainingTime, setRemainingTime] = useState(totalDuration);
   const [isHovered, setIsHovered] = useState(false);
+  const remainingRef = useRef(totalDuration);
 
   useEffect(() => {
     if (isHovered) return;
 
     const startTime = Date.now();
-    const initialRemaining = remainingTime;
+    const startRemaining = remainingRef.current;
 
     const interval = setInterval(() => {
       const elapsed = Date.now() - startTime;
-      const nextRemaining = Math.max(0, initialRemaining - elapsed);
+      const nextRemaining = Math.max(0, startRemaining - elapsed);
+      remainingRef.current = nextRemaining;
       setRemainingTime(nextRemaining);
 
       if (nextRemaining <= 0) {

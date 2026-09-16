@@ -14,6 +14,10 @@ import {
   Quote,
   Code,
   Link as LinkIcon,
+  Unlink,
+  ExternalLink,
+  Copy,
+  Edit3,
   Minus,
   Sparkles,
   HelpCircle,
@@ -22,7 +26,7 @@ import {
   Undo,
   Redo
 } from '../common/MovingIcon';
-import { convertMarkdownOrTextToHtml } from './noteFormattingUtils';
+import { convertMarkdownOrTextToHtml, normalizeUrl, isStandaloneUrl } from './noteFormattingUtils';
 
 interface RichTextEditorProps {
   initialHtml: string;
@@ -45,6 +49,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   const [isUnderline, setIsUnderline] = useState(false);
   const [isStrike, setIsStrike] = useState(false);
   const [isHighlight, setIsHighlight] = useState(false);
+  const [isLink, setIsLink] = useState(false);
   const [activeBlock, setActiveBlock] = useState<string>('p');
 
   // Undo / Redo History Stack
@@ -100,7 +105,19 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   const [showLinkModal, setShowLinkModal] = useState(false);
   const [linkUrl, setLinkUrl] = useState('');
   const [linkText, setLinkText] = useState('');
+  const [activeAnchor, setActiveAnchor] = useState<HTMLAnchorElement | null>(null);
+  const activeAnchorRef = useRef<HTMLAnchorElement | null>(null);
   const savedSelectionRef = useRef<Range | null>(null);
+
+  // Floating Link Action Toolbar (shown when clicking or hovering a link)
+  const [floatingLink, setFloatingLink] = useState<{
+    anchor: HTMLAnchorElement;
+    url: string;
+    text: string;
+    rect: DOMRect;
+  } | null>(null);
+  const [copiedLink, setCopiedLink] = useState(false);
+  const floatingRef = useRef<HTMLDivElement | null>(null);
 
   const lastHtmlRef = useRef<string>('');
   const isInitializedRef = useRef<boolean>(false);
@@ -156,6 +173,10 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
         }
         setIsHighlight(inMark);
 
+        // Link check
+        const inAnchor = !!parentEl.closest('a');
+        setIsLink(inAnchor);
+
         // Block type check
         if (parentEl.closest('.notion-task-list')) {
           setActiveBlock('task');
@@ -181,6 +202,21 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
       // Ignored
     }
   }, []);
+
+  // Dismiss floating link toolbar on click-outside
+  useEffect(() => {
+    if (!floatingLink) return;
+
+    const handlePointerDown = (e: PointerEvent) => {
+      const target = e.target as HTMLElement;
+      if (floatingRef.current?.contains(target)) return;
+      if (floatingLink.anchor.contains(target)) return;
+      setFloatingLink(null);
+    };
+
+    window.addEventListener('pointerdown', handlePointerDown);
+    return () => window.removeEventListener('pointerdown', handlePointerDown);
+  }, [floatingLink]);
 
   const handleInput = (immediateHistory: boolean = false) => {
     if (!editorRef.current) return;
@@ -712,44 +748,166 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     handleInput(true);
   };
 
-  // Open Link Modal
-  const openLinkModal = () => {
+  // Open Link Modal (for new link or editing existing link)
+  const openLinkModal = (existingAnchorOverride?: HTMLAnchorElement | null) => {
+    let existingAnchor: HTMLAnchorElement | null = existingAnchorOverride || null;
+
     const selection = window.getSelection();
     if (selection && selection.rangeCount > 0) {
       savedSelectionRef.current = selection.getRangeAt(0).cloneRange();
-      const text = selection.toString();
-      setLinkText(text || '');
+      if (!existingAnchor) {
+        const node = selection.anchorNode;
+        const el = node?.nodeType === Node.ELEMENT_NODE ? (node as HTMLElement) : node?.parentElement;
+        existingAnchor = (el?.closest('a') as HTMLAnchorElement) || null;
+      }
     }
-    setLinkUrl('');
+
+    if (existingAnchor && editorRef.current?.contains(existingAnchor)) {
+      activeAnchorRef.current = existingAnchor;
+      setActiveAnchor(existingAnchor);
+      setLinkText(existingAnchor.textContent || '');
+      setLinkUrl(existingAnchor.getAttribute('href') || '');
+    } else {
+      activeAnchorRef.current = null;
+      setActiveAnchor(null);
+      const text = selection?.toString() || '';
+      setLinkText(text);
+      setLinkUrl('');
+    }
+
+    setFloatingLink(null);
     setShowLinkModal(true);
+  };
+
+  // Remove Link
+  const handleUnlink = (targetAnchor?: HTMLAnchorElement | null) => {
+    const anchor = targetAnchor || activeAnchorRef.current || floatingLink?.anchor;
+    if (anchor && editorRef.current?.contains(anchor)) {
+      const textContent = anchor.textContent || '';
+      const textNode = document.createTextNode(textContent);
+      anchor.parentNode?.replaceChild(textNode, anchor);
+      setFloatingLink(null);
+      activeAnchorRef.current = null;
+      setActiveAnchor(null);
+      setShowLinkModal(false);
+      handleInput(true);
+      return;
+    }
+
+    if (editorRef.current) {
+      editorRef.current.focus();
+      document.execCommand('unlink', false);
+      setFloatingLink(null);
+      handleInput(true);
+    }
   };
 
   // Save Link
   const handleSaveLink = () => {
-    if (!linkUrl.trim()) {
+    const trimmedUrl = linkUrl.trim();
+    if (!trimmedUrl) {
+      if (activeAnchorRef.current) {
+        handleUnlink(activeAnchorRef.current);
+      }
       setShowLinkModal(false);
       return;
     }
-    if (!editorRef.current) return;
-    editorRef.current.focus();
 
-    if (savedSelectionRef.current) {
-      const sel = window.getSelection();
-      sel?.removeAllRanges();
-      sel?.addRange(savedSelectionRef.current);
+    const title = linkText.trim() || trimmedUrl;
+    const finalUrl = normalizeUrl(trimmedUrl);
+
+    if (activeAnchorRef.current && editorRef.current?.contains(activeAnchorRef.current)) {
+      activeAnchorRef.current.setAttribute('href', finalUrl);
+      activeAnchorRef.current.setAttribute('target', '_blank');
+      activeAnchorRef.current.setAttribute('rel', 'noopener noreferrer');
+      activeAnchorRef.current.textContent = title;
+    } else {
+      if (!editorRef.current) return;
+      editorRef.current.focus();
+
+      if (savedSelectionRef.current) {
+        const sel = window.getSelection();
+        sel?.removeAllRanges();
+        sel?.addRange(savedSelectionRef.current);
+      }
+
+      const linkHtml = `<a href="${finalUrl}" target="_blank" rel="noopener noreferrer">${title}</a>`;
+      document.execCommand('insertHTML', false, linkHtml);
     }
 
-    const title = linkText.trim() || linkUrl.trim();
-    const url = /^https?:\/\//i.test(linkUrl.trim()) ? linkUrl.trim() : `https://${linkUrl.trim()}`;
-    const linkHtml = `<a href="${url}" target="_blank" rel="noopener noreferrer">${title}</a>`;
-    document.execCommand('insertHTML', false, linkHtml);
     setShowLinkModal(false);
+    activeAnchorRef.current = null;
+    setActiveAnchor(null);
+    setFloatingLink(null);
     handleInput(true);
   };
 
-  // Handle Checklist click directly inside editor
+  // Copy Link to clipboard
+  const handleCopyLink = (url: string) => {
+    if (!url) return;
+    const fullUrl = normalizeUrl(url);
+    navigator.clipboard.writeText(fullUrl);
+    setCopiedLink(true);
+    setTimeout(() => setCopiedLink(false), 1500);
+  };
+
+  // Smart Paste Handler for URLs
+  const handlePaste = (e: React.ClipboardEvent<HTMLDivElement>) => {
+    const pastedText = e.clipboardData.getData('text/plain');
+    if (!pastedText) return;
+
+    const trimmed = pastedText.trim();
+    if (isStandaloneUrl(trimmed)) {
+      const selection = window.getSelection();
+      const validUrl = normalizeUrl(trimmed);
+
+      if (selection && selection.rangeCount > 0 && !selection.isCollapsed) {
+        e.preventDefault();
+        const selectedText = selection.toString();
+        const linkHtml = `<a href="${validUrl}" target="_blank" rel="noopener noreferrer">${selectedText}</a>`;
+        document.execCommand('insertHTML', false, linkHtml);
+        handleInput(true);
+        return;
+      } else {
+        e.preventDefault();
+        const linkHtml = `<a href="${validUrl}" target="_blank" rel="noopener noreferrer">${trimmed}</a>`;
+        document.execCommand('insertHTML', false, linkHtml);
+        handleInput(true);
+        return;
+      }
+    }
+  };
+
+  // Handle Checklist and Link clicks directly inside editor
   const handleEditorClick = (e: React.MouseEvent<HTMLDivElement>) => {
     const target = e.target as HTMLElement;
+
+    // Check if clicked element is a link or inside a link
+    const anchor = (target.closest('a') as HTMLAnchorElement) || null;
+    if (anchor && editorRef.current?.contains(anchor)) {
+      // Ctrl+Click or Cmd+Click: directly open URL in new window
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault();
+        e.stopPropagation();
+        const href = anchor.getAttribute('href');
+        if (href) {
+          window.open(normalizeUrl(href), '_blank', 'noopener,noreferrer');
+        }
+        return;
+      }
+
+      // Normal click: display floating action toolbar under the link
+      const rect = anchor.getBoundingClientRect();
+      setFloatingLink({
+        anchor,
+        url: anchor.getAttribute('href') || '',
+        text: anchor.textContent || '',
+        rect,
+      });
+    } else {
+      setFloatingLink(null);
+    }
+
     if (target && target.matches('input[type="checkbox"].notion-task-checkbox')) {
       const checkbox = target as HTMLInputElement;
       const taskItem = checkbox.closest('.notion-task-item');
@@ -1120,9 +1278,9 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
           <button
             type="button"
             onMouseDown={(e) => e.preventDefault()}
-            onClick={openLinkModal}
-            className={btnClass(false)}
-            title="Insert Link (Ctrl+K)"
+            onClick={() => openLinkModal()}
+            className={btnClass(isLink)}
+            title={isLink ? 'Edit Link (Ctrl+K)' : 'Insert Link (Ctrl+K)'}
           >
             <LinkIcon className="w-3.5 h-3.5" />
           </button>
@@ -1266,29 +1424,107 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
           onKeyUp={updateToolbarState}
           onMouseUp={updateToolbarState}
           onKeyDown={handleKeyDown}
+          onPaste={handlePaste}
           data-placeholder={placeholder}
           className="notion-editor outline-none min-h-[140px] sm:min-h-[180px] font-sans text-base sm:text-sm text-[#1c1917] dark:text-neutral-100 leading-relaxed"
         />
       </div>
 
-      {/* Insert Link Modal */}
+      {/* Floating Link Action Toolbar (shown when clicking a link inside editor) */}
+      {floatingLink && (
+        <div
+          ref={floatingRef}
+          style={{
+            position: 'fixed',
+            top: `${Math.min(window.innerHeight - 56, Math.max(10, floatingLink.rect.bottom + 6))}px`,
+            left: `${Math.max(12, Math.min(window.innerWidth - 320, floatingLink.rect.left))}px`,
+            zIndex: 65,
+          }}
+          onClick={(e) => e.stopPropagation()}
+          className="flex items-center gap-1 px-2 py-1.5 bg-white/95 dark:bg-[#1e1e22]/95 backdrop-blur-md rounded-xl border border-black/10 dark:border-white/12 shadow-xl text-xs select-none animate-fade-in text-neutral-800 dark:text-neutral-100"
+        >
+          {/* Clickable URL */}
+          <a
+            href={normalizeUrl(floatingLink.url)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 px-2 py-1 text-neutral-700 dark:text-neutral-200 hover:text-[#007aff] dark:hover:text-[#5ac8fa] max-w-[170px] sm:max-w-[220px] truncate font-mono text-[11px] rounded-lg hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+            title={`Open ${floatingLink.url}`}
+          >
+            <ExternalLink className="w-3.5 h-3.5 shrink-0 text-[#007aff] dark:text-[#5ac8fa]" />
+            <span className="truncate">{floatingLink.url}</span>
+          </a>
+
+          <div className="w-[1px] h-3.5 bg-black/10 dark:bg-white/10 mx-0.5" />
+
+          {/* Copy Button */}
+          <button
+            type="button"
+            onClick={() => handleCopyLink(floatingLink.url)}
+            className="p-1.5 text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-white rounded-lg hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer"
+            title="Copy link address"
+          >
+            {copiedLink ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+          </button>
+
+          {/* Edit Button */}
+          <button
+            type="button"
+            onClick={() => openLinkModal(floatingLink.anchor)}
+            className="p-1.5 text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-white rounded-lg hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer"
+            title="Edit link"
+          >
+            <Edit3 className="w-3.5 h-3.5" />
+          </button>
+
+          {/* Unlink Button */}
+          <button
+            type="button"
+            onClick={() => handleUnlink(floatingLink.anchor)}
+            className="p-1.5 text-rose-500 hover:text-rose-600 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
+            title="Remove link"
+          >
+            <Unlink className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
+
+      {/* Insert / Edit Link Modal */}
       {showLinkModal && (
         <div 
-          onClick={() => setShowLinkModal(false)}
           className="fixed inset-0 z-[70] flex items-center justify-center p-3 bg-black/40 backdrop-blur-xs animate-fade-in"
+          role="dialog"
+          aria-modal="true"
+          aria-label={activeAnchor ? 'Edit Link' : 'Insert Link'}
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') {
+              e.preventDefault();
+              e.stopPropagation();
+              setShowLinkModal(false);
+            }
+          }}
         >
           <div 
             onClick={e => e.stopPropagation()}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                e.stopPropagation();
+                handleSaveLink();
+              }
+            }}
             className="bg-white dark:bg-[#1c1c1f] rounded-2xl max-w-sm w-full p-4 border border-neutral-200 dark:border-neutral-800 shadow-2xl space-y-3"
           >
             <div className="flex items-center justify-between">
-              <h4 className="font-bold text-xs sm:text-sm text-neutral-900 dark:text-white">
-                Insert Link
+              <h4 className="font-bold text-xs sm:text-sm text-neutral-900 dark:text-white flex items-center gap-1.5">
+                <LinkIcon className="w-4 h-4 text-[#007aff]" />
+                <span>{activeAnchor ? 'Edit Link' : 'Insert Link'}</span>
               </h4>
               <button
                 type="button"
                 onClick={() => setShowLinkModal(false)}
-                className="p-1 text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200"
+                className="p-1 text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 cursor-pointer"
+                title="Close"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1303,7 +1539,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
                   value={linkText}
                   onChange={(e) => setLinkText(e.target.value)}
                   placeholder="e.g. MS Teams Portal"
-                  className="w-full px-3 py-1.5 text-base sm:text-xs bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2383e2] text-neutral-900 dark:text-white"
+                  className="w-full px-3 py-1.5 text-base sm:text-xs bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#007aff] text-neutral-900 dark:text-white"
                 />
               </div>
               <div>
@@ -1315,27 +1551,42 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
                   value={linkUrl}
                   onChange={(e) => setLinkUrl(e.target.value)}
                   placeholder="https://..."
-                  className="w-full px-3 py-1.5 text-base sm:text-xs bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2383e2] text-neutral-900 dark:text-white"
+                  className="w-full px-3 py-1.5 text-base sm:text-xs bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#007aff] text-neutral-900 dark:text-white font-mono"
                   autoFocus
                 />
               </div>
             </div>
-            <div className="flex items-center justify-end gap-2 pt-1">
-              <button
-                type="button"
-                onClick={() => setShowLinkModal(false)}
-                className="px-3 py-1.5 text-xs font-semibold text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-xl"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleSaveLink}
-                className="flex items-center gap-1 px-4 py-1.5 text-xs font-semibold text-white bg-[#2383e2] hover:bg-[#1a73e8] rounded-xl"
-              >
-                <Check className="w-3.5 h-3.5" />
-                <span>Add Link</span>
-              </button>
+            <div className="flex items-center justify-between gap-2 pt-1">
+              <div>
+                {activeAnchor && (
+                  <button
+                    type="button"
+                    onClick={() => handleUnlink(activeAnchor)}
+                    className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-xl cursor-pointer transition-colors"
+                    title="Remove link"
+                  >
+                    <Unlink className="w-3.5 h-3.5" />
+                    <span>Unlink</span>
+                  </button>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowLinkModal(false)}
+                  className="px-3 py-1.5 text-xs font-semibold text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-xl cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveLink}
+                  className="flex items-center gap-1 px-4 py-1.5 text-xs font-semibold text-white bg-[#007aff] hover:bg-[#0062cc] rounded-xl cursor-pointer"
+                >
+                  <Check className="w-3.5 h-3.5" />
+                  <span>{activeAnchor ? 'Save Link' : 'Add Link'}</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>

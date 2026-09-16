@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import type { Note, NoteColor } from '../../types/note';
 import { X, Pin, Trash2, FileText } from '../common/MovingIcon';
 import { RichTextEditor } from './RichTextEditor';
@@ -54,22 +54,27 @@ export const NoteModal: React.FC<NoteModalProps> = ({
     initialFocusRef: titleInputRef,
   });
 
-  useEffect(() => {
-    if (!isOpen) return;
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
+  const [prevNoteId, setPrevNoteId] = useState(initialNote?.id);
 
-    if (initialNote) {
-      setTitle(initialNote.title || '');
-      setContent(initialNote.content || '');
-      setColor(initialNote.color || 'default');
-      setIsPinned(!!initialNote.isPinned);
-    } else {
-      setTitle('');
-      setContent('');
-      setColor('default');
-      setIsPinned(false);
+  if (prevIsOpen !== isOpen || prevNoteId !== initialNote?.id) {
+    setPrevIsOpen(isOpen);
+    setPrevNoteId(initialNote?.id);
+    if (isOpen) {
+      if (initialNote) {
+        setTitle(initialNote.title || '');
+        setContent(initialNote.content || '');
+        setColor(initialNote.color || 'default');
+        setIsPinned(!!initialNote.isPinned);
+      } else {
+        setTitle('');
+        setContent('');
+        setColor('default');
+        setIsPinned(false);
+      }
+      setError(null);
     }
-    setError(null);
-  }, [initialNote, isOpen]);
+  }
 
   if (!isOpen) return null;
 
@@ -199,7 +204,7 @@ export const NoteModal: React.FC<NoteModalProps> = ({
           </div>
 
           {/* Footer Bar: Color Selector + Stats + Action Buttons */}
-          <div className="px-4 sm:px-6 py-3 border-t border-neutral-200/80 dark:border-neutral-800/80 bg-neutral-50/60 dark:bg-neutral-900/60 flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
+          <div className="px-4 sm:px-6 py-3 pb-safe border-t border-neutral-200/80 dark:border-neutral-800/80 bg-neutral-50/60 dark:bg-neutral-900/60 flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
             {/* Left: Card Color Palette */}
             <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-start">
               <div className="flex items-center gap-2">

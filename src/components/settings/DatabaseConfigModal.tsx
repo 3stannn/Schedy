@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   X,
   CheckCircle2,
@@ -53,13 +53,16 @@ export const DatabaseConfigModal: React.FC<DatabaseConfigModalProps> = ({
     onClose,
   });
 
-  useEffect(() => {
-    if (!isOpen) return;
-    const cfg = getSupabaseConfig();
-    setUrl(cfg.url);
-    setAnonKey(cfg.anonKey);
-    setTestResult(null);
-  }, [isOpen]);
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
+  if (prevIsOpen !== isOpen) {
+    setPrevIsOpen(isOpen);
+    if (isOpen) {
+      const cfg = getSupabaseConfig();
+      setUrl(cfg.url);
+      setAnonKey(cfg.anonKey);
+      setTestResult(null);
+    }
+  }
 
   if (!isOpen) return null;
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { AlertTriangle, Trash2 } from '../common/MovingIcon';
 import { useModalBehavior } from '../../hooks/useModalBehavior';
 import { haptics } from '../../utils/haptics';
@@ -21,13 +21,14 @@ export const ClearAllDataModal: React.FC<ClearAllDataModalProps> = ({
   const [stage, setStage] = useState<1 | 2>(1);
   const [confirmPhrase, setConfirmPhrase] = useState('');
 
-  // Reset state when modal opens or closes
-  useEffect(() => {
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
+  if (prevIsOpen !== isOpen) {
+    setPrevIsOpen(isOpen);
     if (isOpen) {
       setStage(1);
       setConfirmPhrase('');
     }
-  }, [isOpen]);
+  }
 
   const {
     modalRef,

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import type { Announcement, AnnouncementPriority } from '../../types/announcement';
 import {
   X,
@@ -59,29 +59,35 @@ export const AnnouncementModal: React.FC<AnnouncementModalProps> = ({
     initialFocusRef: titleInputRef,
   });
 
-  useEffect(() => {
-    if (!isOpen) return;
-    if (initialAnnouncement) {
-      setTitle(initialAnnouncement.title);
-      setContent(initialAnnouncement.content);
-      setPriority(initialAnnouncement.priority);
-      setCategory(initialAnnouncement.category);
-      setIsPinned(initialAnnouncement.isPinned);
-      setExpiresAt(initialAnnouncement.expiresAt ? initialAnnouncement.expiresAt.slice(0, 16) : '');
-      setAuthorName(initialAnnouncement.authorName);
-      setDevPassword('');
-    } else {
-      setTitle('');
-      setContent('');
-      setPriority('important');
-      setCategory('general');
-      setIsPinned(false);
-      setExpiresAt('');
-      setAuthorName('Admin');
-      setDevPassword('');
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
+  const [prevAnnoId, setPrevAnnoId] = useState(initialAnnouncement?.id);
+
+  if (prevIsOpen !== isOpen || prevAnnoId !== initialAnnouncement?.id) {
+    setPrevIsOpen(isOpen);
+    setPrevAnnoId(initialAnnouncement?.id);
+    if (isOpen) {
+      if (initialAnnouncement) {
+        setTitle(initialAnnouncement.title);
+        setContent(initialAnnouncement.content);
+        setPriority(initialAnnouncement.priority);
+        setCategory(initialAnnouncement.category);
+        setIsPinned(initialAnnouncement.isPinned);
+        setExpiresAt(initialAnnouncement.expiresAt ? initialAnnouncement.expiresAt.slice(0, 16) : '');
+        setAuthorName(initialAnnouncement.authorName);
+        setDevPassword('');
+      } else {
+        setTitle('');
+        setContent('');
+        setPriority('important');
+        setCategory('general');
+        setIsPinned(false);
+        setExpiresAt('');
+        setAuthorName('Admin');
+        setDevPassword('');
+      }
+      setError(null);
     }
-    setError(null);
-  }, [isOpen, initialAnnouncement]);
+  }
 
   if (!isOpen) return null;
 

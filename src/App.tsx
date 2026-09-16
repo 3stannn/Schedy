@@ -133,9 +133,21 @@ export function App() {
 
   const [isDbConfigModalOpen, setIsDbConfigModalOpen] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
-  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(() => {
+    try {
+      return Boolean(new URLSearchParams(window.location.search).get('sync'));
+    } catch {
+      return false;
+    }
+  });
   const [isClearAllModalOpen, setIsClearAllModalOpen] = useState(false);
-  const [initialSyncCode, setInitialSyncCode] = useState('');
+  const [initialSyncCode, setInitialSyncCode] = useState(() => {
+    try {
+      return new URLSearchParams(window.location.search).get('sync') || '';
+    } catch {
+      return '';
+    }
+  });
 
   // User Profile & Paid AI Modal States
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
@@ -169,15 +181,10 @@ export function App() {
     setToasts(prev => prev.filter(t => t.id !== id));
   };
 
-  // Detect ?sync=, ?reset_pro=, and ?upgraded= on launch
+  // Detect ?reset_pro= and ?upgraded= on launch
   useEffect(() => {
     try {
       const params = new URLSearchParams(window.location.search);
-      const syncParam = params.get('sync');
-      if (syncParam) {
-        setInitialSyncCode(syncParam);
-        setIsShareModalOpen(true);
-      }
 
       const resetParam = params.get('reset_pro');
       if (resetParam === 'true') {
@@ -239,8 +246,37 @@ export function App() {
   }, [addToast]);
 
   useEffect(() => {
-    loadData();
-  }, [loadData]);
+    let ignore = false;
+    async function startFetching() {
+      try {
+        const [fetchedEvents, fetchedAnnos, fetchedNotes] = await Promise.all([
+          fetchAllEvents(),
+          fetchAllAnnouncements(),
+          fetchAllNotes(),
+        ]);
+        if (!ignore) {
+          setEvents(fetchedEvents);
+          setAnnouncements(fetchedAnnos);
+          setNotes(fetchedNotes);
+        }
+
+        if (isUserSupabaseConfigured()) {
+          const check = await testUserSupabaseConnection();
+          if (!ignore) setIsCloudConnected(check.success);
+        } else {
+          if (!ignore) setIsCloudConnected(false);
+        }
+      } catch (err: any) {
+        console.error('Failed to load data:', err);
+        if (!ignore) addToast('error', 'Failed to load data', err.message);
+      }
+    }
+
+    startFetching();
+    return () => {
+      ignore = true;
+    };
+  }, [addToast]);
 
   // Periodic Auto-Cleanup for Expired Events (5 days uncompleted, 2 days completed)
   useEffect(() => {
@@ -813,6 +849,7 @@ export function App() {
               }}
               onDeleteNote={handleDeleteNote}
               onTogglePinNote={handleTogglePinNote}
+              theme={theme}
             />
           </div>
         )}

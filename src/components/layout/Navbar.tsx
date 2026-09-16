@@ -293,32 +293,34 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             {/* Theme Toggle Controls */}
             <div className="p-1 rounded-[10px] bg-black/[0.04] dark:bg-white/[0.06] flex items-center justify-between">
-              <span className="text-[10px] font-medium text-neutral-500 dark:text-neutral-400 pl-1.5">
+              <span className="text-[10px] font-medium text-neutral-500 dark:text-neutral-400 pl-1.5 leading-none select-none">
                 Appearance
               </span>
 
               <div className="flex items-center gap-1">
                 <button
+                  type="button"
                   onClick={onTogglePinkTheme}
-                  className={`p-1.5 rounded-[8px] transition-all active:scale-90 cursor-pointer ${theme === 'pink'
+                  className={`w-7 h-7 flex items-center justify-center rounded-[8px] transition-all active:scale-90 cursor-pointer ${theme === 'pink'
                     ? 'bg-[#FF8DA1]/20 text-[#FF8DA1] ring-1 ring-[#FF8DA1]/50'
                     : 'text-neutral-500 dark:text-neutral-400 hover:text-[#FF8DA1] hover:bg-black/5 dark:hover:bg-white/10'
                     }`}
                   title={theme === 'pink' ? 'Pink Theme Active' : 'Switch to Pink Theme'}
                 >
-                  <Flower2 className="w-3.5 h-3.5" />
+                  <Flower2 className="w-3.5 h-3.5 shrink-0" />
                 </button>
 
                 <button
+                  type="button"
                   onClick={onToggleTheme}
-                  className={`p-1.5 rounded-[8px] transition-all active:scale-90 cursor-pointer ${theme === 'dark'
+                  className={`w-7 h-7 flex items-center justify-center rounded-[8px] transition-all active:scale-90 cursor-pointer ${theme === 'dark'
                     ? 'text-amber-400 bg-white/10'
                     : 'text-neutral-600 hover:bg-black/5 dark:hover:bg-white/10'
                     }`}
                   title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
                 >
-                  <span key={theme === 'dark' ? 'sun' : 'moon'} className="theme-toggle-icon">
-                    {theme === 'dark' ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
+                  <span key={theme === 'dark' ? 'sun' : 'moon'} className="theme-toggle-icon flex items-center justify-center">
+                    {theme === 'dark' ? <Sun className="w-3.5 h-3.5 shrink-0" /> : <Moon className="w-3.5 h-3.5 shrink-0" />}
                   </span>
                 </button>
               </div>
@@ -405,7 +407,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       {/* ========================================================================= */}
       {/* MOBILE TOP BAR (Visible on < md)                                         */}
       {/* ========================================================================= */}
-      <header className="md:hidden sticky top-0 z-40 w-full ios-nav-bar transition-all duration-300">
+      <header className="md:hidden sticky top-0 z-40 w-full ios-nav-bar pt-safe transition-colors duration-300">
         <div className="w-full max-w-[1760px] mx-auto px-3.5 py-2">
 
           {/* Mobile Main Row */}
@@ -577,22 +579,24 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </span>
                 <div className="flex items-center gap-1.5">
                   <button
+                    type="button"
                     onClick={onTogglePinkTheme}
                     className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer ${theme === 'pink'
                       ? 'bg-[#FF8DA1]/20 text-[#FF8DA1] ring-1 ring-[#FF8DA1]/40'
                       : 'bg-black/[0.04] dark:bg-white/[0.06] text-neutral-600 dark:text-neutral-400'
                       }`}
                   >
-                    <Flower2 className="w-3.5 h-3.5 text-[#FF8DA1]" />
+                    <Flower2 className="w-3.5 h-3.5 text-[#FF8DA1] shrink-0" />
                     <span>Pink</span>
                   </button>
 
                   <button
+                    type="button"
                     onClick={onToggleTheme}
                     className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-black/[0.04] dark:bg-white/[0.06] text-neutral-700 dark:text-neutral-200 text-xs font-medium cursor-pointer"
                   >
-                    <span key={theme === 'dark' ? 'sun' : 'moon'} className="theme-toggle-icon">
-                      {theme === 'dark' ? <Sun className="w-3.5 h-3.5 text-amber-400" /> : <Moon className="w-3.5 h-3.5 text-neutral-600" />}
+                    <span key={theme === 'dark' ? 'sun' : 'moon'} className="theme-toggle-icon shrink-0">
+                      {theme === 'dark' ? <Sun className="w-3.5 h-3.5 text-amber-400 shrink-0" /> : <Moon className="w-3.5 h-3.5 text-neutral-600 shrink-0" />}
                     </span>
                     <span>{theme === 'dark' ? 'Light' : 'Dark'}</span>
                   </button>
