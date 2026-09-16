@@ -25,7 +25,6 @@ import { stripHtml } from './noteFormattingUtils';
 import { getEventAutoDeleteInfo } from '../../utils/autoDeleteUtils';
 import { CustomSelect } from '../common/CustomSelect';
 import { haptics } from '../../utils/haptics';
-import { Hand } from 'lucide-react';
 
 const TYPE_FILTER_OPTIONS = [
   { value: 'all', label: 'All Types' },
@@ -104,72 +103,6 @@ const NOTE_COLOR_STYLES: Record<NoteColor, { bg: string; border: string; text: s
   },
 };
 
-interface RadialChargingIndicatorProps {
-  theme?: 'light' | 'dark' | 'pink';
-  position?: { x: number; y: number } | null;
-  columnType?: 'pending' | 'in_progress' | 'completed';
-}
-
-const RadialChargingIndicator: React.FC<RadialChargingIndicatorProps> = ({
-  theme,
-  position,
-  columnType = 'pending',
-}) => {
-  let strokeColor = '#007aff';
-  let glowColor = 'rgba(0, 122, 255, 0.6)';
-
-  if (theme === 'pink') {
-    strokeColor = '#FF8DA1';
-    glowColor = 'rgba(255, 141, 161, 0.6)';
-  } else if (columnType === 'in_progress') {
-    strokeColor = '#f59e0b';
-    glowColor = 'rgba(245, 158, 11, 0.6)';
-  } else if (columnType === 'completed') {
-    strokeColor = '#10b981';
-    glowColor = 'rgba(16, 185, 129, 0.6)';
-  }
-
-  return (
-    <div
-      className="absolute z-30 flex items-center justify-center pointer-events-none -translate-x-1/2 -translate-y-1/2 animate-in fade-in zoom-in-75 duration-150 select-none"
-      style={{
-        left: position ? `${position.x}px` : 'calc(100% - 24px)',
-        top: position ? `${position.y}px` : '24px',
-      }}
-    >
-      <div className="relative w-9 h-9 flex items-center justify-center rounded-full bg-neutral-900/90 dark:bg-black/90 backdrop-blur-md shadow-[0_4px_20px_rgba(0,0,0,0.5)] border border-white/20">
-        <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 36 36">
-          <circle
-            cx="18"
-            cy="18"
-            r="14"
-            fill="none"
-            stroke="rgba(255, 255, 255, 0.18)"
-            strokeWidth="2.75"
-          />
-          <circle
-            cx="18"
-            cy="18"
-            r="14"
-            fill="none"
-            stroke={strokeColor}
-            strokeWidth="2.75"
-            strokeLinecap="round"
-            strokeDasharray="88"
-            strokeDashoffset="88"
-            transform="rotate(-90 18 18)"
-            className="schedy-radial-circle"
-            style={{
-              filter: `drop-shadow(0 0 5px ${glowColor})`,
-            }}
-          />
-        </svg>
-        <Hand className="w-3.5 h-3.5 text-white fill-white/25 select-none pointer-events-none drop-shadow-sm" />
-      </div>
-    </div>
-  );
-};
-
 export const TaskBoard: React.FC<TaskBoardProps> = ({
   events,
   notes,
@@ -191,7 +124,6 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
   const [draggingEventId, setDraggingEventId] = useState<string | null>(null);
   const [dragOverColumn, setDragOverColumn] = useState<EventStatus | null>(null);
   const [touchPosition, setTouchPosition] = useState<{ x: number; y: number } | null>(null);
-  const [chargingPressPos, setChargingPressPos] = useState<{ x: number; y: number } | null>(null);
   const isDraggingRef = useRef(false);
   const dragEnterCounters = useRef<Record<string, number>>({
     pending: 0,
@@ -229,14 +161,12 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
       longPressTimerRef.current = null;
     }
     setLongPressingId(null);
-    setChargingPressPos(null);
     pressStartPosRef.current = null;
   }, []);
 
   // Helper to cleanly reset all drag states
   const resetDragState = useCallback(() => {
     cancelLongPress();
-    setChargingPressPos(null);
     touchStartRef.current = null;
     isTouchDraggingRef.current = false;
     setTouchPosition(null);
@@ -346,7 +276,6 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
     longPressTimerRef.current = setTimeout(() => {
       longPressTimerRef.current = null;
       setLongPressingId(null);
-      setChargingPressPos(null);
       isTouchDraggingRef.current = true;
       isDraggingRef.current = true;
       setDraggingEventId(eventId);
@@ -708,10 +637,6 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
                       if (e.button !== 0) return;
                       const target = e.target as HTMLElement;
                       if (target.closest('button, a, input, textarea')) return;
-                      const rect = e.currentTarget.getBoundingClientRect();
-                      const relX = Math.max(20, Math.min(rect.width - 20, e.clientX - rect.left));
-                      const relY = Math.max(20, Math.min(rect.height - 20, e.clientY - rect.top));
-                      setChargingPressPos({ x: relX, y: relY });
                       startLongPress(evt.id, e.clientX, e.clientY);
                     }}
                     onTouchStart={(e) => {
@@ -720,10 +645,6 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
                       if (!t) return;
                       const target = e.target as HTMLElement;
                       if (target.closest('button, a, input, textarea')) return;
-                      const rect = e.currentTarget.getBoundingClientRect();
-                      const relX = Math.max(20, Math.min(rect.width - 20, t.clientX - rect.left));
-                      const relY = Math.max(20, Math.min(rect.height - 20, t.clientY - rect.top));
-                      setChargingPressPos({ x: relX, y: relY });
                       startLongPress(evt.id, t.clientX, t.clientY);
                     }}
                     onClick={() => {
@@ -732,7 +653,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
                     }}
                     className={`relative p-3.5 rounded-[14px] bg-white dark:bg-[#18181b] border transition-all cursor-grab active:cursor-grabbing group flex flex-col justify-between gap-2.5 select-none touch-manipulation ${
                       isCharging
-                        ? 'ring-2 ring-blue-500/60 dark:ring-blue-400/60 scale-[0.98] shadow-lg border-blue-400'
+                        ? `${theme === 'pink' ? 'ring-2 ring-rose-400/60 border-rose-400' : 'ring-2 ring-blue-500/60 dark:ring-blue-400/60 border-blue-400'} scale-[0.98] shadow-lg`
                         : isDragging
                         ? 'opacity-40 scale-[0.98] border-dashed border-blue-400 shadow-md'
                         : isUrgent
@@ -740,13 +661,20 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
                         : 'border-neutral-200/80 dark:border-neutral-800 hover:border-blue-500/50'
                     }`}
                   >
-                    {/* Radial Hold-to-Drag Charging Ring */}
+                    {/* Hold for 1 sec to drag Progress Bar & Badge */}
                     {isCharging && (
-                      <RadialChargingIndicator
-                        theme={theme}
-                        position={chargingPressPos}
-                        columnType="pending"
-                      />
+                      <>
+                        <div className={`absolute top-0 inset-x-0 h-1.5 ${theme === 'pink' ? 'bg-rose-500/15 dark:bg-rose-500/25' : 'bg-blue-500/15 dark:bg-blue-500/25'} overflow-hidden rounded-t-[13px] z-20 pointer-events-none`}>
+                          <div
+                            className={`h-full ${theme === 'pink' ? 'bg-[#FF8DA1]' : 'bg-blue-500 dark:bg-blue-400'} rounded-full`}
+                            style={{ animation: 'schedyLongPress 1s linear forwards' }}
+                          />
+                        </div>
+                        <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 z-30 px-2.5 py-0.5 rounded-full bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 text-[10px] font-bold shadow-xl border border-black/10 dark:border-white/10 flex items-center gap-1.5 animate-in fade-in zoom-in-95 duration-150 pointer-events-none whitespace-nowrap">
+                          <span className={`w-1.5 h-1.5 rounded-full ${theme === 'pink' ? 'bg-[#FF8DA1]' : 'bg-blue-500 dark:bg-blue-400'} animate-ping`} />
+                          <span>Hold for 1 sec to drag</span>
+                        </div>
+                      </>
                     )}
                     <div className="space-y-1.5">
                       <div className="flex items-start justify-between gap-1.5">
@@ -905,10 +833,6 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
                       if (e.button !== 0) return;
                       const target = e.target as HTMLElement;
                       if (target.closest('button, a, input, textarea')) return;
-                      const rect = e.currentTarget.getBoundingClientRect();
-                      const relX = Math.max(20, Math.min(rect.width - 20, e.clientX - rect.left));
-                      const relY = Math.max(20, Math.min(rect.height - 20, e.clientY - rect.top));
-                      setChargingPressPos({ x: relX, y: relY });
                       startLongPress(evt.id, e.clientX, e.clientY);
                     }}
                     onTouchStart={(e) => {
@@ -917,10 +841,6 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
                       if (!t) return;
                       const target = e.target as HTMLElement;
                       if (target.closest('button, a, input, textarea')) return;
-                      const rect = e.currentTarget.getBoundingClientRect();
-                      const relX = Math.max(20, Math.min(rect.width - 20, t.clientX - rect.left));
-                      const relY = Math.max(20, Math.min(rect.height - 20, t.clientY - rect.top));
-                      setChargingPressPos({ x: relX, y: relY });
                       startLongPress(evt.id, t.clientX, t.clientY);
                     }}
                     onClick={() => {
@@ -935,13 +855,20 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
                         : ''
                     }`}
                   >
-                    {/* Radial Hold-to-Drag Charging Ring */}
+                    {/* Hold for 1 sec to drag Progress Bar & Badge */}
                     {isCharging && (
-                      <RadialChargingIndicator
-                        theme={theme}
-                        position={chargingPressPos}
-                        columnType="in_progress"
-                      />
+                      <>
+                        <div className="absolute top-0 inset-x-0 h-1.5 bg-amber-500/15 dark:bg-amber-500/25 overflow-hidden rounded-t-[13px] z-20 pointer-events-none">
+                          <div
+                            className="h-full bg-amber-500 dark:bg-amber-400 rounded-full"
+                            style={{ animation: 'schedyLongPress 1s linear forwards' }}
+                          />
+                        </div>
+                        <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 z-30 px-2.5 py-0.5 rounded-full bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 text-[10px] font-bold shadow-xl border border-black/10 dark:border-white/10 flex items-center gap-1.5 animate-in fade-in zoom-in-95 duration-150 pointer-events-none whitespace-nowrap">
+                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 dark:bg-amber-400 animate-ping" />
+                          <span>Hold for 1 sec to drag</span>
+                        </div>
+                      </>
                     )}
                     <div className="space-y-1.5">
                       <div className="flex items-start justify-between gap-1.5">
@@ -1100,10 +1027,6 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
                       if (e.button !== 0) return;
                       const target = e.target as HTMLElement;
                       if (target.closest('button, a, input, textarea')) return;
-                      const rect = e.currentTarget.getBoundingClientRect();
-                      const relX = Math.max(20, Math.min(rect.width - 20, e.clientX - rect.left));
-                      const relY = Math.max(20, Math.min(rect.height - 20, e.clientY - rect.top));
-                      setChargingPressPos({ x: relX, y: relY });
                       startLongPress(evt.id, e.clientX, e.clientY);
                     }}
                     onTouchStart={(e) => {
@@ -1112,10 +1035,6 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
                       if (!t) return;
                       const target = e.target as HTMLElement;
                       if (target.closest('button, a, input, textarea')) return;
-                      const rect = e.currentTarget.getBoundingClientRect();
-                      const relX = Math.max(20, Math.min(rect.width - 20, t.clientX - rect.left));
-                      const relY = Math.max(20, Math.min(rect.height - 20, t.clientY - rect.top));
-                      setChargingPressPos({ x: relX, y: relY });
                       startLongPress(evt.id, t.clientX, t.clientY);
                     }}
                     onClick={() => {
@@ -1130,13 +1049,20 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
                         : ''
                     }`}
                   >
-                    {/* Radial Hold-to-Drag Charging Ring */}
+                    {/* Hold for 1 sec to drag Progress Bar & Badge */}
                     {isCharging && (
-                      <RadialChargingIndicator
-                        theme={theme}
-                        position={chargingPressPos}
-                        columnType="completed"
-                      />
+                      <>
+                        <div className="absolute top-0 inset-x-0 h-1.5 bg-emerald-500/15 dark:bg-emerald-500/25 overflow-hidden rounded-t-[13px] z-20 pointer-events-none">
+                          <div
+                            className="h-full bg-emerald-500 dark:bg-emerald-400 rounded-full"
+                            style={{ animation: 'schedyLongPress 1s linear forwards' }}
+                          />
+                        </div>
+                        <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 z-30 px-2.5 py-0.5 rounded-full bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 text-[10px] font-bold shadow-xl border border-black/10 dark:border-white/10 flex items-center gap-1.5 animate-in fade-in zoom-in-95 duration-150 pointer-events-none whitespace-nowrap">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-ping" />
+                          <span>Hold for 1 sec to drag</span>
+                        </div>
+                      </>
                     )}
                     <div className="space-y-1.5">
                       <div className="flex items-start justify-between gap-1.5">

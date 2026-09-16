@@ -1276,19 +1276,6 @@ a:hover .moving-icon-shake,
   }
 }
 
-@keyframes schedyRadialProgress {
-  0% {
-    stroke-dashoffset: 88;
-  }
-  100% {
-    stroke-dashoffset: 0;
-  }
-}
-
-.schedy-radial-circle {
-  animation: schedyRadialProgress 1s linear forwards;
-}
-
 /* ==========================================================================
    Pixel Buddy Mascot Animations (Lower Right Footer)
    ========================================================================== */
