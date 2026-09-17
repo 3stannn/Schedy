@@ -249,13 +249,13 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         {/* Bottom Utility Card: iOS Inset Grouped Card */}
         <div className="space-y-2">
-          {/* <iframe
+          {<iframe
             src="https://appbuildersph.com/embed/apps/schedy"
             title="Schedy votes on App Builders PH"
             className="w-full border-0"
             height="72"
             loading="lazy"
-          /> */}
+          />}
           <div className="p-2 rounded-[16px] bg-black/[0.03] dark:bg-white/[0.05] border border-black/[0.05] dark:border-white/[0.08] space-y-1.5">
             {/* Share Code Button - iOS Tinted Button */}
             <button
@@ -433,7 +433,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 className="flex items-center justify-center px-2.5 py-1 text-xs font-semibold text-neutral-400 dark:text-neutral-500 bg-black/[0.04] dark:bg-white/[0.05] rounded-full cursor-not-allowed opacity-60 min-h-[28px] h-7"
                 title="AI Schedule Importer (Disabled)"
               >
-                <span>AI</span>
+                <span>Import</span>
               </button>
 
 
