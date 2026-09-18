@@ -212,11 +212,11 @@ export default async function handler(req: any, res: any) {
     if (isProActivationEvent) {
       console.log(`[Polar Webhook] Activating Pro for user (ID: ${userId}, Email: ${userEmail}, Sub: ${subscriptionId})`);
 
-      // 1a. Call database RPC function
+      // 1a. Call database RPC function (prefer email to prevent cross-account metadata poisoning)
       const { data: rpcResult, error: rpcError } = await supabase.rpc(
         'upgrade_to_pro_by_identifier',
         {
-          user_uuid: userId,
+          user_uuid: userEmail ? null : userId,
           user_email: userEmail,
           customer_id: customerId,
           subscription_id: subscriptionId,
@@ -237,10 +237,10 @@ export default async function handler(req: any, res: any) {
           updated_at: new Date().toISOString(),
         });
 
-        if (userId) {
-          query = query.eq('id', userId);
-        } else if (userEmail) {
+        if (userEmail) {
           query = query.ilike('email', userEmail);
+        } else if (userId) {
+          query = query.eq('id', userId);
         }
 
         const { error: directError, data: directData } = await query.select();
@@ -262,21 +262,41 @@ export default async function handler(req: any, res: any) {
     }
 
     // -------------------------------------------------------------------------
-    // 2. CANCELLATION / EXPIRATION / REVOCATION EVENTS
+    // 2. CANCELLATION SCHEDULED (End of billing period)
+    // -------------------------------------------------------------------------
+    // When a user cancels auto-renew on Polar, Polar sends subscription.canceled or subscription.updated,
+    // but status remains 'active' with cancel_at_period_end: true. Pro access stays active until period end.
+    const isScheduledCancellation =
+      (eventType === 'subscription.canceled' || eventType === 'subscription.updated') &&
+      eventData?.cancel_at_period_end === true &&
+      eventData?.status === 'active';
+
+    if (isScheduledCancellation) {
+      console.log(`[Polar Webhook] Cancellation scheduled for period end (${eventData?.current_period_end}) for ${userEmail || userId}. Pro remains active.`);
+      return res.status(200).json({
+        received: true,
+        action: 'cancellation_scheduled',
+        user: { id: userId, email: userEmail },
+        current_period_end: eventData?.current_period_end,
+      });
+    }
+
+    // -------------------------------------------------------------------------
+    // 3. ACTUAL EXPIRATION / REVOCATION / DOWNGRADE EVENTS
     // -------------------------------------------------------------------------
     const isDowngradeEvent =
       eventType === 'subscription.revoked' ||
-      eventType === 'subscription.canceled' ||
       eventType === 'order.refunded' ||
+      (eventType === 'subscription.canceled' && eventData?.status !== 'active') ||
       (eventType === 'subscription.updated' &&
         ['canceled', 'revoked', 'unpaid', 'past_due', 'incomplete_expired'].includes(eventData?.status));
 
     if (isDowngradeEvent) {
       console.log(`[Polar Webhook] Downgrading to Free tier for user (ID: ${userId}, Email: ${userEmail}, Sub: ${subscriptionId})`);
 
-      // 2a. Call database RPC function
+      // 2a. Call database RPC function (prefer email to prevent cross-account metadata poisoning)
       const { data: rpcResult, error: rpcError } = await supabase.rpc('downgrade_from_pro', {
-        user_uuid: userId,
+        user_uuid: userEmail ? null : userId,
         user_email: userEmail,
         sub_id: subscriptionId,
       });
@@ -289,15 +309,18 @@ export default async function handler(req: any, res: any) {
         let query = supabase.from('profiles').update({
           is_pro: false,
           plan_tier: 'free',
+          polar_customer_id: null,
+          polar_subscription_id: null,
+          ai_credits_remaining: 1,
           updated_at: new Date().toISOString(),
         });
 
-        if (userId) {
-          query = query.eq('id', userId);
+        if (userEmail) {
+          query = query.ilike('email', userEmail);
         } else if (subscriptionId) {
           query = query.eq('polar_subscription_id', subscriptionId);
-        } else if (userEmail) {
-          query = query.ilike('email', userEmail);
+        } else if (userId) {
+          query = query.eq('id', userId);
         }
 
         const { error: directError } = await query;

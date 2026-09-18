@@ -80,13 +80,20 @@ export default async function handler(req: any, res: any) {
 
           polarSub = items.find((sub: any) => {
             const subEmail = (sub?.customer?.email || sub?.customer_email || '').trim().toLowerCase();
-            const matchesEmail = cleanEmail && subEmail === cleanEmail;
             const subUserId =
               sub?.metadata?.user_id ||
               sub?.customer?.metadata?.user_id ||
               sub?.customer?.external_id;
-            const matchesId = userId && subUserId === userId;
-            return matchesEmail || matchesId;
+
+            // Strict matching: Customer email is authoritative
+            if (cleanEmail && subEmail) {
+              return cleanEmail === subEmail;
+            }
+            // Fallback to userId ONLY if subscription has no customer email
+            if (!subEmail && userId && subUserId) {
+              return userId === subUserId;
+            }
+            return false;
           });
 
           if (polarSub) {
@@ -124,6 +131,20 @@ export default async function handler(req: any, res: any) {
                 status: polarSub.status,
               });
             }
+          } else {
+            console.log(`[Sync Subscription] No Polar subscription found for ${cleanEmail || userId}. Enforcing free tier.`);
+            await supabase.rpc('downgrade_from_pro', {
+              user_uuid: userId || null,
+              user_email: cleanEmail || null,
+              sub_id: null,
+            });
+
+            return res.status(200).json({
+              success: true,
+              is_pro: false,
+              plan_tier: 'free',
+              source: 'polar_api_not_found',
+            });
           }
         } else {
           console.warn('[Sync Subscription] Polar API responded with status:', polarRes.status);

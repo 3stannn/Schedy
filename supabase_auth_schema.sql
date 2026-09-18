@@ -152,13 +152,34 @@ AS $$
 DECLARE
     affected_rows INT;
 BEGIN
-    UPDATE public.profiles 
-    SET is_pro = false,
-        plan_tier = 'free',
-        updated_at = now()
-    WHERE (user_uuid IS NOT NULL AND id = user_uuid)
-       OR (sub_id IS NOT NULL AND polar_subscription_id = sub_id)
-       OR (user_email IS NOT NULL AND LOWER(TRIM(email)) = LOWER(TRIM(user_email)));
+    IF user_email IS NOT NULL AND TRIM(user_email) != '' THEN
+        UPDATE public.profiles 
+        SET is_pro = false,
+            plan_tier = 'free',
+            polar_customer_id = NULL,
+            polar_subscription_id = NULL,
+            ai_credits_remaining = 1,
+            updated_at = now()
+        WHERE LOWER(TRIM(email)) = LOWER(TRIM(user_email));
+    ELSIF user_uuid IS NOT NULL THEN
+        UPDATE public.profiles 
+        SET is_pro = false,
+            plan_tier = 'free',
+            polar_customer_id = NULL,
+            polar_subscription_id = NULL,
+            ai_credits_remaining = 1,
+            updated_at = now()
+        WHERE id = user_uuid;
+    ELSIF sub_id IS NOT NULL AND TRIM(sub_id) != '' THEN
+        UPDATE public.profiles 
+        SET is_pro = false,
+            plan_tier = 'free',
+            polar_customer_id = NULL,
+            polar_subscription_id = NULL,
+            ai_credits_remaining = 1,
+            updated_at = now()
+        WHERE polar_subscription_id = sub_id;
+    END IF;
 
     GET DIAGNOSTICS affected_rows = ROW_COUNT;
 
@@ -183,20 +204,31 @@ AS $$
 DECLARE
     affected_rows INT;
 BEGIN
-    UPDATE public.profiles 
-    SET is_pro = true,
-        plan_tier = 'pro',
-        polar_customer_id = COALESCE(customer_id, polar_customer_id),
-        polar_subscription_id = COALESCE(subscription_id, polar_subscription_id),
-        ai_credits_remaining = 999,
-        updated_at = now()
-    WHERE (user_uuid IS NOT NULL AND id = user_uuid)
-       OR (user_email IS NOT NULL AND LOWER(TRIM(email)) = LOWER(TRIM(user_email)));
+    -- Prioritize user_email to prevent cross-account metadata poisoning
+    IF user_email IS NOT NULL AND TRIM(user_email) != '' THEN
+        UPDATE public.profiles 
+        SET is_pro = true,
+            plan_tier = 'pro',
+            polar_customer_id = COALESCE(customer_id, polar_customer_id),
+            polar_subscription_id = COALESCE(subscription_id, polar_subscription_id),
+            ai_credits_remaining = 999,
+            updated_at = now()
+        WHERE LOWER(TRIM(email)) = LOWER(TRIM(user_email));
+    ELSIF user_uuid IS NOT NULL THEN
+        UPDATE public.profiles 
+        SET is_pro = true,
+            plan_tier = 'pro',
+            polar_customer_id = COALESCE(customer_id, polar_customer_id),
+            polar_subscription_id = COALESCE(subscription_id, polar_subscription_id),
+            ai_credits_remaining = 999,
+            updated_at = now()
+        WHERE id = user_uuid;
+    END IF;
 
     GET DIAGNOSTICS affected_rows = ROW_COUNT;
 
     -- Self-heal: If profile record not found in public.profiles, check auth.users and insert
-    IF affected_rows = 0 AND user_email IS NOT NULL THEN
+    IF affected_rows = 0 AND user_email IS NOT NULL AND TRIM(user_email) != '' THEN
         INSERT INTO public.profiles (
             id,
             email,
