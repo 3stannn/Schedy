@@ -1333,3 +1333,17 @@ a:hover .moving-icon-shake,
 .pixel-buddy-shadow-hopping {
   animation: pixelBuddyShadow 0.72s;
 }
+.notion-editor img, .notion-rendered-content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.notion-editor img:hover, .notion-rendered-content img:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+.notion-editor img.selected {
+  outline: 3px solid #007aff;
+  outline-offset: 2px;
+}
