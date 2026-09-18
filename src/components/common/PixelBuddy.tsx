@@ -115,7 +115,13 @@ export const PixelBuddy: React.FC<PixelBuddyProps> = ({ theme: propTheme }) => {
     themeRef.current = currentTheme;
   }, [currentTheme]);
 
-  const [currentImg, setCurrentImg] = useState(() => (FRAME_SETS[propTheme || domTheme] || FRAME_SETS.light).walkLeft[0]);
+  const imgRef = useRef<HTMLImageElement>(null);
+  const setSprite = (src: string) => {
+    if (imgRef.current && imgRef.current.getAttribute('src') !== src) {
+      imgRef.current.src = src;
+    }
+  };
+  const initialImg = (FRAME_SETS[propTheme || domTheme] || FRAME_SETS.light).walkLeft[0];
   const [speech, setSpeech] = useState<string | null>(null);
   const [bubbleAlign, setBubbleAlign] = useState<'center' | 'left' | 'right'>('center');
   const [isJumping, setIsJumping] = useState(false);
@@ -143,13 +149,13 @@ export const PixelBuddy: React.FC<PixelBuddyProps> = ({ theme: propTheme }) => {
   useEffect(() => {
     const frames = FRAME_SETS[currentTheme] || FRAME_SETS.light;
     if (isJumpingRef.current) {
-      setCurrentImg(frames.jump[jumpStepRef.current] || frames.jump[0]);
+      setSprite(frames.jump[jumpStepRef.current] || frames.jump[0]);
     } else if (isHoveringRef.current || postClickPauseTimerRef.current > 0) {
-      setCurrentImg(frames.standFront);
+      setSprite(frames.standFront);
     } else if (dirRef.current === -1) {
-      setCurrentImg(frames.walkLeft[currentStepRef.current]);
+      setSprite(frames.walkLeft[currentStepRef.current]);
     } else {
-      setCurrentImg(frames.walkRight[currentStepRef.current]);
+      setSprite(frames.walkRight[currentStepRef.current]);
     }
   }, [currentTheme]);
 
@@ -187,19 +193,19 @@ export const PixelBuddy: React.FC<PixelBuddyProps> = ({ theme: propTheme }) => {
         if (postClickPauseTimerRef.current > 0) {
           postClickPauseTimerRef.current -= delta;
           const f = getFrames();
-          setCurrentImg(f.standFront);
+          setSprite(f.standFront);
           stepTimer = 0;
           currentStep = 0;
           currentStepRef.current = 0;
           if (postClickPauseTimerRef.current <= 0 && !isHoveringRef.current) {
             // Just ended pause, face walking direction
-            setCurrentImg(dirRef.current === -1 ? f.walkLeft[0] : f.walkRight[0]);
+            setSprite(dirRef.current === -1 ? f.walkLeft[0] : f.walkRight[0]);
           }
         } else if (pauseTimerRef.current > 0) {
           pauseTimerRef.current -= delta;
           // Stand still facing current turn
           const f = getFrames();
-          setCurrentImg(dirRef.current === -1 ? f.walkLeft[0] : f.walkRight[0]);
+          setSprite(dirRef.current === -1 ? f.walkLeft[0] : f.walkRight[0]);
         } else {
           // Determine distance based on screen width: on mobile, walk across the entire screen width
           const maxDist =
@@ -230,9 +236,9 @@ export const PixelBuddy: React.FC<PixelBuddyProps> = ({ theme: propTheme }) => {
             currentStepRef.current = currentStep;
             const f = getFrames();
             if (dirRef.current === -1) {
-              setCurrentImg(f.walkLeft[currentStep]);
+              setSprite(f.walkLeft[currentStep]);
             } else {
-              setCurrentImg(f.walkRight[currentStep]);
+              setSprite(f.walkRight[currentStep]);
             }
           }
         }
@@ -306,14 +312,14 @@ export const PixelBuddy: React.FC<PixelBuddyProps> = ({ theme: propTheme }) => {
     // Cycle through 8 jump frames (90ms each = 720ms total)
     let jumpStep = 0;
     jumpStepRef.current = 0;
-    setCurrentImg(initialFrames.jump[0]);
+    setSprite(initialFrames.jump[0]);
 
     const jumpTimer = setInterval(() => {
       jumpStep++;
       jumpStepRef.current = jumpStep;
       const currentFrames = getFrames();
       if (jumpStep < currentFrames.jump.length) {
-        setCurrentImg(currentFrames.jump[jumpStep]);
+        setSprite(currentFrames.jump[jumpStep]);
       } else {
         clearInterval(jumpTimer);
         jumpTimerRef.current = null;
@@ -322,7 +328,7 @@ export const PixelBuddy: React.FC<PixelBuddyProps> = ({ theme: propTheme }) => {
         jumpStepRef.current = 0;
         // Stand facing front and pause after click or tap before resuming walking
         postClickPauseTimerRef.current = POST_CLICK_PAUSE_DURATION;
-        setCurrentImg(currentFrames.standFront);
+        setSprite(currentFrames.standFront);
       }
     }, 90);
     jumpTimerRef.current = jumpTimer;
@@ -346,7 +352,7 @@ export const PixelBuddy: React.FC<PixelBuddyProps> = ({ theme: propTheme }) => {
         isPausedRef.current = true;
         if (!isJumpingRef.current) {
           const f = FRAME_SETS[themeRef.current] || FRAME_SETS.light;
-          setCurrentImg(f.standFront); // Face front on hover
+          setSprite(f.standFront); // Face front on hover
         }
       }}
       onMouseLeave={() => {
@@ -355,7 +361,7 @@ export const PixelBuddy: React.FC<PixelBuddyProps> = ({ theme: propTheme }) => {
         isPausedRef.current = false;
         if (!isJumpingRef.current && postClickPauseTimerRef.current <= 0) {
           const f = FRAME_SETS[themeRef.current] || FRAME_SETS.light;
-          setCurrentImg(
+          setSprite(
             dirRef.current === -1
               ? f.walkLeft[currentStepRef.current]
               : f.walkRight[currentStepRef.current]
@@ -401,21 +407,22 @@ export const PixelBuddy: React.FC<PixelBuddyProps> = ({ theme: propTheme }) => {
           }`}
         >
           {/* Walking / Jumping sprite */}
-          <div className="pixel-buddy-sprite w-10 h-10 flex items-center justify-center">
+          <div className="pixel-buddy-sprite w-12 h-12 flex items-center justify-center">
             <img
-              src={currentImg}
+              ref={imgRef}
+              src={initialImg}
               alt="Schedy Pixel Buddy Mascot"
-              width={40}
-              height={40}
-              className="w-10 h-10 object-contain pointer-events-none [image-rendering:pixelated]"
+              width={48}
+              height={48}
+              className="w-12 h-12 object-contain pointer-events-none [image-rendering:pixelated]"
               draggable={false}
             />
           </div>
 
           {/* Ground shadow beneath feet */}
           <div
-            className={`w-6 h-1 bg-black/15 dark:bg-white/15 rounded-full mx-auto -mt-0.5 blur-[0.6px] pointer-events-none transition-all duration-200 ${
-              isJumping ? 'scale-75 opacity-30' : 'scale-100 opacity-100'
+            className={`w-8 h-1.5 bg-black/15 dark:bg-white/15 rounded-full mx-auto -mt-1 blur-[0.6px] pointer-events-none ${
+              isJumping ? 'pixel-buddy-shadow-hopping' : ''
             }`}
           />
         </button>

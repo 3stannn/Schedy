@@ -1281,17 +1281,16 @@ a:hover .moving-icon-shake,
    ========================================================================== */
 
 @keyframes pixelBuddyHop {
-  0%, 100% {
+  0% {
     transform: translateY(0);
-  }
-  25% {
-    transform: translateY(-6px);
+    animation-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
   }
   50% {
-    transform: translateY(-14px);
+    transform: translateY(-16px);
+    animation-timing-function: cubic-bezier(0.6, 0.04, 0.98, 0.33);
   }
-  75% {
-    transform: translateY(-6px);
+  100% {
+    transform: translateY(0);
   }
 }
 
@@ -1302,13 +1301,35 @@ a:hover .moving-icon-shake,
 }
 
 .pixel-buddy-hopping {
-  animation: pixelBuddyHop 0.72s cubic-bezier(0.25, 1, 0.5, 1);
+  animation: pixelBuddyHop 0.72s;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .pixel-buddy-hopping {
+  .pixel-buddy-hopping,
+  .pixel-buddy-shadow-hopping {
     animation: none !important;
     transform: none !important;
   }
 }
-
+
+
+@keyframes pixelBuddyShadow {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+    animation-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  50% {
+    transform: scale(0.65);
+    opacity: 0.2;
+    animation-timing-function: cubic-bezier(0.6, 0.04, 0.98, 0.33);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.pixel-buddy-shadow-hopping {
+  animation: pixelBuddyShadow 0.72s;
+}

@@ -726,7 +726,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
           onDragOver={(e) => handleDragOver(e, 'pending')}
           onDragLeave={(e) => handleDragLeave(e, 'pending')}
           onDrop={(e) => handleDrop(e, 'pending')}
-          className={`ios-card p-3.5 rounded-2xl flex-col gap-3 min-h-[480px] transition-all ${
+          className={`ios-card p-3.5 rounded-2xl flex-col gap-3 min-h-[300px] max-h-[calc(100vh-180px)] transition-all ${
             activeMobileTab === 'upcoming' ? 'flex' : 'hidden md:flex'
           } ${
             dragOverColumn === 'pending'
@@ -756,7 +756,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
           </div>
 
           {/* Column Card List */}
-          <div className="flex flex-col gap-2.5 flex-1">
+          <div className="flex flex-col gap-2.5 flex-1 overflow-y-auto min-h-0 pr-1 -mr-1">
             {/* Drop Placeholder */}
             {dragOverColumn === 'pending' && draggingEventId && events.find(ev => ev.id === draggingEventId)?.status !== 'pending' && (
               <div className="p-3.5 rounded-[14px] border-2 border-dashed border-blue-500/70 bg-blue-500/10 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400 flex items-center justify-center text-xs font-semibold animate-pulse shadow-xs">
@@ -927,7 +927,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
           onDragOver={(e) => handleDragOver(e, 'in_progress')}
           onDragLeave={(e) => handleDragLeave(e, 'in_progress')}
           onDrop={(e) => handleDrop(e, 'in_progress')}
-          className={`ios-card p-3.5 rounded-2xl flex-col gap-3 min-h-[480px] transition-all ${
+          className={`ios-card p-3.5 rounded-2xl flex-col gap-3 min-h-[300px] max-h-[calc(100vh-180px)] transition-all ${
             activeMobileTab === 'in_progress' ? 'flex' : 'hidden md:flex'
           } ${
             dragOverColumn === 'in_progress'
@@ -957,7 +957,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
           </div>
 
           {/* Column Card List */}
-          <div className="flex flex-col gap-2.5 flex-1">
+          <div className="flex flex-col gap-2.5 flex-1 overflow-y-auto min-h-0 pr-1 -mr-1">
             {/* Drop Placeholder */}
             {dragOverColumn === 'in_progress' && draggingEventId && events.find(ev => ev.id === draggingEventId)?.status !== 'in_progress' && (
               <div className="p-3.5 rounded-[14px] border-2 border-dashed border-amber-500/70 bg-amber-500/10 dark:bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center text-xs font-semibold animate-pulse shadow-xs">
@@ -1118,7 +1118,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
           onDragOver={(e) => handleDragOver(e, 'completed')}
           onDragLeave={(e) => handleDragLeave(e, 'completed')}
           onDrop={(e) => handleDrop(e, 'completed')}
-          className={`ios-card p-3.5 rounded-2xl flex-col gap-3 min-h-[480px] transition-all ${
+          className={`ios-card p-3.5 rounded-2xl flex-col gap-3 min-h-[300px] max-h-[calc(100vh-180px)] transition-all ${
             activeMobileTab === 'completed' ? 'flex' : 'hidden md:flex'
           } ${
             dragOverColumn === 'completed'
@@ -1148,7 +1148,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
           </div>
 
           {/* Column Card List */}
-          <div className="flex flex-col gap-2.5 flex-1">
+          <div className="flex flex-col gap-2.5 flex-1 overflow-y-auto min-h-0 pr-1 -mr-1">
             {/* Drop Placeholder */}
             {dragOverColumn === 'completed' && draggingEventId && events.find(ev => ev.id === draggingEventId)?.status !== 'completed' && (
               <div className="p-3.5 rounded-[14px] border-2 border-dashed border-emerald-500/70 bg-emerald-500/10 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xs font-semibold animate-pulse shadow-xs">
@@ -1289,7 +1289,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
         {/* ========================================================================= */}
         {/* COLUMN 4: NOTES (Independent Notepad / Scratchpad Database)              */}
         {/* ========================================================================= */}
-        <div className={`ios-card p-3.5 rounded-2xl flex-col gap-3 min-h-[480px] bg-white/70 dark:bg-[#1c1c1e]/70 border border-neutral-200/80 dark:border-neutral-800 ${
+        <div className={`ios-card p-3.5 rounded-2xl flex-col gap-3 min-h-[300px] max-h-[calc(100vh-180px)] bg-white/70 dark:bg-[#1c1c1e]/70 border border-neutral-200/80 dark:border-neutral-800 ${
           activeMobileTab === 'notes' ? 'flex' : 'hidden md:flex'
         }`}>
           {/* Column Header */}
@@ -1314,7 +1314,7 @@ export const TaskBoard: React.FC<TaskBoardProps> = ({
           </div>
 
           {/* Column Card List */}
-          <div className="flex flex-col gap-2.5 flex-1">
+          <div className="flex flex-col gap-2.5 flex-1 overflow-y-auto min-h-0 pr-1 -mr-1">
             {filteredNotes.length === 0 ? (
               <div className="flex flex-col items-center justify-center p-6 text-center border border-dashed border-neutral-200 dark:border-neutral-800/80 rounded-xl my-auto">
                 <FileText className="w-6 h-6 text-neutral-300 dark:text-neutral-600 mb-1.5" />
