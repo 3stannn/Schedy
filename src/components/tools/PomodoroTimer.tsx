@@ -440,7 +440,7 @@ export const PomodoroTimer: React.FC<PomodoroTimerProps> = ({
         ? `Great job! Time for a ${sessionRound % settings.longBreakInterval === 0 ? 'long' : 'short'} break.`
         : 'Ready to dive back into focus?';
       try {
-        new Notification(title, { body, icon: '/favicon.ico' });
+        new Notification(title, { body, icon: '/schedy.png' });
       } catch {}
     }
 

@@ -89,6 +89,15 @@ export function App() {
     root.classList.add(theme);
     localStorage.setItem('schedulesync_theme', theme);
 
+    const favicon = document.getElementById('app-favicon') as HTMLLinkElement | null;
+    if (favicon) {
+      favicon.href = theme === 'pink' ? '/schedypink.png' : '/schedy.png';
+    }
+    const appleIcon = document.querySelector<HTMLLinkElement>("link[rel='apple-touch-icon']");
+    if (appleIcon) {
+      appleIcon.href = theme === 'pink' ? '/schedypink.png' : '/schedy.png';
+    }
+
     const timer = setTimeout(() => {
       root.classList.remove('theme-transition');
     }, 350);
