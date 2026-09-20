@@ -2,64 +2,64 @@ import React, { useState, useEffect, useRef } from 'react';
 import { haptics } from '../../utils/haptics';
 
 // Default / Light frames
-import frame1left from '../../assets/pixel buddy/frame1left.svg';
-import frame2left from '../../assets/pixel buddy/frame2left.svg';
-import frame1right from '../../assets/pixel buddy/frame1right.svg';
-import frame2right from '../../assets/pixel buddy/frame2right.svg';
-import frame1 from '../../assets/pixel buddy/frame1.svg';
-import frame2 from '../../assets/pixel buddy/frame2.svg';
-import frame3 from '../../assets/pixel buddy/frame3.svg';
-import frame4 from '../../assets/pixel buddy/frame4.svg';
-import frame5 from '../../assets/pixel buddy/frame5.svg';
-import frame6 from '../../assets/pixel buddy/frame6.svg';
-import frame7 from '../../assets/pixel buddy/frame7.svg';
-import frame8 from '../../assets/pixel buddy/frame8.svg';
+import frame1left from '../../assets/pixel buddy 2.0/frame1left.svg';
+import frame2left from '../../assets/pixel buddy 2.0/frame2left.svg';
+import frame1right from '../../assets/pixel buddy 2.0/frame1right.svg';
+import frame2right from '../../assets/pixel buddy 2.0/frame2right.svg';
+import frame1 from '../../assets/pixel buddy 2.0/frame1.svg';
+import frame2 from '../../assets/pixel buddy 2.0/frame2.svg';
+import frame3 from '../../assets/pixel buddy 2.0/frame3.svg';
+import frame4 from '../../assets/pixel buddy 2.0/frame4.svg';
+import frame5 from '../../assets/pixel buddy 2.0/frame5.svg';
+import frame6 from '../../assets/pixel buddy 2.0/frame6.svg';
+import frame7 from '../../assets/pixel buddy 2.0/frame7.svg';
+import frame8 from '../../assets/pixel buddy 2.0/frame8.svg';
 
 // Dark theme frames
-import frame1left_dark from '../../assets/pixel buddy/frame1left_dark.svg';
-import frame2left_dark from '../../assets/pixel buddy/frame2left_dark.svg';
-import frame1right_dark from '../../assets/pixel buddy/frame1right_dark.svg';
-import frame2right_dark from '../../assets/pixel buddy/frame2right_dark.svg';
-import frame1_dark from '../../assets/pixel buddy/frame1_dark.svg';
-import frame2_dark from '../../assets/pixel buddy/frame2_dark.svg';
-import frame3_dark from '../../assets/pixel buddy/frame3_dark.svg';
-import frame4_dark from '../../assets/pixel buddy/frame4_dark.svg';
-import frame5_dark from '../../assets/pixel buddy/frame5_dark.svg';
-import frame6_dark from '../../assets/pixel buddy/frame6_dark.svg';
-import frame7_dark from '../../assets/pixel buddy/frame7_dark.svg';
-import frame8_dark from '../../assets/pixel buddy/frame8_dark.svg';
+import frame1left_dark from '../../assets/pixel buddy 2.0/frame1left_dark.svg';
+import frame2left_dark from '../../assets/pixel buddy 2.0/frame2left_dark.svg';
+import frame1right_dark from '../../assets/pixel buddy 2.0/frame1right_dark.svg';
+import frame2right_dark from '../../assets/pixel buddy 2.0/frame2right_dark.svg';
+import frame1_dark from '../../assets/pixel buddy 2.0/frame1_dark.svg';
+import frame2_dark from '../../assets/pixel buddy 2.0/frame2_dark.svg';
+import frame3_dark from '../../assets/pixel buddy 2.0/frame3_dark.svg';
+import frame4_dark from '../../assets/pixel buddy 2.0/frame4_dark.svg';
+import frame5_dark from '../../assets/pixel buddy 2.0/frame5_dark.svg';
+import frame6_dark from '../../assets/pixel buddy 2.0/frame6_dark.svg';
+import frame7_dark from '../../assets/pixel buddy 2.0/frame7_dark.svg';
+import frame8_dark from '../../assets/pixel buddy 2.0/frame8_dark.svg';
 
 // Pink theme frames
-import frame1left_pink from '../../assets/pixel buddy/frame1left_pink.svg';
-import frame2left_pink from '../../assets/pixel buddy/frame2left_pink.svg';
-import frame1right_pink from '../../assets/pixel buddy/frame1right_pink.svg';
-import frame2right_pink from '../../assets/pixel buddy/frame2right_pink.svg';
-import frame1_pink from '../../assets/pixel buddy/frame1_pink.svg';
-import frame2_pink from '../../assets/pixel buddy/frame2_pink.svg';
-import frame3_pink from '../../assets/pixel buddy/frame3_pink.svg';
-import frame4_pink from '../../assets/pixel buddy/frame4_pink.svg';
-import frame5_pink from '../../assets/pixel buddy/frame5_pink.svg';
-import frame6_pink from '../../assets/pixel buddy/frame6_pink.svg';
-import frame7_pink from '../../assets/pixel buddy/frame7_pink.svg';
-import frame8_pink from '../../assets/pixel buddy/frame8_pink.svg';
+import frame1left_pink from '../../assets/pixel buddy 2.0/frame1left_pink.svg';
+import frame2left_pink from '../../assets/pixel buddy 2.0/frame2left_pink.svg';
+import frame1right_pink from '../../assets/pixel buddy 2.0/frame1right_pink.svg';
+import frame2right_pink from '../../assets/pixel buddy 2.0/frame2right_pink.svg';
+import frame1_pink from '../../assets/pixel buddy 2.0/frame1_pink.svg';
+import frame2_pink from '../../assets/pixel buddy 2.0/frame2_pink.svg';
+import frame3_pink from '../../assets/pixel buddy 2.0/frame3_pink.svg';
+import frame4_pink from '../../assets/pixel buddy 2.0/frame4_pink.svg';
+import frame5_pink from '../../assets/pixel buddy 2.0/frame5_pink.svg';
+import frame6_pink from '../../assets/pixel buddy 2.0/frame6_pink.svg';
+import frame7_pink from '../../assets/pixel buddy 2.0/frame7_pink.svg';
+import frame8_pink from '../../assets/pixel buddy 2.0/frame8_pink.svg';
 
 const FRAME_SETS = {
   light: {
     walkLeft: [frame1left, frame2left],
     walkRight: [frame1right, frame2right],
-    jump: [frame1, frame2, frame3, frame4, frame5, frame6, frame7, frame8],
+    jump: [frame2, frame5, frame6, frame7, frame8, frame3, frame4, frame1],
     standFront: frame1,
   },
   dark: {
     walkLeft: [frame1left_dark, frame2left_dark],
     walkRight: [frame1right_dark, frame2right_dark],
-    jump: [frame1_dark, frame2_dark, frame3_dark, frame4_dark, frame5_dark, frame6_dark, frame7_dark, frame8_dark],
+    jump: [frame2_dark, frame5_dark, frame6_dark, frame7_dark, frame8_dark, frame3_dark, frame4_dark, frame1_dark],
     standFront: frame1_dark,
   },
   pink: {
     walkLeft: [frame1left_pink, frame2left_pink],
     walkRight: [frame1right_pink, frame2right_pink],
-    jump: [frame1_pink, frame2_pink, frame3_pink, frame4_pink, frame5_pink, frame6_pink, frame7_pink, frame8_pink],
+    jump: [frame2_pink, frame5_pink, frame6_pink, frame7_pink, frame8_pink, frame3_pink, frame4_pink, frame1_pink],
     standFront: frame1_pink,
   },
 };
@@ -71,7 +71,7 @@ const ALL_PRELOAD_FRAMES = [
 ];
 
 const CHEER_MESSAGES = [
-  "Hi! I'm Schedy Buddy!",
+  "Hi! I'm Scubby!",
   "Stay focused today!",
   "Keep up the great work!",
   "Don't forget to take breaks!",
@@ -212,8 +212,8 @@ export const PixelBuddy: React.FC<PixelBuddyProps> = ({ theme: propTheme }) => {
             window.innerWidth >= 1024
               ? 210
               : window.innerWidth >= 640
-              ? 130
-              : Math.max(window.innerWidth - 56, 120);
+                ? 130
+                : Math.max(window.innerWidth - 56, 120);
 
           posRef.current += dirRef.current * speed * delta;
 
@@ -291,8 +291,8 @@ export const PixelBuddy: React.FC<PixelBuddyProps> = ({ theme: propTheme }) => {
       window.innerWidth >= 1024
         ? 210
         : window.innerWidth >= 640
-        ? 130
-        : Math.max(window.innerWidth - 56, 120);
+          ? 130
+          : Math.max(window.innerWidth - 56, 120);
 
     if (window.innerWidth < 640) {
       if (posRef.current > -80) {
@@ -373,25 +373,23 @@ export const PixelBuddy: React.FC<PixelBuddyProps> = ({ theme: propTheme }) => {
         {/* Speech Bubble */}
         {speech && (
           <div
-            className={`absolute bottom-full mb-2.5 whitespace-nowrap px-2.5 py-1 rounded-xl bg-neutral-900/90 text-white dark:bg-white/95 dark:text-neutral-900 text-[11px] font-semibold tracking-tight shadow-lg backdrop-blur-sm pointer-events-none transition-all z-30 ${
-              bubbleAlign === 'right'
+            className={`absolute bottom-full mb-2.5 whitespace-nowrap px-2.5 py-1 rounded-xl bg-neutral-900/90 text-white dark:bg-white/95 dark:text-neutral-900 text-[11px] font-semibold tracking-tight shadow-lg backdrop-blur-sm pointer-events-none transition-all z-30 ${bubbleAlign === 'right'
                 ? 'right-0'
                 : bubbleAlign === 'left'
-                ? 'left-0'
-                : 'right-1/2 translate-x-1/2'
-            }`}
+                  ? 'left-0'
+                  : 'right-1/2 translate-x-1/2'
+              }`}
             style={{ animation: 'fadeIn 0.2s ease-out' }}
           >
             <span>{speech}</span>
             {/* Bubble arrow pointing down */}
             <div
-              className={`absolute top-full -mt-[1px] border-4 border-transparent border-t-neutral-900/90 dark:border-t-white/95 ${
-                bubbleAlign === 'right'
+              className={`absolute top-full -mt-[1px] border-4 border-transparent border-t-neutral-900/90 dark:border-t-white/95 ${bubbleAlign === 'right'
                   ? 'right-4'
                   : bubbleAlign === 'left'
-                  ? 'left-4'
-                  : 'left-1/2 -translate-x-1/2'
-              }`}
+                    ? 'left-4'
+                    : 'left-1/2 -translate-x-1/2'
+                }`}
             />
           </div>
         )}
@@ -402,28 +400,26 @@ export const PixelBuddy: React.FC<PixelBuddyProps> = ({ theme: propTheme }) => {
           onClick={handleClick}
           title="Schedy Buddy (Click to jump!)"
           aria-label="Schedy Buddy pixel mascot"
-          className={`relative block cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-lg transition-transform ${
-            isJumping ? 'pixel-buddy-hopping' : ''
-          }`}
+          className={`relative block cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-lg transition-transform ${isJumping ? 'pixel-buddy-hopping' : ''
+            }`}
         >
           {/* Walking / Jumping sprite */}
-          <div className="pixel-buddy-sprite w-12 h-12 flex items-center justify-center">
+          <div className="pixel-buddy-sprite w-[42px] h-[42px] flex items-center justify-center">
             <img
               ref={imgRef}
               src={initialImg}
               alt="Schedy Pixel Buddy Mascot"
-              width={48}
-              height={48}
-              className="w-12 h-12 object-contain pointer-events-none [image-rendering:pixelated]"
+              width={42}
+              height={42}
+              className="w-[42px] h-[42px] object-contain pointer-events-none [image-rendering:pixelated]"
               draggable={false}
             />
           </div>
 
           {/* Ground shadow beneath feet */}
           <div
-            className={`w-8 h-1.5 bg-black/15 dark:bg-white/15 rounded-full mx-auto -mt-1 blur-[0.6px] pointer-events-none ${
-              isJumping ? 'pixel-buddy-shadow-hopping' : ''
-            }`}
+            className={`w-7 h-1.5 bg-black/15 dark:bg-white/15 rounded-full mx-auto -mt-1 blur-[0.6px] pointer-events-none ${isJumping ? 'pixel-buddy-shadow-hopping' : ''
+              }`}
           />
         </button>
       </div>

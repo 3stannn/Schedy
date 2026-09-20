@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="784" height="720" viewBox="0 0 196 180" shape-rendering="crispEdges">
+<title>Consistent pixel robot sprite sheet</title>
+<desc>33 sprites on a shared integer grid. Three palette variants each contain seven expressions and four side poses. Transparent background. Front frame geometry is identical across all expressions.</desc>
+<defs>
+<g id="front-body"><rect x="5" y="1" width="3" height="3" fill="var(--limb)"/><rect x="13" y="1" width="3" height="3" fill="var(--limb)"/><rect x="3" y="4" width="15" height="15" fill="var(--base)"/><rect x="2" y="6" width="17" height="11" fill="var(--base)"/><rect x="3" y="6" width="1" height="10" fill="var(--light)"/><rect x="4" y="4" width="13" height="1" fill="var(--light)"/><rect x="17" y="6" width="2" height="11" fill="var(--shade)"/><rect x="4" y="18" width="13" height="1" fill="var(--shade)"/><rect x="5" y="6" width="11" height="1" fill="var(--face)"/><rect x="4" y="7" width="13" height="8" fill="var(--face)"/><rect x="5" y="15" width="11" height="1" fill="var(--face)"/><rect x="5" y="17" width="5" height="1" fill="var(--light)"/><rect x="5" y="19" width="3" height="3" fill="var(--limb)"/><rect x="13" y="19" width="3" height="3" fill="var(--limb)"/></g>
+<g id="expression-0"><rect x="6" y="9" width="3" height="3" fill="var(--ink)"/><rect x="12" y="9" width="3" height="3" fill="var(--ink)"/><rect x="9" y="12" width="3" height="1" fill="var(--mouth)"/></g>
+<g id="expression-1"><rect x="6" y="10" width="3" height="3" fill="var(--ink)"/><rect x="12" y="10" width="3" height="3" fill="var(--ink)"/><rect x="9" y="13" width="3" height="1" fill="var(--mouth)"/></g>
+<g id="expression-2"><rect x="6" y="9" width="3" height="2" fill="var(--ink)"/><rect x="12" y="9" width="3" height="2" fill="var(--ink)"/><rect x="9" y="12" width="3" height="2" fill="var(--mouth)"/></g>
+<g id="expression-3"><rect x="6" y="11" width="3" height="1" fill="var(--ink)"/><rect x="12" y="11" width="3" height="1" fill="var(--ink)"/><rect x="9" y="13" width="3" height="1" fill="var(--mouth)"/></g>
+<g id="expression-4"><rect x="6" y="9" width="3" height="3" fill="var(--ink)"/><rect x="12" y="9" width="3" height="3" fill="var(--ink)"/><rect x="9" y="13" width="3" height="1" fill="var(--mouth)"/></g>
+<g id="expression-5"><rect x="6" y="9" width="3" height="3" fill="var(--ink)"/><rect x="12" y="9" width="3" height="3" fill="var(--ink)"/><rect x="10" y="12" width="2" height="2" fill="var(--mouth)"/></g>
+<g id="expression-6"><rect x="6" y="10" width="1" height="2" fill="var(--ink)"/><rect x="7" y="9" width="2" height="1" fill="var(--ink)"/><rect x="9" y="10" width="1" height="1" fill="var(--ink)"/><rect x="11" y="10" width="1" height="1" fill="var(--ink)"/><rect x="12" y="9" width="2" height="1" fill="var(--ink)"/><rect x="14" y="10" width="1" height="2" fill="var(--ink)"/><rect x="9" y="12" width="3" height="2" fill="var(--mouth)"/></g>
+<g id="side-0"><rect x="7" y="1" width="6" height="3" fill="var(--limb)"/><rect x="5" y="4" width="12" height="15" fill="var(--base)"/><rect x="4" y="6" width="1" height="11" fill="var(--base)"/><rect x="6" y="4" width="10" height="1" fill="var(--light)"/><rect x="11" y="5" width="6" height="14" fill="var(--shade)"/><rect x="5" y="6" width="6" height="10" fill="var(--face)"/><rect x="10" y="6" width="1" height="10" fill="var(--light)"/><rect x="5" y="9" width="2" height="3" fill="var(--ink)"/><rect x="5" y="13" width="2" height="1" fill="var(--mouth)"/><rect x="5" y="17" width="5" height="1" fill="var(--light)"/><rect x="6" y="19" width="4" height="3" fill="var(--limb)"/><rect x="12" y="19" width="4" height="3" fill="var(--limb)"/></g>
+<g id="side-1"><rect x="7" y="1" width="6" height="3" fill="var(--limb)"/><rect x="5" y="4" width="12" height="15" fill="var(--base)"/><rect x="4" y="6" width="1" height="11" fill="var(--base)"/><rect x="6" y="4" width="10" height="1" fill="var(--light)"/><rect x="11" y="5" width="6" height="14" fill="var(--shade)"/><rect x="5" y="6" width="6" height="10" fill="var(--face)"/><rect x="10" y="6" width="1" height="10" fill="var(--light)"/><rect x="5" y="9" width="2" height="3" fill="var(--ink)"/><rect x="5" y="13" width="2" height="1" fill="var(--mouth)"/><rect x="5" y="17" width="5" height="1" fill="var(--light)"/><rect x="5" y="19" width="4" height="3" fill="var(--limb)"/><rect x="13" y="19" width="4" height="3" fill="var(--limb)"/></g>
+</defs>
+<g id="variant-blue" style="--base:#2862ec;--light:#64a3ff;--shade:#2049c9;--face:#eff8ff;--ink:#102335;--mouth:#2862ec;--limb:#102335">
+<g id="blue-front-1" transform="translate(6 5)"><use href="#front-body"/><use href="#expression-0"/></g>
+<g id="blue-front-2" transform="translate(33 5)"><use href="#front-body"/><use href="#expression-1"/></g>
+<g id="blue-front-3" transform="translate(60 5)"><use href="#front-body"/><use href="#expression-2"/></g>
+<g id="blue-front-4" transform="translate(87 5)"><use href="#front-body"/><use href="#expression-3"/></g>
+<g id="blue-front-5" transform="translate(114 5)"><use href="#front-body"/><use href="#expression-4"/></g>
+<g id="blue-front-6" transform="translate(141 5)"><use href="#front-body"/><use href="#expression-5"/></g>
+<g id="blue-front-7" transform="translate(168 5)"><use href="#front-body"/><use href="#expression-6"/></g>
+<g id="blue-side-1" transform="translate(6 33)">
+<use href="#side-0"/>
+</g>
+<g id="blue-side-2" transform="translate(33 33)">
+<use href="#side-1"/>
+</g>
+<g id="blue-side-3" transform="translate(60 33)">
+<g transform="translate(21 0) scale(-1 1)">
+<use href="#side-0"/>
+</g>
+</g>
+<g id="blue-side-4" transform="translate(87 33)">
+<g transform="translate(21 0) scale(-1 1)">
+<use href="#side-1"/>
+</g>
+</g>
+</g>
+<g id="variant-night" style="--base:#2862ec;--light:#64a3ff;--shade:#2049c9;--face:#102335;--ink:#eff8ff;--mouth:#2862ec;--limb:#eff8ff">
+<g id="night-front-1" transform="translate(6 63)"><use href="#front-body"/><use href="#expression-0"/></g>
+<g id="night-front-2" transform="translate(33 63)"><use href="#front-body"/><use href="#expression-1"/></g>
+<g id="night-front-3" transform="translate(60 63)"><use href="#front-body"/><use href="#expression-2"/></g>
+<g id="night-front-4" transform="translate(87 63)"><use href="#front-body"/><use href="#expression-3"/></g>
+<g id="night-front-5" transform="translate(114 63)"><use href="#front-body"/><use href="#expression-4"/></g>
+<g id="night-front-6" transform="translate(141 63)"><use href="#front-body"/><use href="#expression-5"/></g>
+<g id="night-front-7" transform="translate(168 63)"><use href="#front-body"/><use href="#expression-6"/></g>
+<g id="night-side-1" transform="translate(6 91)">
+<use href="#side-0"/>
+</g>
+<g id="night-side-2" transform="translate(33 91)">
+<use href="#side-1"/>
+</g>
+<g id="night-side-3" transform="translate(60 91)">
+<g transform="translate(21 0) scale(-1 1)">
+<use href="#side-0"/>
+</g>
+</g>
+<g id="night-side-4" transform="translate(87 91)">
+<g transform="translate(21 0) scale(-1 1)">
+<use href="#side-1"/>
+</g>
+</g>
+</g>
+<g id="variant-pink" style="--base:#ff86a8;--light:#ffc0d2;--shade:#de5d89;--face:#eff8ff;--ink:#102335;--mouth:#ff86a8;--limb:#102335">
+<g id="pink-front-1" transform="translate(6 121)"><use href="#front-body"/><use href="#expression-0"/></g>
+<g id="pink-front-2" transform="translate(33 121)"><use href="#front-body"/><use href="#expression-1"/></g>
+<g id="pink-front-3" transform="translate(60 121)"><use href="#front-body"/><use href="#expression-2"/></g>
+<g id="pink-front-4" transform="translate(87 121)"><use href="#front-body"/><use href="#expression-3"/></g>
+<g id="pink-front-5" transform="translate(114 121)"><use href="#front-body"/><use href="#expression-4"/></g>
+<g id="pink-front-6" transform="translate(141 121)"><use href="#front-body"/><use href="#expression-5"/></g>
+<g id="pink-front-7" transform="translate(168 121)"><use href="#front-body"/><use href="#expression-6"/></g>
+<g id="pink-side-1" transform="translate(6 149)">
+<use href="#side-0"/>
+</g>
+<g id="pink-side-2" transform="translate(33 149)">
+<use href="#side-1"/>
+</g>
+<g id="pink-side-3" transform="translate(60 149)">
+<g transform="translate(21 0) scale(-1 1)">
+<use href="#side-0"/>
+</g>
+</g>
+<g id="pink-side-4" transform="translate(87 149)">
+<g transform="translate(21 0) scale(-1 1)">
+<use href="#side-1"/>
+</g>
+</g>
+</g>
+</svg>
